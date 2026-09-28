@@ -46,18 +46,18 @@ function r2RemotePatterns(): NonNullable<NonNullable<NextConfig["images"]>["remo
  * whose cells travel as JSON. Before this was set, any image over 1MB failed
  * at the HTTP layer before the action ever ran.
  */
-const ACTION_BODY_LIMIT = "11mb";
+// const ACTION_BODY_LIMIT = "11mb";
 
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: r2RemotePatterns(),
   },
 
-  experimental: {
-    serverActions: {
-      bodySizeLimit: ACTION_BODY_LIMIT,
-    },
-  },
+  // experimental: {
+  //   serverActions: {
+  //     bodySizeLimit: ACTION_BODY_LIMIT,
+  //   },
+  // },
 
   async redirects() {
     return [
