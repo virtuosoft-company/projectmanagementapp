@@ -6,15 +6,12 @@ import type { Role, Theme } from "@/lib/domain";
 import { roleToDomain, themeToDomain } from "@/lib/mappers";
 import { prisma } from "@/lib/prisma";
 import {
-  APP_PAGES,
-  narrowPages,
-  pagesForPermissions,
   resolveBaseRole,
+  supervisesPeople,
   type AppPage,
   type Permission,
   type ResolvedRole,
 } from "@/lib/permissions";
-import { getMemberPages } from "@/lib/queries";
 import { resolveMemberRole } from "@/lib/resolve-role";
 
 /**
@@ -128,10 +125,73 @@ export const getViewerRole = cache(async (): Promise<ResolvedRole | null> => {
   return (await resolveMemberRole(user.workspaceId, user.id)) ?? resolveBaseRole(user.role);
 });
 
+/**
+ * Every permission the viewer actually holds.
+ *
+ * For callers that need the whole set at once — a list filtered in a synchronous
+ * callback, say. Same source as `hasPermission`, so a custom role's narrowing
+ * applies here too.
+ */
+export async function getViewerPermissions(): Promise<Permission[]> {
+  const resolved = await getViewerRole();
+  return resolved ? resolved.permissions : [];
+}
+
+/**
+ * Whether the viewer supervises people — an admin or a manager.
+ *
+ * For the handful of things that are neither a permission nor a page: the
+ * project roster, for one, which only somebody responsible for who is on a
+ * project has a reason to see.
+ */
+export async function viewerSupervises(): Promise<boolean> {
+  const resolved = await getViewerRole();
+  return resolved ? supervisesPeople(resolved) : false;
+}
+
 /** Whether the viewer holds a permission, honouring a custom role's narrowing. */
 export async function viewerCan(permission: Permission): Promise<boolean> {
   const resolved = await getViewerRole();
   return resolved ? resolved.permissions.includes(permission) : false;
+}
+
+/**
+ * The pages assigned to the viewer's role.
+ *
+ * The sidebar renders exactly this list, and `requirePage` refuses anything
+ * outside it — so what the nav offers and what a URL actually opens are the
+ * same set, read from one place.
+ */
+export async function getViewerPages(): Promise<AppPage[]> {
+  const resolved = await getViewerRole();
+  return resolved ? resolved.pages : [];
+}
+
+/** Whether the viewer's role was assigned a page. */
+export async function viewerHasPage(page: AppPage): Promise<boolean> {
+  return (await getViewerPages()).includes(page);
+}
+
+/**
+ * Session user, or a redirect away, gated on an **assigned page** rather than
+ * on a permission.
+ *
+ * This is the gate for anything listed in `APP_PAGES`. Which pages a role
+ * reaches is assigned by an admin and stored per role, so asking the
+ * permission matrix instead would contradict the assignment: a role given
+ * Analytics without `reports.view` would have the page in its sidebar and be
+ * bounced on arrival.
+ *
+ * Being let in is not permission to act. Every control on the far side is
+ * still gated on `hasPermission`, and every server action re-checks, so a page
+ * handed to a role that holds none of its permissions opens read-only.
+ */
+export async function requirePage(page: AppPage): Promise<ActiveSessionUser> {
+  const user = await requireUser();
+  if (!(await viewerHasPage(page))) {
+    redirect(`/forbidden?page=${encodeURIComponent(page)}`);
+  }
+  return user;
 }
 
 /**
@@ -151,57 +211,6 @@ export async function projectScope(): Promise<string | undefined> {
   const user = await getSessionUser();
   if (!user) return undefined;
   return (await viewerCan("workspace.settings")) ? undefined : user.id;
-}
-
-/**
- * The pages the current viewer may reach, after their assignment is applied.
- *
- * Read from the database rather than the JWT on purpose: the token is minted at
- * sign-in, so an owner revoking a page would not take effect until that person
- * signed out and back in — too long for something meant as an access control.
- * `cache()` on both this and `getMemberPages` keeps it to one query per request.
- */
-export const getViewerPages = cache(async (): Promise<AppPage[]> => {
-  const user = await getSessionUser();
-  if (!user?.workspaceId || !user.role) return [];
-
-  const [resolved, assigned] = await Promise.all([
-    getViewerRole(),
-    getMemberPages(user.workspaceId, user.id),
-  ]);
-  if (!resolved) return [];
-
-  // From the resolved permissions, not the base role: a custom role that drops
-  // `reports.view` must lose Analytics, not merely lose the ability to use it.
-  return narrowPages(pagesForPermissions(resolved.permissions), assigned);
-});
-
-/**
- * Gate a page on per-user assignment as well as role.
- *
- * Use *instead of* `requireUser`/`requirePermission` on any page listed in
- * `APP_PAGES`: it applies the role's permission and the member's assignment in
- * one place, so the two cannot be checked inconsistently.
- *
- * Being unassigned a page is not a role failure, so the reason carried to
- * /forbidden is the page rather than a permission — "Analytics isn't assigned
- * to you" is true, where "you lack View reports" may not be.
- */
-export async function requirePage(page: AppPage): Promise<ActiveSessionUser> {
-  const user = await requireUser();
-  const reachable = await getViewerPages();
-
-  if (!reachable.includes(page)) {
-    const entry = APP_PAGES.find((item) => item.key === page);
-    // A role that never had the page gets the permission message; someone who
-    // had it removed gets the page message. Different causes, different fixes.
-    if (entry?.permission && !(await viewerCan(entry.permission))) {
-      redirect(`/forbidden?need=${encodeURIComponent(entry.permission)}`);
-    }
-    redirect(`/forbidden?page=${encodeURIComponent(page)}`);
-  }
-
-  return user;
 }
 
 /**

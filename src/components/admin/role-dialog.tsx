@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { CircleAlert, Plus } from "lucide-react";
 import {
   createCustomRoleAction,
@@ -20,6 +21,7 @@ import { SelectField } from "@/components/ui/select-field";
 import { Textarea } from "@/components/ui/textarea";
 import type { Role } from "@/lib/domain";
 import {
+  APP_PAGES,
   PERMISSION_LABELS,
   ROLES,
   permissionsFor,
@@ -66,6 +68,7 @@ export function RoleDialog({
     description: role?.description ?? "",
     inheritsFrom: (role?.inheritsFrom ?? "member") as Role,
     permissions: (role?.permissions ?? []) as string[],
+    pages: (role?.pages ?? []) as string[],
   });
   const [nameTouched, setNameTouched] = useState(Boolean(role));
 
@@ -85,6 +88,13 @@ export function RoleDialog({
     grantable.includes(permission as Permission),
   );
   const allSelected = selected.length === grantable.length && grantable.length > 0;
+
+  /*
+   * Pages get no equivalent of `grantable`: every page is offerable to every
+   * role, whatever its permissions. Switching the base role leaves the ticked
+   * pages alone for the same reason — the two lists are independent.
+   */
+  const allPagesSelected = draft.pages.length === APP_PAGES.length;
 
   function changeBase(next: Role) {
     setDraft((current) => {
@@ -107,7 +117,7 @@ export function RoleDialog({
     event.preventDefault();
     setError(null);
 
-    const payload = { ...draft, permissions: selected };
+    const payload = { ...draft, permissions: selected, pages: draft.pages };
 
     startTransition(async () => {
       const result = role
@@ -118,6 +128,8 @@ export function RoleDialog({
         setError(result.error ?? "Could not save that role.");
         return;
       }
+
+      toast.success(role ? "Role updated" : "Role created");
       onClose();
       router.refresh();
     });
@@ -235,6 +247,54 @@ export function RoleDialog({
           </p>
         </fieldset>
 
+        <fieldset>
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <legend className="text-sm font-medium leading-none">
+              Pages (<span className="font-mono">{draft.pages.length}</span>/
+              <span className="font-mono">{APP_PAGES.length}</span>)
+            </legend>
+            <Button
+              type="button"
+              variant="outline"
+              size="xs"
+              disabled={pending}
+              onClick={() =>
+                set("pages", allPagesSelected ? [] : APP_PAGES.map((page) => page.key))
+              }
+            >
+              {allPagesSelected ? "Deselect All" : "Select All"}
+            </Button>
+          </div>
+
+          <div className="grid gap-1 rounded-md border p-2 sm:grid-cols-2">
+            {APP_PAGES.map((page) => (
+              <label
+                key={page.key}
+                className="flex cursor-pointer items-center gap-2 rounded-md p-1.5 text-sm hover:bg-muted/50"
+              >
+                <Checkbox
+                  checked={draft.pages.includes(page.key)}
+                  onCheckedChange={() =>
+                    set(
+                      "pages",
+                      draft.pages.includes(page.key)
+                        ? draft.pages.filter((item) => item !== page.key)
+                        : [...draft.pages, page.key],
+                    )
+                  }
+                />
+                {page.label}
+              </label>
+            ))}
+          </div>
+
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Whichever pages are ticked appear in this role&rsquo;s sidebar and open by URL.
+            A page needs no matching permission — one ticked without it opens read-only,
+            because every control inside is gated separately.
+          </p>
+        </fieldset>
+
         {error ? (
           <p
             role="alert"
@@ -309,7 +369,14 @@ export function RoleRowActions({ role }: { role: CustomRoleRow }) {
         onClose={() => setRemoving(false)}
         onConfirm={() =>
           startTransition(async () => {
-            await deleteCustomRoleAction(role.id);
+            // Same as the campaign delete: the result was discarded, so a
+            // refusal was indistinguishable from success.
+            const result = await deleteCustomRoleAction(role.id);
+            if (!result.ok) {
+              toast.error(result.error ?? "Could not delete that role.");
+              return;
+            }
+            toast.success("Role deleted");
             setRemoving(false);
             router.refresh();
           })

@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -45,7 +46,6 @@ import {
   type Member,
   type Project,
   type ProjectStatus,
-  type Team,
 } from "@/lib/domain";
 import { statusVariant } from "@/lib/status";
 import { cn } from "@/lib/utils";
@@ -55,7 +55,6 @@ export type ProjectCard = Project & { done: number; taskCount: number };
 export function ProjectsGrid({
   projects,
   members,
-  teams,
   canCreate,
   canEdit,
   canDelete,
@@ -63,7 +62,6 @@ export function ProjectsGrid({
 }: {
   projects: ProjectCard[];
   members: Member[];
-  teams: Team[];
   canCreate: boolean;
   /** `projects.edit` — the ⋯ menu's Edit. */
   canEdit: boolean;
@@ -80,28 +78,30 @@ export function ProjectsGrid({
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
-  const [teamId, setTeamId] = useState("all");
 
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
     return projects.filter((project) => {
       if (status !== "all" && project.status !== status) return false;
-      if (teamId !== "all" && (project.teamId ?? "") !== (teamId === "none" ? "" : teamId)) {
-        return false;
-      }
       if (!term) return true;
       return (
         project.name.toLowerCase().includes(term) ||
         project.description.toLowerCase().includes(term)
       );
     });
-  }, [projects, search, status, teamId]);
+  }, [projects, search, status]);
 
-  function run(action: () => Promise<{ ok: boolean; error?: string }>, onDone: () => void) {
+  /** `done` is the toast raised on success; omitted where none is wanted. */
+  function run(
+    action: () => Promise<{ ok: boolean; error?: string }>,
+    onDone: () => void,
+    done?: string,
+  ) {
     startTransition(async () => {
       const result = await action();
       setError(result.error ?? null);
       if (result.ok) {
+        if (done) toast.success(done);
         onDone();
         router.refresh();
       }
@@ -158,18 +158,6 @@ export function ProjectsGrid({
                 value,
                 label: value.replace("-", " "),
               })),
-            ]}
-          />
-
-          <SelectField
-            value={teamId}
-            aria-label="Filter by team"
-            className="h-9 w-44"
-            onValueChange={setTeamId}
-            options={[
-              { value: "all", label: "Any team" },
-              ...teams.map((team) => ({ value: team.id, label: team.name })),
-              { value: "none", label: "No team" },
             ]}
           />
 
@@ -293,8 +281,9 @@ export function ProjectsGrid({
         pending={pending}
         onClose={() => setCreating(false)}
         members={members}
-        teams={teams}
-        onSubmit={(draft) => run(() => createProjectAction(draft), () => setCreating(false))}
+        onSubmit={(draft) =>
+          run(() => createProjectAction(draft), () => setCreating(false), "Project created")
+        }
       />
 
       {editing ? (
@@ -305,9 +294,12 @@ export function ProjectsGrid({
           pending={pending}
           onClose={() => setEditing(null)}
           members={members}
-          teams={teams}
           onSubmit={(draft) =>
-            run(() => updateProjectAction({ ...draft, id: editing.id }), () => setEditing(null))
+            run(
+              () => updateProjectAction({ ...draft, id: editing.id }),
+              () => setEditing(null),
+              "Project updated",
+            )
           }
         />
       ) : null}
@@ -319,7 +311,7 @@ export function ProjectsGrid({
           const project = removing;
           if (!project) return;
           setRemoving(null);
-          run(() => deleteProjectAction(project.id), () => undefined);
+          run(() => deleteProjectAction(project.id), () => undefined, "Project deleted");
         }}
         confirmLabel="Delete"
         title={`Delete ${removing?.name ?? "project"}?`}
@@ -338,7 +330,6 @@ type ProjectDraft = {
   description: string;
   status: ProjectStatus;
   color: string;
-  teamId: string;
   startDate: string;
   endDate: string;
   memberIds: string[];
@@ -351,7 +342,6 @@ function ProjectDialog({
   onClose,
   onSubmit,
   members,
-  teams,
 }: {
   open: boolean;
   /** The project being edited, or nothing when creating one. */
@@ -360,41 +350,19 @@ function ProjectDialog({
   onClose: () => void;
   onSubmit: (draft: ProjectDraft) => void;
   members: Member[];
-  teams: Team[];
 }) {
   const [draft, setDraft] = useState({
     name: project?.name ?? "",
     description: project?.description ?? "",
     status: project?.status ?? ("planning" as ProjectStatus),
     color: project?.color ?? COLOR_SWATCHES[0],
-    teamId: project?.teamId ?? "",
     startDate: project?.startDate ?? "",
     endDate: project?.endDate ?? "",
     memberIds: project?.members.map((person) => person.id) ?? ([] as string[]),
   });
 
-  const [showAllMembers, setShowAllMembers] = useState(false);
-
   const set = <K extends keyof typeof draft>(key: K, value: (typeof draft)[K]) =>
     setDraft((current) => ({ ...current, [key]: value }));
-
-  const teamNameById = useMemo(
-    () => new Map(teams.map((team) => [team.id, team.name])),
-    [teams],
-  );
-
-  /**
-   * Picking an owning team narrows the picker to that team, since that is who
-   * usually staffs the project. Anyone already ticked stays listed even when
-   * they fall outside the filter — otherwise switching team would strand a
-   * selection that cannot be seen or removed.
-   */
-  const visibleMembers = useMemo(() => {
-    if (showAllMembers || !draft.teamId) return members;
-    return members.filter(
-      (member) => member.teamId === draft.teamId || draft.memberIds.includes(member.id),
-    );
-  }, [members, showAllMembers, draft.teamId, draft.memberIds]);
 
   return (
     <FormDialog
@@ -403,7 +371,7 @@ function ProjectDialog({
       title={project ? "Edit project" : "Create Project"}
       description={
         project
-          ? "Change this project's details. Its colour and members are set on the project itself."
+          ? "Change this project's details and who is on it. Its colour is set on the project itself."
           : "Add a new project to your workspace."
       }
       className="max-w-xl"
@@ -438,15 +406,6 @@ function ProjectDialog({
             className="capitalize"
             onValueChange={(value) => set("status", value as ProjectStatus)}
             options={PROJECT_STATUSES.map((status) => ({ value: status, label: status }))}
-          />
-        </Field>
-
-        <Field label="Owning team">
-          <SelectField
-            value={draft.teamId}
-            onValueChange={(value) => set("teamId", value)}
-            placeholder="No team"
-            options={teams.map((team) => ({ value: team.id, label: team.name }))}
           />
         </Field>
 
@@ -494,26 +453,15 @@ function ProjectDialog({
             <legend className="text-sm font-medium leading-none">
               Members ({draft.memberIds.length} selected)
             </legend>
-            {draft.teamId ? (
-              <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
-                <Checkbox
-                  checked={showAllMembers}
-                  onCheckedChange={(checked) => setShowAllMembers(checked === true)}
-                  className="size-3.5"
-                />
-                Show everyone
-              </label>
-            ) : null}
           </div>
 
           <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border p-2">
-            {visibleMembers.length === 0 ? (
+            {members.length === 0 ? (
               <p className="p-1.5 text-sm text-muted-foreground">
-                Nobody is on that team yet — tick “Show everyone” to pick from the whole
-                workspace.
+                Nobody is in this workspace yet.
               </p>
             ) : (
-              visibleMembers.map((member) => (
+              members.map((member) => (
                 <label
                   key={member.id}
                   className="flex cursor-pointer items-center gap-3 rounded-md p-1.5 text-sm hover:bg-muted/50"
@@ -530,14 +478,6 @@ function ProjectDialog({
                     }
                   />
                   <span className="min-w-0 flex-1 truncate">{member.name}</span>
-                  {/* Only worth labelling when the list is not already one team. */}
-                  {showAllMembers || !draft.teamId ? (
-                    <span className="shrink-0 text-xs text-muted-foreground">
-                      {member.teamId
-                        ? (teamNameById.get(member.teamId) ?? "Other team")
-                        : "No team"}
-                    </span>
-                  ) : null}
                 </label>
               ))
             )}

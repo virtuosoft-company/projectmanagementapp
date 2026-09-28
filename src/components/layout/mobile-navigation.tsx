@@ -13,20 +13,24 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { activeTabHref, visibleMobileTabs } from "@/components/navigation";
 import { Badge } from "@/components/ui/badge";
-import type { Role } from "@/lib/domain";
+import type { AppPage, Permission } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
 export function MobileNavigation({
-  role,
+  pages,
+  permissions,
   badges = {},
   className,
 }: {
-  role: Role;
+  /** The role's assigned pages — the same list the sidebar and `requirePage` use. */
+  pages: readonly AppPage[];
+  /** Its resolved permissions, for tabs that are not assignable pages. */
+  permissions: readonly Permission[];
   badges?: Record<string, number>;
   className?: string;
 }) {
   const pathname = usePathname();
-  const tabs = visibleMobileTabs(role, badges);
+  const tabs = visibleMobileTabs(pages, permissions, badges);
   const activeHref = activeTabHref(pathname, tabs);
 
   if (tabs.length === 0) return null;

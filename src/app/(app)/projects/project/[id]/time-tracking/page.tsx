@@ -7,7 +7,6 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { WEEKDAY_LABELS, getWeekDays, todayIso } from "@/lib/domain";
-import { can } from "@/lib/permissions";
 import {
   getMembers,
   getProject,
@@ -15,7 +14,7 @@ import {
   getRunningTimer,
   getTimeSummary,
 } from "@/lib/queries";
-import { getSessionUser, requirePermission } from "@/lib/session";
+import { getSessionUser, hasPermission, projectScope, requirePermission } from "@/lib/session";
 import { cn, formatDuration } from "@/lib/utils";
 
 export async function generateMetadata({
@@ -23,7 +22,7 @@ export async function generateMetadata({
 }: PageProps<"/projects/project/[id]/time-tracking">): Promise<Metadata> {
   const { id } = await params;
   const viewer = await getSessionUser();
-  const project = viewer?.workspaceId ? await getProject(viewer.workspaceId, id) : null;
+  const project = viewer?.workspaceId ? await getProject(viewer.workspaceId, id, await projectScope()) : null;
   return { title: `${project?.name ?? "Project"} — Time Tracking` };
 }
 
@@ -38,13 +37,19 @@ export async function generateMetadata({
 export default async function ProjectTimeTrackingPage({
   params,
 }: PageProps<"/projects/project/[id]/time-tracking">) {
+  // A project sub-page, gated on the permission itself — project pages are
+  // switched on per project rather than assigned per role, so there is no
+  // page key for this one.
   const viewer = await requirePermission("time.log");
+  // Always true behind that gate; read rather than hardcoded so the card and
+  // the gate cannot drift apart if the gate is ever relaxed.
+  const canLog = await hasPermission("time.log");
   const { id } = await params;
   // Resolved once on the server and threaded down, so the week grid and the
   // client-side "Log Time" form agree on which day it is.
   const today = todayIso();
 
-  const project = await getProject(viewer.workspaceId, id);
+  const project = await getProject(viewer.workspaceId, id, await projectScope());
   // A feature switched off is genuinely gone, not just hidden from the nav.
   if (!project || !project.features.includes("time-tracking")) notFound();
 
@@ -91,7 +96,7 @@ export default async function ProjectTimeTrackingPage({
 
   return (
     <TimeLogs
-      canLog={can(viewer.role, "time.log")}
+      canLog={canLog}
       today={today}
       tasks={openTasks}
       logs={stats.entries.map((entry) => {
@@ -116,6 +121,7 @@ export default async function ProjectTimeTrackingPage({
         running={running}
         todayMinutes={summary.todayMinutes}
         weekMinutes={summary.weekMinutes}
+        canLog={canLog}
       />
 
       <Card className="shadow-none">

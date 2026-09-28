@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Check, CircleAlert, Eye, EyeOff, Key, Shield, User, X } from "lucide-react";
 import { createUserAction } from "@/app/(app)/admin/users/actions";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
 import { SelectField } from "@/components/ui/select-field";
-import { DESIGNATIONS, type Role, type Team } from "@/lib/domain";
+import { DESIGNATIONS, type Role } from "@/lib/domain";
 import { ROLES, roleLabel } from "@/lib/permissions";
 import { createUserSchema, fieldErrors, passwordChecks } from "@/lib/validations";
 import { cn } from "@/lib/utils";
@@ -31,7 +32,6 @@ type Draft = {
   phone: string;
   role: Role;
   designation: string;
-  teamId: string;
   monthlyHours: number;
   active: boolean;
 };
@@ -45,17 +45,14 @@ const EMPTY: Draft = {
   phone: "",
   role: "member",
   designation: "",
-  teamId: "",
   monthlyHours: 160,
   active: true,
 };
 
 export function CreateUserForm({
   roleHints,
-  teams,
 }: {
   roleHints: Record<Role, string>;
-  teams: Pick<Team, "id" | "name">[];
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -83,6 +80,9 @@ export function CreateUserForm({
     startTransition(async () => {
       const result = await createUserAction(draft);
       if (result.ok) {
+        // Raised before navigating: the toast outlives the route change, so it
+        // is the confirmation that the account exists on the screen they land on.
+        toast.success("Account created");
         router.push("/admin/users");
         router.refresh();
       } else {
@@ -254,16 +254,6 @@ export function CreateUserForm({
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Team" hint="Which team they belong to. Optional.">
-              <SelectField
-                value={draft.teamId}
-                onValueChange={(value) => set("teamId", value)}
-                placeholder={teams.length === 0 ? "No teams yet" : "Select team"}
-                disabled={teams.length === 0}
-                options={teams.map((team) => ({ value: team.id, label: team.name }))}
-              />
-              <FieldError message={errors.teamId} />
-            </Field>
             <Field label="Monthly hours">
               <Input
                 type="number"

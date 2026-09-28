@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   ChevronDown,
   ChevronUp,
@@ -93,10 +94,16 @@ export function SectionBuilder({
   const [editing, setEditing] = useState<LandingSection | null>(null);
   const [removing, setRemoving] = useState<LandingSection | null>(null);
 
-  function run(action: () => Promise<{ ok: boolean }>, onSuccess?: () => void) {
+  /** `done` is the toast raised on success; omitted for reordering. */
+  function run(
+    action: () => Promise<{ ok: boolean }>,
+    onSuccess?: () => void,
+    done?: string,
+  ) {
     startTransition(async () => {
       const result = await action();
       if (result.ok) {
+        if (done) toast.success(done);
         onSuccess?.();
         router.refresh();
       }
@@ -213,6 +220,7 @@ export function SectionBuilder({
                 secondaryCta: preset.secondaryCta,
               }),
             () => setAdding(false),
+            "Section added",
           );
         }}
       />
@@ -233,6 +241,7 @@ export function SectionBuilder({
                 secondaryCta: updated.secondaryCta,
               }),
             () => setEditing(null),
+            "Section updated",
           );
         }}
       />
@@ -242,7 +251,7 @@ export function SectionBuilder({
         onClose={() => setRemoving(null)}
         onConfirm={() => {
           if (!removing) return;
-          run(() => deleteSectionAction(removing.id));
+          run(() => deleteSectionAction(removing.id), undefined, "Section deleted");
         }}
         title={`Delete the ${removing ? label(removing.type) : ""} section?`}
         description="It will be removed from the landing page layout."

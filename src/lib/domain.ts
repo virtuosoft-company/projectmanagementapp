@@ -66,7 +66,6 @@ export type Person = {
 
 export type Member = Person & {
   role: Role;
-  teamId: string | null;
   designation: string | null;
   hourlyRate: number;
   monthlyHours: number;
@@ -139,23 +138,12 @@ export type WorkspaceSummary = {
   activeUserCount: number;
 };
 
-export type Team = {
-  id: string;
-  name: string;
-  slug: string;
-  code: string;
-  description: string | null;
-  color: string;
-  leadId: string | null;
-};
-
 export type Project = {
   id: string;
   name: string;
   description: string;
   status: ProjectStatus;
   color: string;
-  teamId: string | null;
   startDate: string | null;
   endDate: string | null;
   /** Which optional sub-pages this project has switched on. */
@@ -175,6 +163,50 @@ export type AppNotification = {
   actor: Person | null;
   createdAt: string;
   read: boolean;
+};
+
+/**
+ * A dated entry on the shared calendar.
+ *
+ * `date` is an ISO day, the same shape as `Task.dueDate`, so the calendar grid
+ * can match both against a cell without parsing either.
+ */
+export type CalendarEvent = {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  /** "HH:MM", or null on an all-day event. */
+  startTime: string | null;
+  endTime: string | null;
+  /** Minutes before the start that the reminder goes out. */
+  reminderMinutes: number;
+  projectId: string | null;
+  projectName: string | null;
+  attendees: Person[];
+  createdById: string | null;
+};
+
+/**
+ * What the live stream pushes to a signed-in tab.
+ *
+ * Carries no application data — it is a nudge to refetch, not a diff — so a
+ * stale membership or a narrowed role cannot leak through the stream. Lives
+ * here rather than beside the publisher because the client component that
+ * reads it cannot import a `server-only` module.
+ */
+export type LiveEvent = {
+  kind: "refresh";
+  /**
+   * Whether the viewer’s **session** moved, not just the data on screen.
+   *
+   * Re-minting the JWT costs a round trip and a membership read, and the role
+   * is the only thing the token carries that anyone else can change — so only
+   * a role change asks for it.
+   */
+  session?: boolean;
+  /** Server time, so a client can ignore anything older than its last refresh. */
+  at: number;
 };
 
 /** A tag that can be put on tasks. Scoped to one workspace. */
@@ -430,7 +462,16 @@ export const PROJECT_FEATURES: { key: ProjectFeature; label: string; hint: strin
     label: "Excel Sheets",
     hint: "Spreadsheets with formulas and formatting — import and export .xlsx.",
   },
-  { key: "report", label: "Reports", hint: "Cost, hours and status summary." },
+  // Retired: the project overview already shows the same figures — status
+  // breakdown, member performance and the task list — so a second page saying
+  // them again was a page to keep in step for nothing. The export it carried
+  // now sits on the overview instead.
+  //
+  // Still typed, and the route still exists, but it is never offered here and
+  // so never appears in the nav. Its page guards on the feature being present,
+  // and the migration that retired it removed it from every project, so the
+  // route 404s rather than lingering half-alive.
+  // { key: "report", label: "Reports", hint: "Cost, hours and status summary." },
 ];
 
 /** Feature keys alone, for schema enums. */
@@ -441,7 +482,7 @@ export const PROJECT_FEATURE_KEYS: ProjectFeature[] = PROJECT_FEATURES.map((item
  * projects displayed before they became optional, so the column arriving does
  * not silently hide anything.
  */
-export const DEFAULT_PROJECT_FEATURES: ProjectFeature[] = ["tasks", "campaigns", "report"];
+export const DEFAULT_PROJECT_FEATURES: ProjectFeature[] = ["tasks", "campaigns"];
 
 export const DESIGNATIONS = [
   "Software Engineer",
@@ -455,7 +496,7 @@ export const DESIGNATIONS = [
   "Content Writer",
 ];
 
-/** Swatches offered when creating a team or project. */
+/** Swatches offered when creating a project. */
 export const COLOR_SWATCHES = [
   "hsl(var(--primary))",
   "#21c45d",

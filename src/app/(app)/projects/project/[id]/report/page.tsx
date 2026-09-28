@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { ExportReportButton } from "@/components/dashboard/export-report-button";
 import { formatDay, todayIso } from "@/lib/domain";
 import { getMembers, getProject, getProjectStats } from "@/lib/queries";
-import { getSessionUser, requirePermission } from "@/lib/session";
+import { getSessionUser, projectScope, requirePermission } from "@/lib/session";
 import { statusVariant, taskStatusColor } from "@/lib/status";
 import { cn, formatDuration } from "@/lib/utils";
 
@@ -17,7 +17,7 @@ export async function generateMetadata({
 }: PageProps<"/projects/project/[id]/report">): Promise<Metadata> {
   const { id } = await params;
   const viewer = await getSessionUser();
-  const project = viewer?.workspaceId ? await getProject(viewer.workspaceId, id) : null;
+  const project = viewer?.workspaceId ? await getProject(viewer.workspaceId, id, await projectScope()) : null;
   return { title: `${project?.name ?? "Project"} — Report` };
 }
 
@@ -27,7 +27,7 @@ export default async function ReportPage({
   const viewer = await requirePermission("reports.view");
 
   const { id } = await params;
-  const project = await getProject(viewer.workspaceId, id);
+  const project = await getProject(viewer.workspaceId, id, await projectScope());
   // A feature switched off is genuinely gone, not just hidden from the nav.
   if (!project || !project.features.includes("report")) notFound();
 

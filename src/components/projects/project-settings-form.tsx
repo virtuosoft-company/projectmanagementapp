@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,6 @@ import {
   type Member,
   type Project,
   type ProjectStatus,
-  type Team,
 } from "@/lib/domain";
 import { roleLabel } from "@/lib/permissions";
 
@@ -24,11 +24,9 @@ import { roleLabel } from "@/lib/permissions";
 export function ProjectSettingsForm({
   projects,
   members,
-  teams,
 }: {
   projects: Project[];
   members: Member[];
-  teams: Team[];
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -49,12 +47,14 @@ export function ProjectSettingsForm({
         name: String(form.get("name") ?? ""),
         description: String(form.get("description") ?? ""),
         status: String(form.get("status") ?? "planning") as ProjectStatus,
-        teamId: String(form.get("teamId") ?? ""),
         startDate: String(form.get("startDate") ?? ""),
         endDate: String(form.get("endDate") ?? ""),
       });
       setNotice(result.ok ? "Saved." : (result.error ?? "Could not save."));
-      if (result.ok) router.refresh();
+      if (result.ok) {
+        toast.success("Project updated");
+        router.refresh();
+      }
     });
   }
 
@@ -99,15 +99,6 @@ export function ProjectSettingsForm({
                 defaultValue={project.status}
                 className="capitalize"
                 options={PROJECT_STATUSES.map((status) => ({ value: status, label: status }))}
-              />
-            </Field>
-            <Field label="Owning team" hint="Teams with projects cannot be deleted.">
-              <SelectField
-                key={`${project.id}-team`}
-                name="teamId"
-                defaultValue={project.teamId ?? ""}
-                placeholder="No team"
-                options={teams.map((team) => ({ value: team.id, label: team.name }))}
               />
             </Field>
             <div className="grid grid-cols-2 gap-4">

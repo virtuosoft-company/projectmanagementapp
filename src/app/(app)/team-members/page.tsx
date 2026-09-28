@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
-import { ShieldCheck, UserCheck, UserX, Users } from "lucide-react";
 import { AddMemberDialog } from "@/components/admin/add-member-dialog";
+import { TeamStats } from "@/components/admin/team-stats";
 import { UsersTable } from "@/components/admin/users-table";
-import { KpiCard } from "@/components/dashboard/kpi-card";
 import { getAddableUsers, getTeamMembers } from "@/lib/admin";
-import { can } from "@/lib/permissions";
-import { getTeams } from "@/lib/queries";
-import { requirePage } from "@/lib/session";
+import { hasPermission, requirePage, viewerSupervises } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Team Members" };
 
@@ -29,16 +26,14 @@ export default async function TeamMembersPage() {
   // by putting this under Navigation rather than Administration.
   const viewer = await requirePage("team-members");
 
-  const canInvite = can(viewer.role, "members.invite");
+  const canInvite = await hasPermission("members.invite");
+  const supervises = await viewerSupervises();
 
-  const [members, teams, addable] = await Promise.all([
+  const [members, addable] = await Promise.all([
     getTeamMembers(viewer.workspaceId),
-    getTeams(viewer.workspaceId),
     // Only owners and admins see the dialog, so only they need its candidates.
     canInvite ? getAddableUsers(viewer.workspaceId) : Promise.resolve([]),
   ]);
-  const active = members.filter((member) => member.active).length;
-  const privileged = members.filter((member) => member.role === "admin").length;
 
   return (
     <div className="space-y-6">
@@ -62,45 +57,18 @@ export default async function TeamMembersPage() {
               name: user.name,
               email: user.email,
             }))}
-            teams={teams}
           />
         ) : null}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard
-          icon={Users}
-          tone="primary"
-          value={members.length.toString()}
-          label="Team Members"
-          hint="In this workspace"
-        />
-        <KpiCard
-          icon={UserCheck}
-          tone="success"
-          value={active.toString()}
-          label="Active"
-          hint="Can sign in"
-        />
-        <KpiCard
-          icon={UserX}
-          tone="destructive"
-          value={(members.length - active).toString()}
-          label="Disabled"
-          hint="Sign-in blocked"
-        />
-        <KpiCard
-          icon={ShieldCheck}
-          tone="warning"
-          value={privileged.toString()}
-          label="Owners & Admins"
-          hint="Elevated access"
-        />
-      </div>
+      {/*
+        The figures are for whoever is responsible for the team, not for
+        everybody on it. The roster below is the same screen for both.
+      */}
+      {supervises ? <TeamStats members={members} /> : null}
 
       <UsersTable
         users={members}
-        teams={teams}
         canInvite={false}
         canAssignRoles={false}
         customRoles={[]}

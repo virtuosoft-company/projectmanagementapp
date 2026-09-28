@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
 import { ShieldCheck, UserCheck, UserX, Users } from "lucide-react";
+import { InviteUserDialog } from "@/components/admin/invite-user-dialog";
+import { PendingInvitations } from "@/components/admin/pending-invitations";
 import { UsersTable } from "@/components/admin/users-table";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { getAdminUsers, getCustomRoles, getUserStats } from "@/lib/admin";
-import { can } from "@/lib/permissions";
-import { getTeams } from "@/lib/queries";
-import { requirePage } from "@/lib/session";
+import {
+  getAdminUsers,
+  getCustomRoles,
+  getPendingInvitations,
+  getUserStats,
+} from "@/lib/admin";
+import { isMailConfigured } from "@/lib/mailer";
+import { hasPermission, requirePage } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Users" };
 
@@ -19,25 +25,34 @@ export const metadata: Metadata = { title: "Users" };
  */
 export default async function AdminUsersPage() {
   const viewer = await requirePage("users");
-  const [users, stats, teams, customRoles] = await Promise.all([
+  const [users, stats, customRoles, invitations] = await Promise.all([
     getAdminUsers(viewer.workspaceId),
     getUserStats(viewer.workspaceId),
-    getTeams(viewer.workspaceId),
     getCustomRoles(viewer.workspaceId),
+    getPendingInvitations(viewer.workspaceId),
   ]);
 
-  const canInvite = can(viewer.role, "members.invite");
+  const canInvite = await hasPermission("members.invite");
   const privileged = stats.byRole.admin;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold leading-tight tracking-tight">Users</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {canInvite
-            ? "Every account that can sign in to this workspace"
-            : "Everyone in this workspace"}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold leading-tight tracking-tight">Users</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {canInvite
+              ? "Every account that can sign in to this workspace"
+              : "Everyone in this workspace"}
+          </p>
+        </div>
+
+        {/*
+          Gated on the same permission the action re-checks. Reaching this page
+          no longer implies holding it — pages are assigned per role — so the
+          button asks separately.
+        */}
+        {canInvite ? <InviteUserDialog mailConfigured={isMailConfigured()} /> : null}
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -71,14 +86,15 @@ export default async function AdminUsersPage() {
         />
       </div>
 
+      <PendingInvitations invitations={invitations} canRevoke={canInvite} />
+
       <UsersTable
         users={users}
-        teams={teams}
         canInvite={canInvite}
-        canAssignRoles={can(viewer.role, "workspace.settings")}
+        canAssignRoles={await hasPermission("workspace.settings")}
         customRoles={customRoles}
-        canManageRoles={can(viewer.role, "roles.manage")}
-        canDelete={can(viewer.role, "members.delete")}
+        canManageRoles={await hasPermission("roles.manage")}
+        canDelete={await hasPermission("members.delete")}
         currentUserId={viewer.id}
       />
     </div>

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDay } from "@/lib/domain";
 import { getEntryDetails, getHoursByDay, getMetrics } from "@/lib/queries";
-import { requirePage } from "@/lib/session";
+import { projectScope, requirePage } from "@/lib/session";
 import { cn, formatDuration } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Analytics" };
@@ -15,7 +15,9 @@ export default async function AnalyticsPage() {
   const viewer = await requirePage("analytics");
 
   const [metrics, entries, hoursByDay] = await Promise.all([
-    getMetrics(viewer.workspaceId),
+    getMetrics(viewer.workspaceId, {
+      projects: await projectScope(),
+    }),
     getEntryDetails(viewer.workspaceId),
     getHoursByDay(viewer.workspaceId),
   ]);

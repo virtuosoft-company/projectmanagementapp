@@ -2,6 +2,7 @@
 
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { CircleAlert, Pencil, Plus, Trash2 } from "lucide-react";
 import { subtaskOptions } from "@/components/projects/task-subtasks";
 import { TimerControls } from "@/components/projects/timer-controls";
@@ -228,6 +229,8 @@ export function TaskTimeTracking({
               setError(result.error ?? "Could not delete that entry.");
               return;
             }
+
+            toast.success("Time entry deleted");
             router.refresh();
           });
         }}

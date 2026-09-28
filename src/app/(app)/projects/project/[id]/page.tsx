@@ -6,13 +6,13 @@ import {
   ProjectMembersCard,
   type ProjectMemberRow,
 } from "@/components/projects/project-members-card";
+import { ExportReportButton } from "@/components/dashboard/export-report-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { formatDay } from "@/lib/domain";
-import { can } from "@/lib/permissions";
-import { getMembers, getProject, getProjectStats, getTeams } from "@/lib/queries";
-import { getSessionUser, requireUser } from "@/lib/session";
+import { formatDay, todayIso } from "@/lib/domain";
+import { getMembers, getProject, getProjectStats } from "@/lib/queries";
+import { getSessionUser, hasPermission, projectScope, requireUser, viewerSupervises } from "@/lib/session";
 import { statusVariant, taskStatusColor } from "@/lib/status";
 
 export async function generateMetadata({
@@ -20,21 +20,24 @@ export async function generateMetadata({
 }: PageProps<"/projects/project/[id]">): Promise<Metadata> {
   const { id } = await params;
   const viewer = await getSessionUser();
-  const project = viewer?.workspaceId ? await getProject(viewer.workspaceId, id) : null;
+  const project = viewer?.workspaceId ? await getProject(viewer.workspaceId, id, await projectScope()) : null;
   return { title: project?.name ?? "Project" };
 }
 
 export default async function ProjectPage({ params }: PageProps<"/projects/project/[id]">) {
   const viewer = await requireUser();
   const { id } = await params;
-  const project = await getProject(viewer.workspaceId, id);
+  const project = await getProject(viewer.workspaceId, id, await projectScope());
   if (!project) notFound();
 
-  const [stats, members, teams] = await Promise.all([
+  const [stats, members, supervises] = await Promise.all([
     getProjectStats(viewer.workspaceId, project.id),
     getMembers(viewer.workspaceId),
-    getTeams(viewer.workspaceId),
+    viewerSupervises(),
   ]);
+
+  // Resolved server-side so the filename cannot differ by timezone.
+  const today = todayIso();
 
   const memberIds = new Set(project.members.map((person) => person.id));
   const rows: ProjectMemberRow[] = project.members.map((person) => {
@@ -44,7 +47,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/proje
     const member = members.find((item) => item.id === person.id);
 
     return {
-      member: member ?? { ...person, role: "member", teamId: null, designation: null, hourlyRate: 0, monthlyHours: 0, disabled: false },
+      member: member ?? { ...person, role: "member", designation: null, hourlyRate: 0, monthlyHours: 0, disabled: false },
       tasksDone: onProject.filter((task) => task.status === "done").length,
       tasksTotal: onProject.length,
       hours: stats.entries
@@ -52,6 +55,50 @@ export default async function ProjectPage({ params }: PageProps<"/projects/proje
         .reduce((sum, entry) => sum + entry.hours, 0),
     };
   });
+
+  /**
+   * The CSV behind "Export report" — the same figures this page shows.
+   *
+   * It came from the project report page, which is retired: that page said
+   * what the overview already says, so the figures stayed and the second page
+   * went. Built only when somebody will be offered it.
+   */
+  const reportRows: string[][] = supervises
+    ? [
+        ["Project", project.name],
+        ["Status", project.status],
+        ["Generated", today],
+        [],
+        ["Summary"],
+        ["Tasks", String(stats.taskCount)],
+        ["Tasks done", String(stats.done)],
+        ["Progress %", String(stats.progress)],
+        ["Hours logged", String(stats.hours)],
+        ["Hours estimated", String(stats.estimateHours)],
+        ["Members", String(project.members.length)],
+        [],
+        ["Status", "Tasks", "Share %"],
+        ...stats.byStatus.map((row) => [row.label, String(row.count), String(row.percent)]),
+        [],
+        ["Member", "Role", "Tasks done", "Tasks", "Hours"],
+        ...rows.map((row) => [
+          row.member.name,
+          row.member.role,
+          String(row.tasksDone),
+          String(row.tasksTotal),
+          String(row.hours),
+        ]),
+        [],
+        ["Task", "Status", "Priority", "Due", "Estimate (h)"],
+        ...stats.tasks.map((task) => [
+          task.title,
+          task.status,
+          task.priority,
+          task.dueDate ?? "",
+          String(task.estimateHours),
+        ]),
+      ]
+    : [];
 
   return (
     <div className="space-y-6">
@@ -71,6 +118,20 @@ export default async function ProjectPage({ params }: PageProps<"/projects/proje
           </div>
           <p className="mt-1 text-sm text-muted-foreground">{project.description}</p>
         </div>
+
+        {/*
+          Took the place of the retired report page, which existed mainly to
+          carry it. Offered to whoever oversees the project — the same audience
+          as the members card below.
+        */}
+        {supervises ? (
+          <ExportReportButton
+            rows={reportRows}
+            name={`${project.name} report`}
+            today={today}
+            label="Export report"
+          />
+        ) : null}
       </div>
 
       <div className="space-y-4">
@@ -136,14 +197,19 @@ export default async function ProjectPage({ params }: PageProps<"/projects/proje
           </Card>
         </div>
 
-        <ProjectMembersCard
-          projectId={project.id}
-          rows={rows}
-          candidates={members.filter((member) => !memberIds.has(member.id))}
-          teams={teams}
-          owningTeamId={project.teamId}
-          canEdit={can(viewer.role, "projects.edit")}
-        />
+        {/*
+          Only for the people responsible for who is on a project — an admin
+          or a manager. Somebody doing the work on it does not need the roster,
+          and it carries each person's hours and task counts beside their name.
+        */}
+        {supervises ? (
+          <ProjectMembersCard
+            projectId={project.id}
+            rows={rows}
+            candidates={members.filter((member) => !memberIds.has(member.id))}
+            canEdit={await hasPermission("projects.edit")}
+          />
+        ) : null}
       </div>
     </div>
   );

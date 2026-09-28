@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import Link from "next/link";
 import { ArchiveRestore, ArchiveX, ChartNoAxesColumn, ChevronLeft, CircleAlert, Pencil } from "lucide-react";
 import { AvatarStack } from "@/components/avatar-stack";
@@ -101,7 +102,10 @@ export function TaskDetail({
   }
 
   function save(values: TaskFormValues) {
-    run(() => updateTaskAction({ ...values, taskId: task.id }), () => setEditing(false));
+    run(() => updateTaskAction({ ...values, taskId: task.id }), () => {
+      toast.success("Task updated");
+      setEditing(false);
+    });
   }
 
   return (
@@ -162,7 +166,9 @@ export function TaskDetail({
               disabled={pending}
               onClick={() =>
                 task.archived
-                  ? run(() => archiveTaskAction({ taskId: task.id, archived: false }))
+                  ? run(() => archiveTaskAction({ taskId: task.id, archived: false }), () =>
+                      toast.success("Task restored"),
+                    )
                   : setArchiving(true)
               }
             >
@@ -300,7 +306,9 @@ export function TaskDetail({
         onClose={() => setArchiving(false)}
         onConfirm={() => {
           setArchiving(false);
-          run(() => archiveTaskAction({ taskId: task.id, archived: true }));
+          run(() => archiveTaskAction({ taskId: task.id, archived: true }), () =>
+            toast.success("Task archived"),
+          );
         }}
         confirmLabel="Archive"
         title={`Archive ${task.title}?`}

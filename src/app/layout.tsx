@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toaster } from "@/components/ui/sonner";
 import { getBranding } from "@/lib/queries";
 import { getViewerTheme } from "@/lib/session";
 import "@/styles/globals.css";
@@ -42,7 +43,21 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`h-full antialiased${theme === "system" ? "" : ` ${theme}`}`}
     >
-      <body className="flex min-h-full flex-col font-sans">{children}</body>
+      <body className="flex min-h-full flex-col font-sans">
+        {children}
+        {/*
+          Mounted once at the root so every screen can raise a toast. It was
+          missing entirely — `components/ui/sonner.tsx` existed and nothing
+          rendered it, so any `toast()` call would have gone nowhere.
+
+          The theme is handed in rather than left to the wrapper's `useTheme()`:
+          there is no `next-themes` provider here, so that call falls back to
+          "system" and would follow the OS. This app stores the preference per
+          account and applies it above, so a toast has to follow the same value
+          or someone on a dark app with a light OS gets a light toast.
+        */}
+        <Toaster theme={theme} />
+      </body>
     </html>
   );
 }

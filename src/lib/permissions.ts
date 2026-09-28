@@ -14,6 +14,10 @@ export const PERMISSIONS = {
   "projects.edit": ["admin", "manager", "member"],
   "projects.delete": ["admin"],
   "tasks.manage": ["admin", "manager", "member"],
+  // Calendar events. Separate from `tasks.manage` because an event is aimed at
+  // people rather than at work: creating one puts a notification in somebody
+  // else’s bell and a commitment in their day.
+  "events.manage": ["admin", "manager", "member"],
   "time.log": ["admin", "manager", "member"],
   // Correcting or removing *other people's* time entries. Everyone may fix
   // their own; changing someone else's is a supervisory act, and it moves what
@@ -44,6 +48,7 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   "projects.edit": "Edit projects",
   "projects.delete": "Delete projects",
   "tasks.manage": "Manage tasks",
+  "events.manage": "Manage calendar events",
   "time.log": "Log time",
   "time.manage": "Edit anyone's time entries",
   "reports.view": "View reports",
@@ -94,19 +99,19 @@ export function roleLabel(role: Role) {
 }
 
 // ============================================================================
-// PER-USER PAGE ACCESS
+// PAGES PER ROLE
 // ============================================================================
 
 /**
- * The assignable pages, keyed to the permission each one's gate already
- * enforces (see the `requirePermission` call in the matching `page.tsx`).
+ * The app's pages, keyed to the permission each one's gate enforces (see the
+ * `requirePermission` call in the matching `page.tsx`).
  *
  * `permission: null` marks a page every role may reach — the gate there is
  * `requireUser`, and the controls inside are gated individually.
  *
  * Project sub-pages are deliberately absent: those are per-*project* features
- * on `Project.features`, not per-user, and mixing the two would give one page
- * two different owners.
+ * on `Project.features`, which is a different question from what a role may
+ * reach.
  */
 export const APP_PAGES = [
   { key: "dashboard", label: "Dashboard", href: "/dashboard", permission: null },
@@ -134,7 +139,6 @@ export const APP_PAGES = [
     permission: "time.log",
   },
   { key: "users", label: "Users", href: "/admin/users", permission: "members.invite" },
-  { key: "teams", label: "Teams", href: "/admin/teams", permission: "workspace.settings" },
   { key: "roles", label: "Roles", href: "/admin/users/roles", permission: "workspace.settings" },
   { key: "settings", label: "Settings", href: "/settings", permission: "workspace.settings" },
   { key: "profile", label: "Profile", href: "/profile", permission: null },
@@ -156,7 +160,7 @@ export type AppPage = (typeof APP_PAGES)[number]["key"];
 
 export const APP_PAGE_KEYS = APP_PAGES.map((page) => page.key) as AppPage[];
 
-/** Every page a role could reach on its permissions alone, before assignment. */
+/** Every page a role reaches, from the permissions it holds. */
 export function pagesForRole(role: Role): AppPage[] {
   return pagesForPermissions(permissionsFor(role));
 }
@@ -175,44 +179,6 @@ export function pagesForPermissions(permissions: readonly Permission[]): AppPage
   ).map((page) => page.key);
 }
 
-/**
- * The pages a member may actually reach.
- *
- * `assigned` is `WorkspaceMember.pages`: null means "never configured", and the
- * role's own pages apply unchanged — so adding this feature took nothing away
- * from anyone.
- *
- * **Assignment only ever narrows.** The result is the intersection with what
- * the role already allows, never a union. Granting a viewer the Billing page
- * would otherwise show them a screen whose every control and server action
- * still refuses them, because those check the permission matrix directly.
- * Widening access is a role change, which is what `roles.manage` is for.
- */
-export function resolvePages(role: Role, assigned: readonly string[] | null): AppPage[] {
-  return narrowPages(pagesForRole(role), assigned);
-}
-
-/** `resolvePages` from an already-resolved page ceiling. */
-export function narrowPages(
-  allowed: readonly AppPage[],
-  assigned: readonly string[] | null,
-): AppPage[] {
-  if (assigned === null) return [...allowed];
-
-  const set = new Set(assigned);
-  return allowed.filter((page) => set.has(page));
-}
-
-/** Whether a member may reach one page, given their role and assignment. */
-export function canReachPage(
-  role: Role | undefined | null,
-  assigned: readonly string[] | null,
-  page: AppPage,
-): boolean {
-  if (!role) return false;
-  return resolvePages(role, assigned).includes(page);
-}
-
 // ============================================================================
 // ROLE RESOLUTION (pure — the database-backed half lives in resolve-role.ts)
 // ============================================================================
@@ -221,24 +187,72 @@ export type ResolvedRole = {
   /** The base role every role-based check should use. */
   effectiveRole: Role;
   permissions: Permission[];
+  /**
+   * The pages this role may reach.
+   *
+   * Assigned per role and stored, not derived from `permissions` — see the
+   * `pages` column on `CustomRole`. The sidebar renders exactly this list and
+   * `requirePage` enforces it; permissions remain the answer to what a holder
+   * may *do* once a page is open.
+   */
+  pages: AppPage[];
   isCustom: boolean;
   /** Present only for a custom role — for display and for the roles screen. */
   customRole: { id: string; name: string; label: string } | null;
 };
+
+/**
+ * Whether this role supervises people, rather than only doing the work.
+ *
+ * Admin or manager — the two who get the overseeing half of a screen: the
+ * workspace dashboard rather than a personal one, the figures above a list,
+ * the roster on a project.
+ *
+ * A role question rather than a permission, deliberately. A permission added
+ * to the matrix is held by no existing custom role until an admin re-ticks it
+ * one by one, which is how `events.manage` shipped granting nobody but Admin.
+ * This has to be true for every manager on the day it lands.
+ *
+ * Reads `permissions` for the admin half: a custom role still holding
+ * `workspace.settings` is an admin in every way that matters here.
+ */
+export function supervisesPeople(resolved: ResolvedRole): boolean {
+  if (resolved.permissions.includes("workspace.settings")) return true;
+  return resolved.effectiveRole === "manager";
+}
 
 /** Whether a name is one of the built-in roles rather than a custom one. */
 export function isBaseRole(name: string): name is Role {
   return (ROLES as string[]).includes(name);
 }
 
-/** A base role resolved from the matrix alone — no query, no custom row. */
+/**
+ * A base role resolved from the matrix alone — no query, no custom row.
+ *
+ * In practice this is Admin, the one role held straight from the enum, plus
+ * the fallback when a membership vanishes mid-request. Its pages come from the
+ * matrix because there is no row to have assigned any: for Admin that is every
+ * page, which is the same guarantee `FIXED_ROLES` exists to make.
+ */
 export function resolveBaseRole(role: Role): ResolvedRole {
   return {
     effectiveRole: role,
     permissions: permissionsFor(role),
+    pages: pagesForRole(role),
     isCustom: false,
     customRole: null,
   };
+}
+
+/**
+ * Keeps only the values that name a real page, in `APP_PAGES` order.
+ *
+ * Applied to anything read from the database or posted from a form: a stale
+ * key from a page that has since been removed would otherwise sit in the list
+ * forever, and an invented one must never reach the sidebar.
+ */
+export function sanitisePages(requested: readonly unknown[]): AppPage[] {
+  return APP_PAGE_KEYS.filter((key) => requested.includes(key));
 }
 
 /**
@@ -255,14 +269,25 @@ export function resolveCustomRole(row: {
   name: string;
   label: string;
   permissions: unknown;
+  pages: unknown;
   inheritsFrom: Role;
 }): ResolvedRole {
   const stored = Array.isArray(row.permissions) ? (row.permissions as string[]) : [];
   const ceiling = permissionsFor(row.inheritsFrom);
+  const permissions = ceiling.filter((permission) => stored.includes(permission));
 
   return {
     effectiveRole: row.inheritsFrom,
-    permissions: ceiling.filter((permission) => stored.includes(permission)),
+    permissions,
+    /*
+     * No ceiling here, unlike permissions above: pages are assigned outright,
+     * so a role can be given a page whose permission it lacks. It opens
+     * read-only — every control inside is still gated on `permissions`.
+     *
+     * A row written before the column existed has null, and falls back to the
+     * permission-derived list so it keeps exactly the pages it had.
+     */
+    pages: Array.isArray(row.pages) ? sanitisePages(row.pages) : pagesForPermissions(permissions),
     isCustom: true,
     customRole: { id: row.id, name: row.name, label: row.label },
   };

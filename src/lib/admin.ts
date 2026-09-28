@@ -1,9 +1,10 @@
 import "server-only";
 import { cache } from "react";
 import { prisma } from "@/lib/prisma";
-import type { Role } from "@/lib/domain";
+import { formatDay, round1, type Role } from "@/lib/domain";
 import { roleToDomain } from "@/lib/mappers";
-import { ROLES, resolveCustomRole, type Permission } from "@/lib/permissions";
+import { ROLES, resolveCustomRole, type AppPage, type Permission } from "@/lib/permissions";
+import type { PendingInvitation } from "@/components/admin/pending-invitations";
 
 
 export type AdminUser = {
@@ -16,11 +17,9 @@ export type AdminUser = {
   /** The custom role they hold here, if any. `role` is what it inherits from. */
   customRole: { id: string; name: string; label: string } | null;
   /** Pages assigned to them in this workspace; null when never restricted. */
-  pages: string[] | null;
   /** False for accounts that exist but hold no membership in this workspace. */
   inWorkspace: boolean;
   designation: string | null;
-  teamId: string | null;
   hourlyRate: number;
   monthlyHours: number;
   joinedAt: string;
@@ -62,7 +61,6 @@ export const getAdminUsers = cache(async (workspaceId: string): Promise<AdminUse
         select: {
           role: true,
           joinedAt: true,
-          pages: true,
           customRole: { select: { id: true, name: true, label: true } },
         },
       },
@@ -79,10 +77,8 @@ export const getAdminUsers = cache(async (workspaceId: string): Promise<AdminUse
       phone: user.phone,
       role: membership ? roleToDomain[membership.role] : null,
       customRole: membership?.customRole ?? null,
-      pages: Array.isArray(membership?.pages) ? (membership.pages as string[]) : null,
       inWorkspace: Boolean(membership),
       designation: user.designation,
-      teamId: user.teamId,
       hourlyRate: user.hourlyRate,
       monthlyHours: user.monthlyHours,
       // Joined *this workspace* when they are in it; otherwise when the account
@@ -149,6 +145,8 @@ export type CustomRoleRow = {
   description: string;
   /** Already intersected with the base role's ceiling by `resolveCustomRole`. */
   permissions: Permission[];
+  /** The pages assigned to this role; stored outright, not derived from permissions. */
+  pages: AppPage[];
   inheritsFrom: Role;
   isActive: boolean;
   isSystem: boolean;
@@ -176,6 +174,7 @@ export const getCustomRoles = cache(async (workspaceId: string): Promise<CustomR
       name: row.name,
       label: row.label,
       permissions: row.permissions,
+      pages: row.pages,
       inheritsFrom: roleToDomain[row.inheritsFrom],
     });
 
@@ -185,10 +184,131 @@ export const getCustomRoles = cache(async (workspaceId: string): Promise<CustomR
       label: row.label,
       description: row.description,
       permissions: resolved.permissions,
+      pages: resolved.pages,
       inheritsFrom: resolved.effectiveRole,
       isActive: row.isActive,
       isSystem: row.isSystem,
       memberCount: row._count.members,
     };
   });
+});
+
+/**
+ * Invitations sent for this workspace and still outstanding.
+ *
+ * Expired ones are filtered here rather than deleted: the row is the record
+ * that an invitation was sent, and dropping it would lose that. They simply
+ * stop being listed as pending, and `consumeToken` refuses them anyway.
+ */
+export const getPendingInvitations = cache(
+  async (workspaceId: string): Promise<PendingInvitation[]> => {
+    const rows = await prisma.invitation.findMany({
+      where: {
+        workspaceId,
+        acceptedAt: null,
+        revokedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: "desc" },
+      include: { invitedBy: { select: { name: true } } },
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      email: row.email,
+      role: roleToDomain[row.role],
+      // Formatted server-side so the markup does not depend on the browser's
+      // locale, which would differ between the server render and hydration.
+      expiresAt: formatDay(row.expiresAt.toISOString().slice(0, 10)),
+      invitedByName: row.invitedBy?.name ?? null,
+    }));
+  },
+);
+
+/**
+ * What one person is holding in this workspace, and whether that blocks
+ * taking them off it.
+ *
+ * Read before the removal dialog opens, so the admin is told what they are
+ * about to disconnect rather than finding out afterwards — and read again
+ * inside the action, because the dialog is the half an attacker skips and the
+ * numbers can change between opening it and confirming.
+ */
+export type MemberHoldings = {
+  name: string;
+  email: string;
+  /** Still able to sign in. An active account cannot be removed. */
+  active: boolean;
+  projectCount: number;
+  /** Open and done alike — any assignment at all blocks removal. */
+  taskCount: number;
+  hoursLogged: number;
+  /** Empty when they can be removed; each entry is a reason they cannot. */
+  blockers: string[];
+};
+
+export const getMemberHoldings = cache(
+  async (workspaceId: string, userId: string): Promise<MemberHoldings | null> => {
+    const membership = await prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId } },
+      select: { user: { select: { name: true, email: true, disabledAt: true } } },
+    });
+    if (!membership) return null;
+
+    const [projectCount, taskCount, entries] = await Promise.all([
+      prisma.projectMember.count({ where: { userId, project: { workspaceId } } }),
+      prisma.taskAssignee.count({
+        where: { userId, task: { project: { workspaceId } } },
+      }),
+      prisma.timeEntry.findMany({
+        where: { userId, task: { project: { workspaceId } } },
+        select: { minutes: true },
+      }),
+    ]);
+
+    const active = membership.user.disabledAt === null;
+
+    const blockers: string[] = [];
+    // Disabling first is what makes removal deliberate: it stops them signing
+    // in, gives everyone a chance to notice, and is reversible on its own.
+    if (active) blockers.push("The account is still active. Disable it first.");
+    if (taskCount > 0) {
+      blockers.push(
+        `They are assigned to ${taskCount} ${taskCount === 1 ? "task" : "tasks"}. Reassign them first.`,
+      );
+    }
+
+    return {
+      name: membership.user.name,
+      email: membership.user.email,
+      active,
+      projectCount,
+      taskCount,
+      hoursLogged: round1(entries.reduce((sum, entry) => sum + entry.minutes, 0) / 60),
+      blockers,
+    };
+  },
+);
+
+/** Everyone taken off this workspace, most recent first — the history screen. */
+export const getRemovalHistory = cache(async (workspaceId: string) => {
+  const rows = await prisma.memberRemoval.findMany({
+    where: { workspaceId },
+    orderBy: { removedAt: "desc" },
+    include: { removedBy: { select: { name: true } } },
+  });
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.userName,
+    email: row.userEmail,
+    role: roleToDomain[row.role],
+    reason: row.reason,
+    projectCount: row.projectCount,
+    hoursLogged: row.hoursLogged,
+    removedByName: row.removedBy?.name ?? null,
+    removedAt: formatDay(row.removedAt.toISOString().slice(0, 10)),
+    /** False once the account itself was deleted afterwards. */
+    accountExists: row.userId !== null,
+  }));
 });

@@ -17,7 +17,7 @@ import {
   can,
   roleLabel,
 } from "@/lib/permissions";
-import { requirePage } from "@/lib/session";
+import { hasPermission, requirePage } from "@/lib/session";
 import { listMembers } from "@/lib/users";
 import { updateWorkspaceAction } from "./actions";
 
@@ -32,9 +32,10 @@ export default async function SettingsPage() {
     getMember(currentUser.workspaceId, currentUser.id),
   ]);
 
-  // Branding is the whole deployment's identity, so it sits with the same
-  // people who may change workspace settings.
-  const canBrand = can(currentUser.role, "workspace.settings");
+  // Gates both the workspace form and branding: branding is the whole
+  // deployment’s identity, so it sits with the same people who may change
+  // workspace settings.
+  const canManageWorkspace = await hasPermission("workspace.settings");
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -48,6 +49,13 @@ export default async function SettingsPage() {
           <CardTitle>Workspace</CardTitle>
         </CardHeader>
         <CardContent>
+          {/*
+            Reaching this screen and being able to change it are separate
+            questions now that pages are assigned per role: a role can be given
+            Settings without `workspace.settings`. The fields stay visible so
+            the page is worth opening, but they are disabled and the submit is
+            withheld — `updateWorkspaceAction` would refuse anyway.
+          */}
           <form
             action={async (formData: FormData) => {
               "use server";
@@ -57,20 +65,26 @@ export default async function SettingsPage() {
           >
             <div className="grid gap-4">
               <Field label="Workspace Name">
-                <Input name="name" defaultValue={workspace?.name} />
+                <Input name="name" defaultValue={workspace?.name} disabled={!canManageWorkspace} />
               </Field>
               <Field label="Description">
-                <Textarea name="description" defaultValue={workspace?.description} />
+                <Textarea
+                  name="description"
+                  defaultValue={workspace?.description}
+                  disabled={!canManageWorkspace}
+                />
               </Field>
             </div>
-            <Button type="submit" size="sm">
-              Save Workspace
-            </Button>
+            {canManageWorkspace ? (
+              <Button type="submit" size="sm">
+                Save Workspace
+              </Button>
+            ) : null}
           </form>
         </CardContent>
       </Card>
 
-      {canBrand ? (
+      {canManageWorkspace ? (
         <Card className="shadow-none">
           <CardHeader>
             <CardTitle>Branding</CardTitle>
@@ -126,8 +140,8 @@ export default async function SettingsPage() {
 
       <WorkspaceMembersCard
         members={members}
-        canInvite={can(currentUser.role, "members.invite")}
-        canManageRoles={can(currentUser.role, "roles.manage")}
+        canInvite={await hasPermission("members.invite")}
+        canManageRoles={await hasPermission("roles.manage")}
         currentUserId={currentUser.id}
       />
 

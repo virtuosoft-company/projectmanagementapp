@@ -2,6 +2,9 @@
   "name": "projectmanagementapp",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "^20.19 || ^22.12 || >=24.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build && npm run db:sync && npm run db:seed",
@@ -14,10 +17,17 @@
     "db:deploy": "prisma migrate deploy",
     "db:push": "prisma db push",
     "db:sync": "prisma migrate deploy || echo \"[build] migrate deploy skipped - database unreachable, schema NOT synced\"",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "ci": "npm run typecheck && npm run lint && npm run test"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
+  },
+  "overrides": {
+    "nodemailer": "$nodemailer"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
@@ -35,6 +45,7 @@
     "next": "16.3.1",
     "next-auth": "^5.0.0-beta.32",
     "next-themes": "^0.4.6",
+    "nodemailer": "^10.0.10",
     "postinstall": "^0.11.2",
     "radix-ui": "^1.6.7",
     "react": "19.2.8",
@@ -50,6 +61,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.4.2",
@@ -59,6 +71,8 @@
     "prisma": "^7.9.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.12",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^3.2.7"
   }
 }

@@ -11,8 +11,7 @@ export const metadata: Metadata = { title: "Display & Appearance" };
  *
  * An Account screen rather than an administration one: the theme is stored on
  * the account and affects nobody else, so it carries no permission of its own
- * and sits alongside Profile. The page gate is `requirePage` all the same, so
- * an owner can still take it away from someone through page assignment.
+ * and sits alongside Profile. Every signed-in person may reach it.
  */
 export default async function AppearancePage() {
   const [viewer, theme] = await Promise.all([requirePage("appearance"), getViewerTheme()]);

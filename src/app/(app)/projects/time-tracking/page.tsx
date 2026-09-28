@@ -6,7 +6,6 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { WEEKDAY_LABELS, getWeekDays, todayIso } from "@/lib/domain";
-import { can } from "@/lib/permissions";
 import {
   getEntryDetails,
   getMemberVariance,
@@ -17,13 +16,16 @@ import {
   getTimeEntries,
   getTimeSummary,
 } from "@/lib/queries";
-import { projectScope, requirePage } from "@/lib/session";
+import { hasPermission, projectScope, requirePage } from "@/lib/session";
 import { cn, formatDuration } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Time Tracking" };
 
 export default async function TimeTrackingPage() {
   const viewer = await requirePage("time-tracking");
+  // The page is assigned per role, so reaching it no longer implies the
+  // permission to record hours — the timer card and the Log Time form ask.
+  const canLog = await hasPermission("time.log");
   // Resolved once on the server and threaded down, so the week grid, the log
   // table and the client-side "Log Time" form all agree on which day it is
   // even when the browser sits in a different timezone.
@@ -66,7 +68,7 @@ export default async function TimeTrackingPage() {
 
   return (
     <TimeLogs
-      canLog={can(viewer.role, "time.log")}
+      canLog={canLog}
       today={today}
       tasks={openTasks}
       logs={entries.map((entry) => ({
@@ -89,6 +91,7 @@ export default async function TimeTrackingPage() {
         running={running}
         todayMinutes={summary.todayMinutes}
         weekMinutes={summary.weekMinutes}
+        canLog={canLog}
       />
 
       <Card className="shadow-none">

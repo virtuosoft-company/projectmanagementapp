@@ -2,6 +2,7 @@
 
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   CircleAlert,
   MoreHorizontal,
@@ -607,7 +608,12 @@ export function TrelloBoard({
       <ConfirmDialog
         open={dialog?.kind === "delete-board"}
         onClose={() => setDialog(null)}
-        onConfirm={() => run(() => deleteBoardAction(board.id), (id) => id && onSelectBoard(id))}
+        onConfirm={() =>
+          run(() => deleteBoardAction(board.id), (id) => {
+            toast.success("Board deleted");
+            if (id) onSelectBoard(id);
+          })
+        }
         title={`Delete ${board.name}?`}
         description={`Its ${optimistic.filter((task) => lists.some((list) => list.id === task.listId)).length} cards move to ${boards.find((item) => item.id !== board.id)?.name ?? "another board"}, each onto a list with the same status. No card is deleted.`}
       />
@@ -682,7 +688,7 @@ export function TrelloBoard({
         onClose={() => setDialog(null)}
         onConfirm={() => {
           if (dialog?.kind !== "delete-card") return;
-          run(() => deleteTaskAction(dialog.task.id));
+          run(() => deleteTaskAction(dialog.task.id), () => toast.success("Task deleted"));
         }}
         confirmLabel="Delete"
         title={dialog?.kind === "delete-card" ? `Delete ${dialog.task.title}?` : "Delete card?"}

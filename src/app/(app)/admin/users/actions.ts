@@ -2,20 +2,24 @@
 
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
-import { Prisma } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { Role } from "@/lib/domain";
-import { roleToDb, roleToDomain } from "@/lib/mappers";
-import { pagesForRole, type AppPage } from "@/lib/permissions";
-import { resolveWorkspaceTeamId } from "@/lib/queries";
+import { roleToDb } from "@/lib/mappers";
 import { requirePermission } from "@/lib/session";
+import { roleRowIdFor } from "@/lib/resolve-role";
+import { getMemberHoldings, type MemberHoldings } from "@/lib/admin";
+import { publishToUsers } from "@/lib/live-events";
+import { notify } from "@/lib/notifications";
 import {
   addMemberSchema,
+  type CreateUserInput,
   createUserSchema,
-  setUserPagesSchema,
   firstError,
+  type RemoveMemberInput,
+  removeMemberSchema,
   setDisabledSchema,
   updateRoleSchema,
+  type UpdateUserInput,
   updateUserSchema,
 } from "@/lib/validations";
 
@@ -57,7 +61,7 @@ async function activeAdminCount(workspaceId: string) {
 }
 
 /** Create an account and add it to the caller's workspace. Admins only. */
-export async function createUserAction(input: unknown): Promise<ActionResult> {
+export async function createUserAction(input: CreateUserInput): Promise<ActionResult> {
   const actor = await requirePermission("members.invite");
 
   // The form validated with this same schema; parsing again is what actually
@@ -69,9 +73,6 @@ export async function createUserAction(input: unknown): Promise<ActionResult> {
   const existing = await prisma.user.findUnique({ where: { email: data.email } });
   if (existing) return { ok: false, error: "Someone already uses that email." };
 
-  const team = await resolveWorkspaceTeamId(data.teamId, actor.workspaceId);
-  if (!team.ok) return { ok: false, error: "That team is not in this workspace." };
-
   await prisma.$transaction(async (tx) => {
     const created = await tx.user.create({
       data: {
@@ -79,7 +80,6 @@ export async function createUserAction(input: unknown): Promise<ActionResult> {
         email: data.email,
         phone: data.phone || null,
         designation: data.designation || null,
-        teamId: team.teamId,
         monthlyHours: data.monthlyHours,
         passwordHash: await bcrypt.hash(data.password, 12),
         disabledAt: data.active ? null : new Date(),
@@ -87,7 +87,14 @@ export async function createUserAction(input: unknown): Promise<ActionResult> {
       },
     });
     await tx.workspaceMember.create({
-      data: { workspaceId: actor.workspaceId, userId: created.id, role: roleToDb[data.role as Role] },
+      data: {
+        workspaceId: actor.workspaceId,
+        userId: created.id,
+        role: roleToDb[data.role as Role],
+        // Linked to the workspace’s row for that role, so the Roles screen
+        // counts them and its edits are theirs.
+        customRoleId: await roleRowIdFor(actor.workspaceId, data.role as Role),
+      },
     });
   });
 
@@ -103,8 +110,8 @@ export async function createUserAction(input: unknown): Promise<ActionResult> {
  * control and its own last-admin guard, and folding them into a general edit
  * form would route around both.
  */
-export async function updateUserAction(input: unknown): Promise<ActionResult> {
-  const actor = await requirePermission("members.invite");
+export async function updateUserAction(input: UpdateUserInput): Promise<ActionResult> {
+  await requirePermission("members.invite");
 
   const parsed = updateUserSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
@@ -122,9 +129,6 @@ export async function updateUserAction(input: unknown): Promise<ActionResult> {
   });
   if (clash) return { ok: false, error: "Someone already uses that email." };
 
-  const team = await resolveWorkspaceTeamId(data.teamId, actor.workspaceId);
-  if (!team.ok) return { ok: false, error: "That team is not in this workspace." };
-
   await prisma.user.update({
     where: { id: user.id },
     data: {
@@ -132,7 +136,6 @@ export async function updateUserAction(input: unknown): Promise<ActionResult> {
       email: data.email,
       phone: data.phone || null,
       designation: data.designation || null,
-      teamId: team.teamId,
       monthlyHours: data.monthlyHours,
     },
   });
@@ -157,7 +160,6 @@ export async function addMemberAction(formData: FormData): Promise<ActionResult>
   const parsed = addMemberSchema.safeParse({
     userId: formData.get("userId"),
     role: formData.get("role") ?? "member",
-    teamId: formData.get("teamId") ?? "",
   });
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
   const data = parsed.data;
@@ -170,64 +172,39 @@ export async function addMemberAction(formData: FormData): Promise<ActionResult>
   });
   if (already) return { ok: false, error: "They are already in this workspace." };
 
-  const team = await resolveWorkspaceTeamId(data.teamId, actor.workspaceId);
-  if (!team.ok) return { ok: false, error: "That team is not in this workspace." };
-
-  await prisma.$transaction(async (tx) => {
-    await tx.workspaceMember.create({
-      data: {
-        workspaceId: actor.workspaceId,
-        userId: data.userId,
-        role: roleToDb[data.role as Role],
-      },
-    });
-
-    await tx.user.update({ where: { id: data.userId }, data: { teamId: team.teamId } });
+  await prisma.workspaceMember.create({
+    data: {
+      workspaceId: actor.workspaceId,
+      userId: data.userId,
+      role: roleToDb[data.role as Role],
+      customRoleId: await roleRowIdFor(actor.workspaceId, data.role as Role),
+    },
   });
 
-  refresh();
-  return { ok: true };
-}
-
-/**
- * Assign which pages a member may reach. Owners and admins only.
- *
- * Stores the raw selection; `resolvePages` intersects it with the role's own
- * pages at read time rather than at write time, so a later role change is
- * reflected immediately instead of leaving a stale list behind.
- *
- * Assigning *every* page the role allows clears the column back to null —
- * "unrestricted" and "restricted to exactly the default set" behave the same,
- * and storing null keeps them following their role as it changes.
- */
-export async function setUserPagesAction(
-  userId: string,
-  pages: string[],
-): Promise<ActionResult> {
-  const actor = await requirePermission("members.invite");
-
-  const parsed = setUserPagesSchema.safeParse({ userId, pages });
-  if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
-  const data = parsed.data;
-
-  const membership = await prisma.workspaceMember.findUnique({
-    where: { workspaceId_userId: { workspaceId: actor.workspaceId, userId: data.userId } },
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: actor.workspaceId },
+    select: { name: true },
   });
-  if (!membership) return { ok: false, error: "They are not in this workspace." };
 
-  // An admin locking themselves out of Users would leave no way back in.
-  if (data.userId === actor.id) {
-    return { ok: false, error: "You cannot change your own page access." };
-  }
-
-  const role = roleToDomain[membership.role];
-  const allowed = pagesForRole(role);
-  const selected = data.pages.filter((page) => allowed.includes(page as AppPage));
-  const unrestricted = selected.length === allowed.length;
-
-  await prisma.workspaceMember.update({
-    where: { workspaceId_userId: { workspaceId: actor.workspaceId, userId: data.userId } },
-    data: { pages: unrestricted ? Prisma.DbNull : selected },
+  /*
+   * This one is for an account that already exists, so the person may well be
+   * signed in somewhere right now — unlike the create and invite paths, where
+   * there is nobody to tell yet.
+   *
+   * Scoped to the workspace they were added to, because the bell is
+   * per-workspace: `getNotifications` filters on the workspace the reader is
+   * currently in. Someone sitting in a different workspace therefore sees this
+   * when they switch to the new one, which is also the only place it means
+   * anything — hence the link to the switcher.
+   */
+  await notify(prisma, {
+    workspaceId: actor.workspaceId,
+    userIds: [data.userId],
+    actorId: actor.id,
+    kind: "workspace-added",
+    title: `You were added to ${workspace?.name ?? "a workspace"}`,
+    body: `As ${data.role}.`,
+    href: "/workspaces",
   });
 
   refresh();
@@ -331,9 +308,141 @@ export async function setUserRoleAction(userId: string, role: string): Promise<A
 
   await prisma.workspaceMember.update({
     where: { workspaceId_userId: { workspaceId: actor.workspaceId, userId: parsed.data.userId } },
-    data: { role: roleToDb[parsed.data.role as Role] },
+    // Re-pointed as well as restamped: leaving the old link would keep them on
+    // the role they were moved off.
+    data: {
+      role: roleToDb[parsed.data.role as Role],
+      customRoleId: await roleRowIdFor(actor.workspaceId, parsed.data.role as Role),
+    },
+  });
+
+  // Their role decides which pages they reach and which controls they get, so
+  // this is worth telling them about — and the notification doubles as the
+  // push that makes their sidebar re-resolve without a navigation.
+  await notify(prisma, {
+    workspaceId: actor.workspaceId,
+    userIds: [parsed.data.userId],
+    actorId: actor.id,
+    kind: "role-changed",
+    title: "Your role changed",
+    body: `You are now ${parsed.data.role}.`,
+    href: "/profile",
   });
 
   refresh();
   return { ok: true };
+}
+
+
+/**
+ * Take somebody off this workspace, keeping a record of it.
+ *
+ * Not the same act as deleting an account: the `User` row is untouched, they
+ * keep every other workspace they belong to, and they can be added straight
+ * back. `members.invite` for that reason — it is the exact counterpart of
+ * `addMemberAction` and is reversible, where `members.delete` destroys history.
+ *
+ * Three refusals, all re-checked here rather than trusted from the dialog:
+ *
+ *   **The account must be disabled first.** Removal is deliberate, and
+ *   disabling is the reversible half that stops them signing in meanwhile.
+ *
+ *   **No assigned tasks.** Work has to be handed over by somebody who knows
+ *   where it should go, not silently orphaned by this action.
+ *
+ *   **Never the last admin**, and never yourself — the same two guards every
+ *   other membership-changing action carries.
+ *
+ * What it does clean up: their project memberships, and the manager link on
+ * anyone reporting to them. Their time entries stay — those are the record of
+ * work actually done, and deleting them would rewrite every report and any
+ * invoice built from one. The counts are snapshotted into `MemberRemoval`
+ * first, because afterwards there is nothing left to count.
+ */
+export async function removeFromWorkspaceAction(
+  input: RemoveMemberInput,
+): Promise<ActionResult> {
+  const actor = await requirePermission("members.invite");
+
+  const parsed = removeMemberSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
+  const { userId, reason } = parsed.data;
+
+  if (userId === actor.id) {
+    return { ok: false, error: "You cannot remove yourself from this workspace." };
+  }
+
+  const membership = await prisma.workspaceMember.findUnique({
+    where: { workspaceId_userId: { workspaceId: actor.workspaceId, userId } },
+    select: { role: true, user: { select: { name: true, email: true } } },
+  });
+  if (!membership) return { ok: false, error: "They are not in this workspace." };
+
+  if (membership.role === "ADMIN") {
+    const admins = await activeAdminCount(actor.workspaceId);
+    if (admins <= 1) {
+      return { ok: false, error: "The workspace must keep at least one admin." };
+    }
+  }
+
+  // Re-read rather than trust what the dialog was showing: it may have been
+  // open while somebody assigned them a task.
+  const holdings = await getMemberHoldings(actor.workspaceId, userId);
+  if (!holdings) return { ok: false, error: "They are not in this workspace." };
+  if (holdings.blockers.length > 0) {
+    return { ok: false, error: holdings.blockers[0] };
+  }
+
+  await prisma.$transaction(async (tx) => {
+    // Snapshotted before anything is deleted — afterwards these are gone.
+    await tx.memberRemoval.create({
+      data: {
+        workspaceId: actor.workspaceId,
+        userId,
+        userName: membership.user.name,
+        userEmail: membership.user.email,
+        role: membership.role,
+        reason,
+        projectCount: holdings.projectCount,
+        hoursLogged: holdings.hoursLogged,
+        removedById: actor.id,
+      },
+    });
+
+    // Their project rows, which nothing else cascades.
+    await tx.projectMember.deleteMany({
+      where: { userId, project: { workspaceId: actor.workspaceId } },
+    });
+
+    await tx.workspaceMember.delete({
+      where: { workspaceId_userId: { workspaceId: actor.workspaceId, userId } },
+    });
+  });
+
+  // Everyone who was reporting to them, plus the person themselves — their
+  // sidebar, their project list and their workspace switcher all just changed.
+  publishToUsers([userId]);
+
+  refresh();
+  revalidatePath("/admin/users/history");
+  return { ok: true };
+}
+
+/**
+ * What somebody is holding in this workspace, for the removal dialog.
+ *
+ * A read rather than a write, but it lives here because it is only ever asked
+ * by a control gated on `members.invite` and it reports things — hours,
+ * assignments, who reports to whom — that nobody below that should be able to
+ * enumerate about an arbitrary account.
+ */
+export async function memberHoldingsAction(
+  userId: string,
+): Promise<{ ok: boolean; holdings?: MemberHoldings; error?: string }> {
+  const actor = await requirePermission("members.invite");
+
+  const holdings = await getMemberHoldings(actor.workspaceId, userId);
+  if (!holdings) return { ok: false, error: "They are not in this workspace." };
+
+  return { ok: true, holdings };
 }

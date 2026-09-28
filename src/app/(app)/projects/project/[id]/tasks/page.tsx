@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { ProjectTasksTab } from "@/components/projects/project-tasks-tab";
 import { ensureProjectBoards, getBoards } from "@/lib/boards";
 import { todayIso } from "@/lib/domain";
-import { can } from "@/lib/permissions";
 import {
   getLabels,
   getMembers,
@@ -12,14 +11,14 @@ import {
   getRunningTimer,
   getTasks,
 } from "@/lib/queries";
-import { getSessionUser, hasPermission, requireUser } from "@/lib/session";
+import { getSessionUser, hasPermission, projectScope, requireUser } from "@/lib/session";
 
 export async function generateMetadata({
   params,
 }: PageProps<"/projects/project/[id]/tasks">): Promise<Metadata> {
   const { id } = await params;
   const viewer = await getSessionUser();
-  const project = viewer?.workspaceId ? await getProject(viewer.workspaceId, id) : null;
+  const project = viewer?.workspaceId ? await getProject(viewer.workspaceId, id, await projectScope()) : null;
   return { title: `${project?.name ?? "Project"} — Boards` };
 }
 
@@ -38,7 +37,7 @@ export default async function ProjectTasksPage({
   const { id } = await params;
   const { board: requested } = await searchParams;
 
-  const project = await getProject(viewer.workspaceId, id);
+  const project = await getProject(viewer.workspaceId, id, await projectScope());
   // A feature switched off is genuinely gone, not just hidden from the nav.
   if (!project || !project.features.includes("tasks")) notFound();
 
@@ -68,7 +67,7 @@ export default async function ProjectTasksPage({
       members={members}
       labels={labels}
       today={todayIso()}
-      canManage={can(viewer.role, "tasks.manage")}
+      canManage={await hasPermission("tasks.manage")}
       canLog={canLog}
       subtasks={subtasks}
       running={running}

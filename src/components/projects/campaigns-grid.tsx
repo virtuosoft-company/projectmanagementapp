@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { CalendarDays, Pencil, Plus, Trash2, Wallet } from "lucide-react";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ import {
   type CampaignStatus,
   type Project,
 } from "@/lib/domain";
+import type { CampaignInput } from "@/lib/validations";
 import { formatPkr } from "@/lib/utils";
 
 const campaignVariant: Record<CampaignStatus, BadgeVariant> = {
@@ -36,7 +38,25 @@ const campaignVariant: Record<CampaignStatus, BadgeVariant> = {
   completed: "secondary",
 };
 
-type Draft = Omit<Campaign, "id" | "projectId">;
+/**
+ * Typed from the schema, not from `Campaign`.
+ *
+ * The domain model allows `startDate: string | null`, but the schema takes a
+ * string and turns an empty one into null — so a draft shaped like the model
+ * claims a null the action would reject. Deriving the draft from the schema
+ * keeps the form and what it posts to in step by construction, and means a
+ * field added to one without the other stops compiling.
+ */
+type Draft = Omit<CampaignInput, "progress" | "budget"> & {
+  /*
+   * Narrowed back to numbers. `z.coerce.number()` accepts anything coercible,
+   * so its *input* type is `unknown` — correct for a schema, useless for a
+   * form field. Everything else still comes from the schema, which is what
+   * keeps the field names in step.
+   */
+  progress: number;
+  budget: number;
+};
 
 export function CampaignsGrid({
   project,
@@ -152,6 +172,7 @@ export function CampaignsGrid({
           startTransition(async () => {
             const result = await createCampaignAction(projectId, draft);
             if (result.ok) {
+              toast.success("Campaign created");
               setCreating(false);
               router.refresh();
             }
@@ -171,6 +192,7 @@ export function CampaignsGrid({
           startTransition(async () => {
             const result = await updateCampaignAction(editing.id, draft);
             if (result.ok) {
+              toast.success("Campaign updated");
               setEditing(null);
               router.refresh();
             }
@@ -184,7 +206,15 @@ export function CampaignsGrid({
         onConfirm={() => {
           if (!removing) return;
           startTransition(async () => {
-            await deleteCampaignAction(removing.id);
+            // The result was discarded here, so a refused delete refreshed the
+            // page and looked exactly like a successful one. A toast cannot be
+            // raised honestly without reading it.
+            const result = await deleteCampaignAction(removing.id);
+            if (!result.ok) {
+              toast.error(result.error ?? "Could not delete that campaign.");
+              return;
+            }
+            toast.success("Campaign deleted");
             router.refresh();
           });
         }}

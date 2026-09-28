@@ -35,7 +35,6 @@ import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "../src/lib/generated/prisma/client";
 import { buildDatabaseUrl } from "../src/lib/db-config/db-config";
 import { DEFAULT_ROLES, defaultRolePermissions, ensureWorkspaceRoles } from "../src/lib/default-roles";
-import { pagesForRole } from "../src/lib/permissions";
 
 const DRY_RUN = process.argv.includes("--dry-run");
 
@@ -122,9 +121,6 @@ async function main() {
           workspaceId,
           userId,
           role: "ADMIN",
-          // Explicit rather than null so the Admin → Users screen shows the
-          // same page set it would let you edit.
-          pages: pagesForRole("admin"),
         },
       });
     }

@@ -2,14 +2,20 @@ import { SessionProvider } from "next-auth/react";
 import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
 import {
+  getMember,
   getNotifications,
   getOverdueTasks,
   getProjects,
   getRunningTimer,
-  getTeams,
   getUserWorkspaces,
 } from "@/lib/queries";
-import { getViewerPages, hasPermission, projectScope, requireUser } from "@/lib/session";
+import {
+  getViewerPages,
+  getViewerPermissions,
+  hasPermission,
+  projectScope,
+  requireUser,
+} from "@/lib/session";
 
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -19,27 +25,42 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const session = await auth();
   const [
     projects,
-    teams,
     overdue,
     workspaces,
-    pages,
     canCreateWorkspace,
     canManageFeatures,
+    canLogTime,
+    pages,
+    permissions,
     runningTimer,
     notifications,
+    profile,
   ] = await Promise.all([
     getProjects(user.workspaceId, await projectScope()),
-    getTeams(user.workspaceId),
     getOverdueTasks(user.workspaceId),
     getUserWorkspaces(user.id),
-    getViewerPages(),
     // Resolved through the viewer’s actual role — a custom role that narrows
     // this away hides the control, matching what the action would allow.
     hasPermission("workspace.create"),
     hasPermission("workspace.settings"),
+    // The header timer's pause/stop controls are `time.log` actions, so they
+    // follow the same permission the time-tracking pages are gated on.
+    hasPermission("time.log"),
+    // The role's assigned pages, which is what the nav is built from. Reading
+    // it here means the sidebar and `requirePage` answer from one resolution
+    // of the role per request — `getViewerRole` is `cache()`d.
+    getViewerPages(),
+    // The resolved permission set, for the project sub-page links. Same cached
+    // role resolution as `getViewerPages`, so this costs no extra query.
+    getViewerPermissions(),
     // Read here rather than per page, so the header can show it everywhere.
     getRunningTimer(user.workspaceId, user.id),
     getNotifications(user.workspaceId, user.id),
+    // The shell shows the viewer's own name, email and photo. The session
+    // carries the copy the JWT was minted with at sign-in, so editing your
+    // profile left the sidebar showing the old one until the next sign-in;
+    // this row is current.
+    getMember(user.workspaceId, user.id),
   ]);
 
   return (
@@ -51,16 +72,23 @@ export default async function AppLayout({ children }: { children: React.ReactNod
      */
     <SessionProvider session={session}>
       <AppShell
-        user={user}
+        user={{
+          ...user,
+          name: profile?.name ?? user.name,
+          email: profile?.email ?? user.email,
+          image: profile?.image ?? user.image,
+        }}
         projects={projects.map(({ id, name, features }) => ({ id, name, features }))}
-        teamCount={teams.length}
+        projectCount={projects.length}
         workspaces={workspaces}
         pages={pages}
+        permissions={permissions}
         canCreateWorkspace={canCreateWorkspace}
         canManageFeatures={canManageFeatures}
         // Sidebar count badges, resolved server-side rather than polled.
         badges={{ "/projects/tasks": overdue.length }}
         runningTimer={runningTimer}
+        canLogTime={canLogTime}
         notifications={notifications.items}
         unreadNotifications={notifications.unread}
       >

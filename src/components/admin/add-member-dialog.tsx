@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { CircleAlert, Plus } from "lucide-react";
 import { addMemberAction } from "@/app/(app)/admin/users/actions";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,6 @@ import { Field } from "@/components/ui/field";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { DialogActions } from "@/components/ui/form-actions";
 import { SelectField } from "@/components/ui/select-field";
-import type { Team } from "@/lib/domain";
 import { ROLES, roleLabel } from "@/lib/permissions";
 
 export type AddableUser = { id: string; name: string; email: string };
@@ -27,13 +27,7 @@ export type AddableUser = { id: string; name: string; email: string };
  * Rendered only where the caller holds `members.invite`; `addMemberAction`
  * re-checks that permission and re-validates every field server-side.
  */
-export function AddMemberDialog({
-  users,
-  teams,
-}: {
-  users: AddableUser[];
-  teams: Pick<Team, "id" | "name">[];
-}) {
+export function AddMemberDialog({ users }: { users: AddableUser[] }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +46,7 @@ export function AddMemberDialog({
         return;
       }
 
+      toast.success("Member added");
       setOpen(false);
       router.refresh();
     });
@@ -104,24 +99,13 @@ export function AddMemberDialog({
               />
             </Field>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Role" hint="What they can do in this workspace.">
-                <SelectField
-                  name="role"
-                  defaultValue="member"
-                  options={ROLES.map((role) => ({ value: role, label: roleLabel(role) }))}
-                />
-              </Field>
-
-              <Field label="Team" required hint="Which team they work on.">
-                <SelectField
-                  name="teamId"
-                  placeholder="Select a team"
-                  disabled={teams.length === 0}
-                  options={teams.map((team) => ({ value: team.id, label: team.name }))}
-                />
-              </Field>
-            </div>
+            <Field label="Role" hint="What they can do in this workspace.">
+              <SelectField
+                name="role"
+                defaultValue="member"
+                options={ROLES.map((role) => ({ value: role, label: roleLabel(role) }))}
+              />
+            </Field>
 
             {error ? (
               <p

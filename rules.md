@@ -27,6 +27,87 @@
   ```
   Don't declare types inline in constants or component files.
 
+## Page code flow
+
+How a data-backed page is put together. The shape below is the default; deviate
+only with a reason worth writing down.
+
+### Server component first
+- A page is an **async server component** unless something on it genuinely needs
+  the browser. Gate it on the server (`requirePage` / `requirePermission`), read
+  through the query layer, and pass the results down. No `/api` round-trip
+  exists for data the server already has, and a page that fetches on the client
+  cannot be refreshed by `router.refresh()` — which is what every live update
+  relies on.
+- Push `"use client"` down to the smallest piece that needs it: a dialog, a
+  chart, a form. A whole page marked `"use client"` to get one dropdown working
+  gives up streaming, the server gate, and live refresh in one line.
+
+### When a page must fetch on the client
+Only when the data genuinely cannot be resolved on the server — a third-party
+widget, something polled, something the user re-queries without navigating.
+Then:
+- **One** `load` function in `useCallback`, called from a `useEffect` that waits
+  for auth to settle. Not a fetch per effect.
+- **First load and refresh are different states.** `isLoading` blanks the page;
+  `isRefreshing` must not — a refresh that empties the screen and repaints it
+  reads as a crash. The same rule applies on the server side: wrap
+  `router.refresh()` in a transition, or React blanks the tree while it waits.
+- Every fetch gets an `AbortController` and a timeout, and the catch returns
+  early on `AbortError` — an aborted request is not a failure and must not
+  write an error into state.
+- Errors go **into state**, never thrown. A page that throws on a failed fetch
+  loses everything it had already rendered.
+
+### Fatal versus stale
+Two different failures, two different treatments:
+- **No data and an error** — the whole screen is the error, with a retry.
+- **Data and an error** — keep the data on screen and put the error in a banner
+  above it. Stale figures with a warning beat an empty page.
+
+### Authorization
+- Derive **one** boolean (`isAuthorized`, `canManage`) and branch on that. Role
+  comparisons scattered through the body drift apart the moment a role is added.
+- A client-side check is **presentation only**. Whatever serves the data scopes
+  its own queries to what that person may see. The failure this prevents is
+  specific: an endpoint that filters the top-level list but not the figures
+  derived from it hands a manager the whole portfolio's numbers while the page
+  looks correctly scoped.
+
+### Derived values
+- Compute after the data guard, once, as plain consts above the return. No
+  arithmetic inline in JSX, and no recomputing the same sum in two places.
+- **An empty state is not the same as no rows.** Twelve months of zeroes is a
+  chart with data, and it draws as two flat lines on the axis — which reads as
+  broken, not as "nothing happened yet". Detect it explicitly and render the
+  empty state.
+- A total labelled "total" sums the series. Reading the last point and calling
+  it a total is the bug that looks right until someone checks.
+
+### Presentational helpers
+- Map a domain value to an icon, a colour or a label in a **module-level pure
+  function** (`getActivityIcon`, `getPriorityColor`), not an inline `switch` in
+  the markup. Every one gets a `default` branch — an unknown status renders
+  neutral rather than blank.
+
+### Formatting
+- Currency, percentages and dates go through the shared formatter. Never
+  hand-rolled, never `toFixed` in JSX.
+- An axis formatter must not lie. Dividing by 1000 unconditionally turns £375
+  into "£0.375k"; switch units only once the value is actually in those units.
+
+### Charts
+- Colours for grid lines, tooltip surfaces and text come from **theme tokens**,
+  not hardcoded hex. A `#f1f5f9` grid is invisible on dark, and a `bg-white`
+  tooltip with muted text is unreadable on it.
+- Give every chart an explicit empty state.
+
+### A different page per role
+- When a role needs a genuinely different screen rather than a narrowed one, it
+  is a **separate component**, imported dynamically, with a skeleton that
+  matches the real layout. Do not fork one component down the middle with
+  conditionals — the two halves stop resembling each other within a month.
+
 ## Design tokens first
 - `app/globals.css` defines the token scale (`--primary`, `--radius`, `--radius-md/lg/xl/2xl/3xl`, etc.). When a Figma spec gives a raw pixel value, check whether it maps onto an existing token before reaching for an arbitrary Tailwind value (`rounded-[22px]` vs `rounded-3xl` when they're the same number). Reusing tokens keeps the design system coherent as it evolves.
 - Verify a Figma color hex actually matches a token before assuming they're related — convert oklch/hex if unsure rather than eyeballing it.
@@ -48,6 +129,18 @@
 - Why it matters: with a string `src`, `next/image` serves via `/_next/image?url=...`, and that URL — not the file's bytes — is the cache key. Swap a PNG for a new one under the same filename and the old image keeps being served from the optimizer's disk cache (`.next/dev/cache/images` in dev, `.next/cache/images` for a build) and from browsers for up to `minimumCacheTTL`, which defaults to 4 hours. Next's own docs say there is no way to invalidate it: `node_modules/next/dist/docs/01-app/03-api-reference/02-components/image.md` (see `minimumCacheTTL`).
 - A React `key={src}` does not help here — it remounts the element but the URL is unchanged, so the HTTP cache is untouched.
 - When a string path genuinely can't be avoided and an image was replaced in place, delete the optimizer cache directory and hard-reload (a normal refresh still hits the browser's own copy); on a deployed site, clear it there and in any CDN too.
+
+## Typed action payloads
+- Every server action takes its schema's payload type, not `unknown` — `z.input<typeof xSchema>`, exported from the validations module. `z.input`, not `z.infer`: a caller sends the shape *before* defaults are filled in and transforms applied, and the two differ wherever a field has either.
+- **The type never replaces `safeParse`.** An action is a public endpoint: the argument arrives over the wire and can be anything, whatever the signature says. The type is a compile-time aid for this codebase's own call sites, nothing more.
+- Type the **form's draft** from the same schema, not only the action's parameter. They catch different mistakes, and only the draft catches the one that actually happens: TypeScript does not apply excess-property checking through a spread, so `action({ ...draft, id })` will not flag a field the schema does not declare — while typing the `useState` initialiser does. A dialog posting a field the schema silently drops produces no error anywhere; the save succeeds and changes nothing.
+- Where a draft needs a narrower type than the schema's input — `z.coerce.number()` accepts `unknown`, which no form field can bind to — narrow that field and derive the rest, rather than abandoning the schema as the source of field names.
+- A schema written inline at the parse call has no type to derive from. Hoist it to a named const above the action.
+
+## Tests
+- Unit tests cover the reasoning that decides **who may see what**: the permission matrix, role resolution, the schemas guarding every action, and the nav filter. These are pure functions and need no database or browser; keep them that way by leaving anything `server-only` out of the test path.
+- A schema test asserts what **survives** parsing, not only what is refused. A field the schema fails to declare is stripped in silence, and no amount of rejection testing will show it.
+- When a bug is found, the test comes with the fix and says which bug it is. A regression test that does not name the failure it prevents gets deleted by whoever tidies up next.
 
 ## Verification
 - After a non-trivial edit, run `npx tsc --noEmit` and check the diff is clean of new errors before calling something done — don't rely on "it should work."

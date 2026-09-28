@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { CircleAlert, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -76,12 +77,16 @@ export function LabelsManager({
             className="space-y-3 rounded-md border p-3"
             onSubmit={(event) => {
               event.preventDefault();
+              const wasEditing = Boolean(editing);
               run(
                 () =>
                   editing
                     ? updateLabelAction({ id: editing.id, name, color })
                     : createLabelAction({ name, color }),
-                reset,
+                () => {
+                  toast.success(wasEditing ? "Label updated" : "Label created");
+                  reset();
+                },
               );
             }}
           >
@@ -191,7 +196,7 @@ export function LabelsManager({
           const label = removing;
           if (!label) return;
           setRemoving(null);
-          run(() => deleteLabelAction(label.id));
+          run(() => deleteLabelAction(label.id), () => toast.success("Label deleted"));
         }}
         title={`Delete ${removing?.name ?? "label"}?`}
         description={

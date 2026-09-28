@@ -3,6 +3,7 @@ import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { roleToDomain } from "@/lib/mappers";
 import { resolveBaseRole, resolveCustomRole, type ResolvedRole } from "@/lib/permissions";
+import type { Role } from "@/lib/domain";
 
 /**
  * The database-backed half of role resolution.
@@ -42,6 +43,7 @@ export const resolveMemberRole = cache(
             name: true,
             label: true,
             permissions: true,
+            pages: true,
             inheritsFrom: true,
             isActive: true,
           },
@@ -52,7 +54,37 @@ export const resolveMemberRole = cache(
     if (!membership) return null;
 
     const base = roleToDomain[membership.role];
-    const custom = membership.customRole;
+
+    /*
+     * The row this membership points at, or — when it points at none — the
+     * workspace's row of the same name.
+     *
+     * `ensureWorkspaceRoles` links the two when a workspace is seeded, but
+     * every path that creates a membership or changes its base role afterwards
+     * writes `role` alone and leaves `customRoleId` null. Those people resolved
+     * straight from the compile-time matrix, so a role retuned on the Roles
+     * screen did nothing for them: Member could have `projects.create` unticked
+     * and still see the New Project button.
+     *
+     * Falling back by name fixes that for every such membership at once, and
+     * for any future write path that forgets, rather than trusting five callers
+     * to remember. Admin is unaffected — it is the one fixed role, has no row
+     * to find, and `isFixedRole` keeps the name from ever being taken.
+     */
+    const custom =
+      membership.customRole ??
+      (await prisma.customRole.findUnique({
+        where: { workspaceId_name: { workspaceId, name: base } },
+        select: {
+          id: true,
+          name: true,
+          label: true,
+          permissions: true,
+          pages: true,
+          inheritsFrom: true,
+          isActive: true,
+        },
+      }));
 
     // A deactivated role falls back to its base rather than locking the holder
     // out: deactivating is for retiring a role, not for silently stripping
@@ -64,7 +96,28 @@ export const resolveMemberRole = cache(
       name: custom.name,
       label: custom.label,
       permissions: custom.permissions,
+      pages: custom.pages,
       inheritsFrom: roleToDomain[custom.inheritsFrom],
     });
   },
 );
+
+/**
+ * The workspace's role row for a base role name, or null when there is none.
+ *
+ * Used when a membership is created or its base role changed, so
+ * `customRoleId` points at the row the Roles screen edits. Resolution no
+ * longer *depends* on that link — `resolveMemberRole` falls back by name — but
+ * the link is what the members-per-role counts are drawn from, so leaving it
+ * null shows a role as held by nobody while people are in fact on it.
+ *
+ * Admin has no row by design and returns null, which is the correct link for
+ * the one fixed role.
+ */
+export async function roleRowIdFor(workspaceId: string, role: Role): Promise<string | null> {
+  const row = await prisma.customRole.findUnique({
+    where: { workspaceId_name: { workspaceId, name: role } },
+    select: { id: true },
+  });
+  return row?.id ?? null;
+}

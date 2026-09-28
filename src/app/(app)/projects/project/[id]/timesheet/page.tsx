@@ -5,14 +5,14 @@ import { WeeklyTimesheet, type TimesheetRow } from "@/components/projects/weekly
 import { Button } from "@/components/ui/button";
 import { todayIso } from "@/lib/domain";
 import { getProject, getProjectStats } from "@/lib/queries";
-import { getSessionUser, requireUser } from "@/lib/session";
+import { getSessionUser, projectScope, requireUser } from "@/lib/session";
 
 export async function generateMetadata({
   params,
 }: PageProps<"/projects/project/[id]/timesheet">): Promise<Metadata> {
   const { id } = await params;
   const viewer = await getSessionUser();
-  const project = viewer?.workspaceId ? await getProject(viewer.workspaceId, id) : null;
+  const project = viewer?.workspaceId ? await getProject(viewer.workspaceId, id, await projectScope()) : null;
   return { title: `${project?.name ?? "Project"} — Timesheet` };
 }
 
@@ -21,7 +21,7 @@ export default async function TimesheetPage({
 }: PageProps<"/projects/project/[id]/timesheet">) {
   const viewer = await requireUser();
   const { id } = await params;
-  const project = await getProject(viewer.workspaceId, id);
+  const project = await getProject(viewer.workspaceId, id, await projectScope());
   // A feature switched off is genuinely gone, not just hidden from the nav.
   if (!project || !project.features.includes("timesheet")) notFound();
 

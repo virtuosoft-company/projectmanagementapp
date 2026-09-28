@@ -10,7 +10,6 @@ export type WorkspaceMember = {
   email: string;
   role: Role;
   designation: string | null;
-  teamId: string | null;
   hourlyRate: number;
   monthlyHours: number;
   joinedAt: string;
@@ -42,7 +41,6 @@ export async function listMembers(): Promise<WorkspaceMember[]> {
     email: row.user.email,
     role: roleToDomain[row.role],
     designation: row.user.designation,
-    teamId: row.user.teamId,
     hourlyRate: row.user.hourlyRate,
     monthlyHours: row.user.monthlyHours,
     joinedAt: row.joinedAt.toISOString().slice(0, 10),

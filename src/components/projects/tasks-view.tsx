@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import Link from "next/link";
 import { Plus, Tag } from "lucide-react";
 import { AvatarStack } from "@/components/avatar-stack";
@@ -155,7 +156,15 @@ export function TasksView({
               if (!uploaded.ok) problems.push(`${chosen.name}: ${uploaded.error ?? "upload failed."}`);
             }
 
-            setError(problems.length ? `Task created, but ${problems.join(" ")}` : null);
+            // The task exists either way; a failed upload is reported beside
+            // it rather than instead of it.
+            if (problems.length) {
+              setError(`Task created, but ${problems.join(" ")}`);
+              toast.warning("Task created, with problems");
+            } else {
+              setError(null);
+              toast.success("Task created");
+            }
             setCreating(false);
             router.refresh();
           });

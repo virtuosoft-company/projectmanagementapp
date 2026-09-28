@@ -1,21 +1,30 @@
 import type { Metadata } from "next";
-import { Activity, CircleCheck, Clock, FolderKanban } from "lucide-react";
-import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ProjectsGrid, type ProjectCard } from "@/components/projects/projects-grid";
-import { can } from "@/lib/permissions";
-import { getMembers, getMetrics, getProjectStats, getProjects, getTeams } from "@/lib/queries";
-import { projectScope, requirePage } from "@/lib/session";
+import { ProjectsStats } from "@/components/projects/projects-stats";
+import { getMembers, getMetrics, getProjectStats, getProjects } from "@/lib/queries";
+import { hasPermission, projectScope, requirePage, viewerSupervises } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Projects" };
 
 export default async function ProjectsPage() {
   const viewer = await requirePage("projects");
-  const [metrics, projects, members, teams] = await Promise.all([
-    getMetrics(viewer.workspaceId),
+
+  // Admin or manager. The grid itself is the same screen for everybody — the
+  // figures above it are not, and they are what a common user does not get.
+  const supervises = await viewerSupervises();
+
+  const [projects, members] = await Promise.all([
     getProjects(viewer.workspaceId, await projectScope()),
     getMembers(viewer.workspaceId),
-    getTeams(viewer.workspaceId),
   ]);
+
+  // Only when they will be shown. `getMetrics` reads projects, tasks, entries
+  // and members to compute figures nobody is going to see otherwise.
+  const metrics = supervises
+    ? await getMetrics(viewer.workspaceId, {
+        projects: await projectScope(),
+      })
+    : null;
 
   const cards: ProjectCard[] = await Promise.all(
     projects.map(async (project) => {
@@ -28,42 +37,10 @@ export default async function ProjectsPage() {
     <ProjectsGrid
       projects={cards}
       members={members}
-      teams={teams}
-      canCreate={can(viewer.role, "projects.create")}
-      canEdit={can(viewer.role, "projects.edit")}
-      canDelete={can(viewer.role, "projects.delete")}
-      stats={
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <KpiCard
-            icon={FolderKanban}
-            tone="primary"
-            value={metrics.totalProjects.toString()}
-            label="Total Projects"
-            hint={`${metrics.planningProjects} planning`}
-          />
-          <KpiCard
-            icon={Activity}
-            tone="success"
-            value={metrics.activeProjects.toString()}
-            label="Active"
-            hint="In progress"
-          />
-          <KpiCard
-            icon={CircleCheck}
-            tone="warning"
-            value={`${metrics.completionRate}%`}
-            label="Task Completion"
-            hint={`${metrics.tasksDone}/${metrics.tasksTotal} tasks`}
-          />
-          <KpiCard
-            icon={Clock}
-            tone="accent"
-            value={metrics.completedProjects.toString()}
-            label="Completed"
-            hint="Wrapped up"
-          />
-        </div>
-      }
+      canCreate={await hasPermission("projects.create")}
+      canEdit={await hasPermission("projects.edit")}
+      canDelete={await hasPermission("projects.delete")}
+      stats={metrics ? <ProjectsStats metrics={metrics} /> : null}
     />
   );
 }

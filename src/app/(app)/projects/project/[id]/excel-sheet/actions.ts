@@ -38,12 +38,13 @@ function refresh(projectId: string) {
 }
 
 /** Add a sheet to a project. */
-export async function createSheetAction(input: unknown): Promise<ActionResult> {
+const createSheetSchema = z.object({ projectId: z.string().min(1), name: nameSchema });
+type CreateSheetInput = z.input<typeof createSheetSchema>;
+
+export async function createSheetAction(input: CreateSheetInput): Promise<ActionResult> {
   const user = await requirePermission("projects.edit");
 
-  const parsed = z
-    .object({ projectId: z.string().min(1), name: nameSchema })
-    .safeParse(input);
+  const parsed = createSheetSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
   const data = parsed.data;
 
@@ -80,10 +81,13 @@ export async function createSheetAction(input: unknown): Promise<ActionResult> {
 }
 
 /** Rename a sheet. */
-export async function renameSheetAction(input: unknown): Promise<ActionResult> {
+const renameSheetSchema = z.object({ sheetId: z.string().min(1), name: nameSchema });
+type RenameSheetInput = z.input<typeof renameSheetSchema>;
+
+export async function renameSheetAction(input: RenameSheetInput): Promise<ActionResult> {
   const user = await requirePermission("projects.edit");
 
-  const parsed = z.object({ sheetId: z.string().min(1), name: nameSchema }).safeParse(input);
+  const parsed = renameSheetSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
 
   const sheet = await findSheet(parsed.data.sheetId, user.workspaceId);
@@ -105,12 +109,16 @@ export async function renameSheetAction(input: unknown): Promise<ActionResult> {
  * trusted — otherwise any user id would be accepted, including someone from
  * another tenant.
  */
-export async function assignSheetAction(input: unknown): Promise<ActionResult> {
+const assignSheetSchema = z.object({
+  sheetId: z.string().min(1),
+  assigneeId: z.string().nullable(),
+});
+type AssignSheetInput = z.input<typeof assignSheetSchema>;
+
+export async function assignSheetAction(input: AssignSheetInput): Promise<ActionResult> {
   const user = await requirePermission("projects.edit");
 
-  const parsed = z
-    .object({ sheetId: z.string().min(1), assigneeId: z.string().nullable() })
-    .safeParse(input);
+  const parsed = assignSheetSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
   const data = parsed.data;
 
@@ -190,10 +198,13 @@ function stored(content: SheetContent) {
 }
 
 /** Save a sheet's contents — values, formulas and formatting together. */
-export async function saveSheetAction(input: unknown): Promise<ActionResult> {
+const saveSheetSchema = z.object({ sheetId: z.string().min(1), ...sheetContent });
+type SaveSheetInput = z.input<typeof saveSheetSchema>;
+
+export async function saveSheetAction(input: SaveSheetInput): Promise<ActionResult> {
   const user = await requirePermission("projects.edit");
 
-  const parsed = z.object({ sheetId: z.string().min(1), ...sheetContent }).safeParse(input);
+  const parsed = saveSheetSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
   const data = parsed.data;
 
@@ -219,18 +230,19 @@ export async function saveSheetAction(input: unknown): Promise<ActionResult> {
  * project's sheet cap applies to the whole batch: if it would be exceeded,
  * nothing is imported, rather than half a workbook.
  */
-export async function importSheetsAction(input: unknown): Promise<ActionResult> {
+const importSheetsSchema = z.object({
+  projectId: z.string().min(1),
+  sheets: z
+    .array(z.object({ name: nameSchema, ...sheetContent }))
+    .min(1, "The file had no worksheets.")
+    .max(SHEET_MAX_PER_PROJECT),
+});
+type ImportSheetsInput = z.input<typeof importSheetsSchema>;
+
+export async function importSheetsAction(input: ImportSheetsInput): Promise<ActionResult> {
   const user = await requirePermission("projects.edit");
 
-  const parsed = z
-    .object({
-      projectId: z.string().min(1),
-      sheets: z
-        .array(z.object({ name: nameSchema, ...sheetContent }))
-        .min(1, "The file had no worksheets.")
-        .max(SHEET_MAX_PER_PROJECT),
-    })
-    .safeParse(input);
+  const parsed = importSheetsSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
   const data = parsed.data;
 

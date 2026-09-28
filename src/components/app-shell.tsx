@@ -4,12 +4,13 @@ import { useState } from "react";
 import { PanelLeft } from "lucide-react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { GlobalTimerIndicator } from "@/components/projects/global-timer-indicator";
+import { LiveUpdates } from "@/components/layout/live-updates";
 import { MobileNavigation } from "@/components/layout/mobile-navigation";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-media-query";
 import type { AppNotification, Project, RunningTimer, WorkspaceSummary } from "@/lib/domain";
-import type { AppPage } from "@/lib/permissions";
+import type { AppPage, Permission } from "@/lib/permissions";
 import type { ActiveSessionUser } from "@/lib/session";
 
 /**
@@ -19,28 +20,34 @@ import type { ActiveSessionUser } from "@/lib/session";
 export function AppShell({
   user,
   projects,
-  teamCount,
+  projectCount,
   workspaces,
   pages,
+  permissions,
   canCreateWorkspace,
   canManageFeatures,
   badges,
   runningTimer,
+  canLogTime,
   notifications,
   unreadNotifications,
   children,
 }: {
   user: ActiveSessionUser;
   projects: Pick<Project, "id" | "name" | "features">[];
-  teamCount: number;
+  projectCount: number;
   workspaces: WorkspaceSummary[];
-  /** Pages this member may reach; see `resolvePages`. */
+  /** The pages assigned to the viewer role; the nav renders exactly these. */
   pages: AppPage[];
+  /** The viewer’s resolved permissions, for nav items that are not pages. */
+  permissions: Permission[];
   canCreateWorkspace: boolean;
   canManageFeatures: boolean;
   badges?: Record<string, number>;
   /** The viewer's running timer, shown in the header on every page. */
   runningTimer: RunningTimer | null;
+  /** `time.log` — the header timer's pause/stop controls are hidden without it. */
+  canLogTime: boolean;
   /** The viewer's latest notifications, and how many of theirs are unread. */
   notifications: AppNotification[];
   unreadNotifications: number;
@@ -56,9 +63,10 @@ export function AppShell({
           <AppSidebar
             user={user}
             projects={projects}
-            teamCount={teamCount}
+            projectCount={projectCount}
             workspaces={workspaces}
             pages={pages}
+            permissions={permissions}
             canCreateWorkspace={canCreateWorkspace}
             canManageFeatures={canManageFeatures}
             badges={badges}
@@ -78,9 +86,10 @@ export function AppShell({
             <AppSidebar
               user={user}
               projects={projects}
-              teamCount={teamCount}
+              projectCount={projectCount}
               workspaces={workspaces}
               pages={pages}
+              permissions={permissions}
               canCreateWorkspace={canCreateWorkspace}
               canManageFeatures={canManageFeatures}
               badges={badges}
@@ -105,14 +114,19 @@ export function AppShell({
             <span className="sr-only">Toggle Sidebar</span>
           </Button>
           <div className="flex min-w-0 items-center gap-2">
-            <GlobalTimerIndicator running={runningTimer} />
+            <GlobalTimerIndicator running={runningTimer} canLog={canLogTime} />
             <NotificationBell items={notifications} unread={unreadNotifications} />
           </div>
         </header>
 
         <main className="flex-1 p-6">{children}</main>
 
-        <MobileNavigation role={user.role} badges={badges} />
+        <MobileNavigation pages={pages} permissions={permissions} badges={badges} />
+      {/*
+        Renders nothing. Mounted here so one stream serves the whole signed-in
+        session rather than one per screen.
+      */}
+      <LiveUpdates />
       </div>
     </div>
   );

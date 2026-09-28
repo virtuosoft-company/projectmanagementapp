@@ -28,15 +28,24 @@ import {
 } from "@/lib/r2-server";
 import { requirePermission, viewerCan } from "@/lib/session";
 import {
+  type ArchiveTaskInput,
   archiveTaskSchema,
+  type CreateSubtaskInput,
   createSubtaskSchema,
   firstError,
+  type LabelInput,
   labelSchema,
+  type ManualTimeEntryInput,
   manualTimeEntrySchema,
+  type StartTimerInput,
   startTimerSchema,
+  type UpdateLabelInput,
   updateLabelSchema,
+  type UpdateSubtaskInput,
   updateSubtaskSchema,
+  type UpdateTaskInput,
   updateTaskSchema,
+  type UpdateTimeEntryInput,
   updateTimeEntrySchema,
 } from "@/lib/validations";
 import type { Priority, TaskStatus } from "@/lib/domain";
@@ -103,7 +112,7 @@ async function findTask(taskId: string, workspaceId: string) {
  * that is not atomic could leave a task with none of either if the second half
  * failed.
  */
-export async function updateTaskAction(input: unknown): Promise<ActionResult> {
+export async function updateTaskAction(input: UpdateTaskInput): Promise<ActionResult> {
   const user = await requirePermission("tasks.manage");
 
   const parsed = updateTaskSchema.safeParse(input);
@@ -178,7 +187,7 @@ export async function updateTaskAction(input: unknown): Promise<ActionResult> {
  * changing hours that have already been reported on. Archiving takes the task
  * off the board and leaves the history intact.
  */
-export async function archiveTaskAction(input: unknown): Promise<ActionResult> {
+export async function archiveTaskAction(input: ArchiveTaskInput): Promise<ActionResult> {
   const user = await requirePermission("tasks.manage");
 
   const parsed = archiveTaskSchema.safeParse(input);
@@ -252,7 +261,7 @@ async function subtaskBelongsTo(subtaskId: string, taskId: string) {
 /** Add a subtask to a task — at the top level, or under another subtask. */
 /** Returns the new subtask's id, so a file can be uploaded to it next. */
 export async function createSubtaskAction(
-  input: unknown,
+  input: CreateSubtaskInput,
 ): Promise<ActionResult & { id?: string }> {
   const user = await requirePermission("tasks.manage");
 
@@ -317,7 +326,7 @@ export async function createSubtaskAction(
  * Only this node changes. A parent's status is deliberately left alone when
  * its children move — the tree shows progress, the person decides status.
  */
-export async function updateSubtaskAction(input: unknown): Promise<ActionResult> {
+export async function updateSubtaskAction(input: UpdateSubtaskInput): Promise<ActionResult> {
   const user = await requirePermission("tasks.manage");
 
   const parsed = updateSubtaskSchema.safeParse(input);
@@ -391,7 +400,7 @@ export async function deleteSubtaskAction(subtaskId: string): Promise<ActionResu
 
 // --- Labels ----------------------------------------------------------------
 
-export async function createLabelAction(input: unknown): Promise<ActionResult> {
+export async function createLabelAction(input: LabelInput): Promise<ActionResult> {
   const user = await requirePermission("tasks.manage");
 
   const parsed = labelSchema.safeParse(input);
@@ -411,7 +420,7 @@ export async function createLabelAction(input: unknown): Promise<ActionResult> {
   return { ok: true };
 }
 
-export async function updateLabelAction(input: unknown): Promise<ActionResult> {
+export async function updateLabelAction(input: UpdateLabelInput): Promise<ActionResult> {
   const user = await requirePermission("tasks.manage");
 
   const parsed = updateLabelSchema.safeParse(input);
@@ -533,7 +542,7 @@ async function stopTimersOnTask(taskId: string) {
  * one-timer-per-user rule, which the unique index on `TaskTimer.userId` makes
  * unavoidable rather than merely intended.
  */
-export async function startTimerAction(input: unknown): Promise<ActionResult> {
+export async function startTimerAction(input: StartTimerInput): Promise<ActionResult> {
   const user = await requirePermission("time.log");
 
   const parsed = startTimerSchema.safeParse(input);
@@ -679,7 +688,7 @@ function resolveEntry(data: {
 }
 
 /** Add time to a task by hand, without having timed it. */
-export async function addTimeEntryAction(input: unknown): Promise<ActionResult> {
+export async function addTimeEntryAction(input: ManualTimeEntryInput): Promise<ActionResult> {
   const user = await requirePermission("time.log");
 
   const parsed = manualTimeEntrySchema.safeParse(input);
@@ -733,7 +742,7 @@ async function entryYouCanEdit(entryId: string, user: { id: string; workspaceId:
   return { entry, allowed };
 }
 
-export async function updateTimeEntryAction(input: unknown): Promise<ActionResult> {
+export async function updateTimeEntryAction(input: UpdateTimeEntryInput): Promise<ActionResult> {
   const user = await requirePermission("time.log");
 
   const parsed = updateTimeEntrySchema.safeParse(input);

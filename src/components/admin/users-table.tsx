@@ -3,25 +3,29 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   ChevronLeft,
   ChevronRight,
   CircleAlert,
   Plus,
-  LayoutGrid,
   Pencil,
   Search,
   Trash2,
   UserCheck,
+  UserMinus,
   UserX,
 } from "lucide-react";
 import {
+  memberHoldingsAction,
   deleteUserAction,
   setUserRoleAction,
   setUsersDisabledAction,
   type ActionResult,
 } from "@/app/(app)/admin/users/actions";
 import { assignCustomRoleAction } from "@/app/(app)/admin/users/roles/actions";
+import { RemoveMemberDialog } from "@/components/admin/remove-member-dialog";
+import type { MemberHoldings } from "@/lib/admin";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -31,9 +35,8 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { SelectField } from "@/components/ui/select-field";
 import { EditUserDialog } from "@/components/admin/edit-user-dialog";
-import { PageAccessDialog } from "@/components/admin/page-access-dialog";
 import type { AdminUser, CustomRoleRow } from "@/lib/admin";
-import type { Role, Team } from "@/lib/domain";
+import type { Role } from "@/lib/domain";
 import { FIXED_ROLES, ROLES, roleLabel } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +47,6 @@ const CUSTOM_PREFIX = "custom:";
 
 export function UsersTable({
   users,
-  teams,
   canInvite,
   canAssignRoles,
   customRoles,
@@ -54,7 +56,6 @@ export function UsersTable({
   currentUserId,
 }: {
   users: AdminUser[];
-  teams: Team[];
   /** Owners and admins get the management controls; everyone else reads. */
   canInvite: boolean;
   /** `workspace.settings` — may assign custom roles, but not change base roles. */
@@ -72,19 +73,18 @@ export function UsersTable({
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | Role>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
-  const [teamFilter, setTeamFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<string[]>([]);
   const [removing, setRemoving] = useState<AdminUser | null>(null);
-  const [accessFor, setAccessFor] = useState<AdminUser | null>(null);
   const [editing, setEditing] = useState<AdminUser | null>(null);
+  const [offboarding, setOffboarding] = useState<AdminUser | null>(null);
+  const [holdings, setHoldings] = useState<MemberHoldings | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     return users.filter((user) => {
       if (roleFilter !== "all" && user.role !== roleFilter) return false;
-      if (teamFilter !== "all" && user.teamId !== teamFilter) return false;
       if (statusFilter === "active" && !user.active) return false;
       if (statusFilter === "inactive" && user.active) return false;
       if (!term) return true;
@@ -94,7 +94,7 @@ export function UsersTable({
         (user.designation ?? "").toLowerCase().includes(term)
       );
     });
-  }, [users, search, roleFilter, teamFilter, statusFilter]);
+  }, [users, search, roleFilter, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -136,7 +136,7 @@ export function UsersTable({
       .filter((role) => role.isActive)
       .map((role) => ({
         value: `${CUSTOM_PREFIX}${role.id}`,
-        label: `${role.label} (custom)`,
+        label: role.label,
       }));
 
     // Only the fixed roles are offered as base roles. The others exist as
@@ -159,7 +159,7 @@ export function UsersTable({
     if (current && !options.some((option) => option.value === current)) {
       options.unshift({
         value: current,
-        label: `${roleLabel(user.role ?? "member")} (base)`,
+        label: roleLabel(user.role ?? "member"),
       });
     }
 
@@ -167,6 +167,24 @@ export function UsersTable({
   }
 
   /** Routes the choice to whichever action owns that kind of role. */
+
+  /**
+   * Open the removal dialog, then fetch what they hold.
+   *
+   * Opened first and filled in after, so the dialog appears immediately rather
+   * than after a round trip. It renders its own "reading what they hold" state
+   * until the figures land, and its submit stays disabled meanwhile.
+   */
+  function openRemoval(user: AdminUser) {
+    setHoldings(null);
+    setOffboarding(user);
+    run(async () => {
+      const result = await memberHoldingsAction(user.id);
+      if (result.ok && result.holdings) setHoldings(result.holdings);
+      return { ok: result.ok, error: result.error };
+    });
+  }
+
   function changeRole(user: AdminUser, value: string) {
     if (value.startsWith(CUSTOM_PREFIX)) {
       const roleId = value.slice(CUSTOM_PREFIX.length);
@@ -216,20 +234,6 @@ export function UsersTable({
             options={[
               { value: "all", label: "All roles" },
               ...ROLES.map((role) => ({ value: role, label: roleLabel(role) })),
-            ]}
-          />
-
-          <SelectField
-            value={teamFilter}
-            onValueChange={(value) => {
-              setTeamFilter(value);
-              resetTo(1);
-            }}
-            aria-label="Filter by team"
-            className="w-[150px] mt-0"
-            options={[
-              { value: "all", label: "All teams" },
-              ...teams.map((team) => ({ value: team.id, label: team.name })),
             ]}
           />
 
@@ -323,7 +327,6 @@ export function UsersTable({
                   ) : null}
                   <th className="px-3 py-2 font-medium">User</th>
                   <th className="px-3 py-2 font-medium">Role</th>
-                  <th className="px-3 py-2 font-medium">Team</th>
                   <th className="px-3 py-2 font-medium">Status</th>
                   {canInvite ? (
                     <th className="px-3 py-2 font-medium">Last sign-in</th>
@@ -422,9 +425,6 @@ export function UsersTable({
                       ) : null}
                     </td>
 
-                    <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">
-                      {teams.find((team) => team.id === user.teamId)?.name ?? "—"}
-                    </td>
 
                     <td className="px-3 py-2">
                       <Badge variant={user.active ? "success" : "destructive"}>
@@ -444,20 +444,6 @@ export function UsersTable({
                     */}
                     {canInvite ? (
                       <td className="whitespace-nowrap px-3 py-2 text-right">
-                        {/* Own row excluded — the action refuses it anyway, to
-                            stop an owner locking themselves out. */}
-                        {user.id !== currentUserId && user.inWorkspace && user.role ? (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={pending}
-                            onClick={() => setAccessFor(user)}
-                            aria-label={`Page access for ${user.name}`}
-                            title="Page access"
-                          >
-                            <LayoutGrid className="h-4 w-4" />
-                          </Button>
-                        ) : null}
                         {user.inWorkspace ? (
                           <Button
                             variant="ghost"
@@ -470,6 +456,22 @@ export function UsersTable({
                             <Pencil className="h-4 w-4" />
                           </Button>
                         ) : null}
+                        {user.id !== currentUserId && user.inWorkspace ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={pending}
+                            onClick={() => openRemoval(user)}
+                            aria-label={`Remove ${user.name} from this workspace`}
+                            title="Remove from workspace"
+                          >
+                            <UserMinus className="h-4 w-4" />
+                          </Button>
+                        ) : null}
+                        {/*
+                          Deleting the account is the harder, separate act —
+                          it destroys their history everywhere, not just here.
+                        */}
                         {canDelete && user.id !== currentUserId && user.inWorkspace ? (
                           <Button
                             variant="ghost"
@@ -477,6 +479,7 @@ export function UsersTable({
                             disabled={pending}
                             onClick={() => setRemoving(user)}
                             aria-label={`Delete ${user.name}`}
+                            title="Delete account"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -537,7 +540,7 @@ export function UsersTable({
         onClose={() => setRemoving(null)}
         onConfirm={() => {
           if (!removing) return;
-          run(() => deleteUserAction(removing.id));
+          run(() => deleteUserAction(removing.id), () => toast.success("Account deleted"));
         }}
         title={`Delete ${removing?.name ?? "user"}?`}
         description={
@@ -551,28 +554,28 @@ export function UsersTable({
         }
       />
 
+      {offboarding ? (
+        <RemoveMemberDialog
+          key={offboarding.id}
+          open
+          onClose={() => {
+            setOffboarding(null);
+            setHoldings(null);
+          }}
+          userId={offboarding.id}
+          holdings={holdings}
+        />
+      ) : null}
+
       {/* Keyed so reopening on a different person starts from their values. */}
       {editing ? (
         <EditUserDialog
           key={editing.id}
           user={editing}
-          teams={teams}
           onClose={() => setEditing(null)}
         />
       ) : null}
 
-      {/* Keyed so reopening on a different person resets the tick boxes. */}
-      {accessFor && accessFor.role ? (
-        <PageAccessDialog
-          key={accessFor.id}
-          open
-          onClose={() => setAccessFor(null)}
-          userId={accessFor.id}
-          userName={accessFor.name}
-          role={accessFor.role}
-          assigned={accessFor.pages}
-        />
-      ) : null}
     </div>
   );
 }

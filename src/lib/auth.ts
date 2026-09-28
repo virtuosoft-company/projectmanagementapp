@@ -94,10 +94,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             prisma.workspaceMember.findUnique({
               where: { workspaceId_userId: { workspaceId, userId } },
             }),
-            prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
+            prisma.user.findUnique({ where: { id: userId }, select: { name: true, email: true } }),
           ]);
           if (membership) token.role = membership.role;
-          if (fresh) token.name = fresh.name;
+          if (fresh) {
+            token.name = fresh.name;
+            token.email = fresh.email;
+          }
         }
       }
 

@@ -12,7 +12,7 @@ import {
   getTaskEntries,
   getTaskSubtasks,
 } from "@/lib/queries";
-import { getSessionUser, hasPermission, requireUser } from "@/lib/session";
+import { getSessionUser, hasPermission, projectScope, requireUser } from "@/lib/session";
 
 export async function generateMetadata({
   params,
@@ -36,7 +36,7 @@ export default async function TaskDetailPage({
   const viewer = await requireUser();
   const { id, taskId } = await params;
 
-  const project = await getProject(viewer.workspaceId, id);
+  const project = await getProject(viewer.workspaceId, id, await projectScope());
   if (!project || !project.features.includes("tasks")) notFound();
 
   const task = await getTask(viewer.workspaceId, taskId);

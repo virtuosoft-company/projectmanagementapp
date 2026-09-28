@@ -4,7 +4,7 @@ import {
   type TimesheetEntry,
 } from "@/components/projects/timesheet-view";
 import { todayIso } from "@/lib/domain";
-import { getEntryDetails, getProjects, getTeams } from "@/lib/queries";
+import { getEntryDetails, getProjects } from "@/lib/queries";
 import { projectScope, requirePage } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Timesheet" };
@@ -25,10 +25,9 @@ export const metadata: Metadata = { title: "Timesheet" };
 export default async function WorkspaceTimesheetPage() {
   const viewer = await requirePage("timesheet");
 
-  const [projects, details, teams] = await Promise.all([
+  const [projects, details] = await Promise.all([
     getProjects(viewer.workspaceId, await projectScope()),
     getEntryDetails(viewer.workspaceId),
-    getTeams(viewer.workspaceId),
   ]);
 
   const visibleProjectIds = new Set(projects.map((project) => project.id));
@@ -41,7 +40,6 @@ export default async function WorkspaceTimesheetPage() {
       projectId: entry.project.id,
       memberId: entry.member.id,
       memberName: entry.member.name,
-      teamId: entry.member.teamId ?? "",
       date: entry.date,
       hours: entry.hours,
     }));
@@ -64,7 +62,6 @@ export default async function WorkspaceTimesheetPage() {
         <TimesheetView
           entries={entries}
           projects={projects.map(({ id, name }) => ({ id, name }))}
-          teams={teams.map(({ id, name }) => ({ id, name }))}
           initialWeek={todayIso()}
         />
       )}

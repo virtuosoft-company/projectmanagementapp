@@ -4,18 +4,22 @@ import { ArrowLeft } from "lucide-react";
 import { CreateUserForm } from "@/components/admin/create-user-form";
 import type { Role } from "@/lib/domain";
 import { PERMISSION_LABELS, ROLES, permissionsFor } from "@/lib/permissions";
-import { getTeams } from "@/lib/queries";
-import { requirePage, requirePermission } from "@/lib/session";
+import { hasPermission, requirePage } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Add user" };
 
 export default async function NewUserPage({
   searchParams,
 }: PageProps<"/admin/users/new">) {
-  // Part of Users, so an admin who unassigns that page closes this too.
+  // Part of Users, so it is reached on that page's assignment rather than one
+  // of its own — the sidebar entry comes and goes with Users too.
   await requirePage("users");
-  const viewer = await requirePermission("members.invite");
-  const teams = await getTeams(viewer.workspaceId);
+
+  // Unlike the other screens, this one is nothing but the action: there is no
+  // read-only version of a create form. Without the permission the form is
+  // withheld and the page says so, rather than collecting a submission that
+  // `createUserAction` would refuse.
+  const canCreate = await hasPermission("members.invite");
 
   // Reached from two places — Administration → Users, and the "Add member"
   // button on the Team Members roster. Send people back where they started
@@ -58,7 +62,14 @@ export default async function NewUserPage({
         </p>
       </div>
 
-      <CreateUserForm roleHints={roleHints} teams={teams} />
+      {canCreate ? (
+        <CreateUserForm roleHints={roleHints} />
+      ) : (
+        <p className="rounded-md border p-4 text-sm text-muted-foreground">
+          Your role can open this page but cannot create accounts. Ask an admin for the
+          Invite members permission.
+        </p>
+      )}
     </div>
   );
 }

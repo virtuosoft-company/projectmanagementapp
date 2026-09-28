@@ -1,6 +1,6 @@
 // Prisma schema for the workspace app.
 // Auth.js (NextAuth) owns User/Account/Session/VerificationToken; the extra
-// columns on User are what the app itself needs (role, team, billing rate).
+// columns on User are what the app itself needs (role, designation, billing rate).
 
 generator client {
   provider = "prisma-client"
@@ -31,7 +31,7 @@ enum Role {
   GUEST
 }
 
-/// A tenant. Every Team, Project, Message and ActivityEntry belongs to
+/// A tenant. Every Project, Message and ActivityEntry belongs to
 /// exactly one workspace; a User can belong to several via WorkspaceMember.
 model Workspace {
   id          String @id @default(cuid())
@@ -43,13 +43,15 @@ model Workspace {
   updatedAt DateTime @updatedAt
 
   members         WorkspaceMember[]
-  teams           Team[]
   projects        Project[]
   activity        ActivityEntry[]
   messages        Message[]
   customRoles     CustomRole[]
   labels          Label[]
   notifications   Notification[]
+  events          Event[]
+  invitations     Invitation[]
+  removals        MemberRemoval[]
   lastActiveUsers User[]            @relation("LastWorkspace")
 
   @@index([slug])
@@ -71,7 +73,6 @@ model User {
   /// The workspace to resume into on the next sign-in. Not the source of
   /// truth for access — WorkspaceMember is — just a UX convenience.
   lastWorkspaceId String?
-  teamId          String?
   designation     String?
   phone           String?
   hourlyRate      Int       @default(0)
@@ -91,8 +92,6 @@ model User {
 
   lastWorkspace        Workspace?        @relation("LastWorkspace", fields: [lastWorkspaceId], references: [id], onDelete: SetNull)
   workspaceMemberships WorkspaceMember[]
-  team                 Team?             @relation(fields: [teamId], references: [id], onDelete: SetNull)
-  ledTeams             Team[]            @relation("TeamLead")
   projects             ProjectMember[]
   assignedTasks        TaskAssignee[]
   timeEntries          TimeEntry[]
@@ -105,8 +104,13 @@ model User {
   assignedSubtasks     Subtask[]         @relation("SubtaskAssignee")
   notifications        Notification[]    @relation("NotificationRecipient")
   causedNotifications  Notification[]    @relation("NotificationActor")
+  createdEvents        Event[]           @relation("EventCreator")
+  managedMembers       WorkspaceMember[] @relation("MemberManager")
+  sentInvitations      Invitation[]      @relation("InvitationSender")
+  removalRecord        MemberRemoval[]   @relation("RemovedMember")
+  removalsPerformed    MemberRemoval[]   @relation("MemberRemover")
+  eventInvites         EventAttendee[]
 
-  @@index([teamId])
   @@index([lastWorkspaceId])
 }
 
@@ -128,6 +132,19 @@ model CustomRole {
   /// Permission keys from lib/permissions.ts, as a string array.
   permissions Json
 
+  /// Page keys from `APP_PAGES` in lib/permissions.ts, as a string array — the
+  /// pages a holder of this role may reach.
+  ///
+  /// Assigned, not derived: the list stands on its own rather than being read
+  /// out of `permissions`, so an admin can hand a role a page whose permission
+  /// it does not hold. Reaching a page and being able to act on it are two
+  /// separate questions — the page gate asks this column, while every button
+  /// and server action inside still asks `permissions`.
+  ///
+  /// Null on a row written before the column existed; resolution falls back to
+  /// the permission-derived list for those, which is what they had before.
+  pages Json?
+
   inheritsFrom Role
   isActive     Boolean @default(true)
   /// Reserved for roles the app ships; user-made roles are always false, which
@@ -140,8 +157,9 @@ model CustomRole {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  workspace Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  members   WorkspaceMember[]
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  members     WorkspaceMember[]
+  invitations Invitation[]
 
   @@unique([workspaceId, name])
   @@index([workspaceId])
@@ -161,18 +179,28 @@ model WorkspaceMember {
   /// without having to join.
   customRoleId String?
 
-  /// Pages this member may reach, as a string array of AppPage keys. Null means
-  /// "never assigned" — the role's own pages apply. Assignment only ever
-  /// narrows what the role grants; see `resolvePages` in lib/permissions.ts.
-  pages Json?
+  /// Who manages this person, as a user id, within this workspace.
+  ///
+  /// On the membership rather than on `User`: role, pages and custom roles are
+  /// all per-workspace already, and somebody in two workspaces can answer to a
+  /// different person in each.
+  ///
+  /// Null means nobody manages them yet, and that is deliberately *not* the
+  /// same as being everyone’s: an unassigned member is visible to admins only
+  /// until somebody is named. `SetNull` on delete, so removing a manager’s
+  /// account releases their reports rather than deleting them.
+  managerId String?
 
   workspace  Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   customRole CustomRole? @relation(fields: [customRoleId], references: [id], onDelete: SetNull)
+  manager    User?       @relation("MemberManager", fields: [managerId], references: [id], onDelete: SetNull)
 
   @@id([workspaceId, userId])
   @@index([userId])
   @@index([customRoleId])
+  /// The manager scope query: everyone reporting to one person in one workspace.
+  @@index([workspaceId, managerId])
 }
 
 enum ProjectStatus {
@@ -213,28 +241,6 @@ enum SectionType {
   FAQ
 }
 
-model Team {
-  id          String  @id @default(cuid())
-  workspaceId String
-  name        String
-  slug        String
-  code        String
-  description String? @db.Text
-  color       String
-  leadId      String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  lead      User?     @relation("TeamLead", fields: [leadId], references: [id], onDelete: SetNull)
-  members   User[]
-  projects  Project[]
-
-  @@unique([workspaceId, slug])
-  @@index([workspaceId])
-  @@index([leadId])
-}
 
 model Project {
   id          String        @id @default(cuid())
@@ -243,9 +249,6 @@ model Project {
   description String        @db.Text
   status      ProjectStatus @default(PLANNING)
   color       String
-  /// Owning team. Deleting a team is blocked while it still owns projects.
-  /// Nullable, so `workspaceId` is stored directly rather than derived.
-  teamId      String?
   startDate   DateTime?     @db.Date
   endDate     DateTime?     @db.Date
   /// Enabled sub-pages, as a string array of ProjectFeature keys. Null means
@@ -257,16 +260,15 @@ model Project {
   updatedAt DateTime @updatedAt
 
   workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  team      Team?            @relation(fields: [teamId], references: [id], onDelete: SetNull)
   members   ProjectMember[]
   tasks     Task[]
   campaigns Campaign[]
   sections  LandingSection[]
   sheets    ProjectSheet[]
   boards    Board[]
+  events    Event[]
 
   @@index([workspaceId])
-  @@index([teamId])
 }
 
 /// A Trello-style board. A project may have several; each holds its own lists.
@@ -745,4 +747,158 @@ model AppSetting {
   faviconKey   String?
 
   updatedAt DateTime @updatedAt
+}
+
+/// A dated entry on the shared calendar, alongside the task deadlines that
+/// screen already draws.
+///
+/// The day is stored as a `@db.Date` like `Task.dueDate`, so it means the same
+/// calendar square to everyone regardless of timezone. `startsAt` is the
+/// separate, absolute instant the event begins — the reminder sweep needs a
+/// real point in time to compare `now()` against, which a bare date cannot give.
+model Event {
+  id          String @id @default(cuid())
+  workspaceId String
+  /// Optional: an event may belong to one project, which is also what narrows
+  /// the attendee picker to that project's members.
+  projectId   String?
+
+  title       String
+  description String @default("") @db.Text
+
+  /// The calendar square this sits on.
+  date DateTime @db.Date
+  /// Wall-clock start and end, as "HH:MM". Null on an all-day event.
+  startTime String?
+  endTime   String?
+
+  /// `date` + `startTime` resolved to an instant, or midnight for an all-day
+  /// event. Denormalised so the reminder sweep is one indexed range scan
+  /// rather than a parse of every row.
+  startsAt DateTime
+
+  /// How long before `startsAt` the reminder goes out, in minutes.
+  reminderMinutes Int @default(30)
+  /// Stamped by the sweep once the reminder has gone out, so a second run
+  /// cannot send it twice. Cleared when the time or the guest list changes.
+  reminderSentAt DateTime?
+
+  createdById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project   Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdBy User?           @relation("EventCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  attendees EventAttendee[]
+
+  @@index([workspaceId, date])
+  /// The reminder sweep's access path: unsent reminders, oldest first.
+  @@index([reminderSentAt, startsAt])
+  @@index([projectId])
+  @@index([createdById])
+}
+
+/// Who is expected at an event. Mirrors `TaskAssignee`.
+model EventAttendee {
+  eventId String
+  userId  String
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, userId])
+  @@index([userId])
+}
+
+/// An outstanding invitation to join a workspace.
+///
+/// No `User` row exists yet: the account is created when the invitation is
+/// accepted, so the invitee chooses their own password and nobody — not even
+/// the admin who invited them — ever knows it.
+///
+/// Distinct from `VerificationToken`, which is the Auth.js adapter's own shape
+/// and carries no workspace or role.
+model Invitation {
+  id          String @id @default(cuid())
+  workspaceId String
+  /// Lowercased, matching how `authorize()` looks an account up.
+  email       String
+  /// The base role the membership is created with.
+  role        Role
+  /// The role row the membership should point at, resolved when the invitation
+  /// is sent. Null for Admin, which is the one fixed role and has no row.
+  customRoleId String?
+
+  /// SHA-256 of the token, hex. The token itself only ever exists in the
+  /// emailed URL — a leaked database gives no usable invitation links, the same
+  /// reasoning that keeps passwords hashed.
+  tokenHash String @unique
+
+  expiresAt  DateTime
+  /// Stamped on acceptance, which is what makes the link single-use.
+  acceptedAt DateTime?
+  /// Stamped when an admin withdraws it, so it is refused without being erased.
+  revokedAt  DateTime?
+
+  invitedById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspace  Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  customRole CustomRole? @relation(fields: [customRoleId], references: [id], onDelete: SetNull)
+  invitedBy  User?       @relation("InvitationSender", fields: [invitedById], references: [id], onDelete: SetNull)
+
+  /// The pending-invitations list: this workspace's, newest first.
+  @@index([workspaceId, createdAt])
+  /// Finding an outstanding invitation for an address before sending another.
+  @@index([email])
+  @@index([customRoleId])
+  @@index([invitedById])
+}
+
+/// A record that somebody was taken off a workspace, and what they were
+/// holding at the time.
+///
+/// Kept because the removal destroys the evidence: their `WorkspaceMember` and
+/// `ProjectMember` rows are gone afterwards, so the counts below could not be
+/// reconstructed from anything that remains. This is the history page's only
+/// source.
+///
+/// The user row itself is untouched — removal takes somebody off a workspace,
+/// it does not delete their account. `SetNull` on both people so the record
+/// outlives either of them being deleted later; the snapshot names are what it
+/// reads from in that case.
+model MemberRemoval {
+  id          String @id @default(cuid())
+  workspaceId String
+
+  /// Null once the account itself is deleted; `userName` still says who.
+  userId    String?
+  /// Captured at removal, because the account may be renamed or deleted after.
+  userName  String
+  userEmail String
+  /// The role they held when they were removed.
+  role      Role
+
+  /// Why. Required — a removal with no stated reason is the one nobody can
+  /// explain a year later.
+  reason String @db.Text
+
+  /// What they were holding, counted at the moment of removal.
+  projectCount Int @default(0)
+  hoursLogged  Float @default(0)
+
+  removedById String?
+  removedAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User?     @relation("RemovedMember", fields: [userId], references: [id], onDelete: SetNull)
+  removedBy User?     @relation("MemberRemover", fields: [removedById], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, removedAt])
+  @@index([userId])
+  @@index([removedById])
 }

@@ -1,79 +1,72 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { getMonthGrid, todayIso } from "@/lib/domain";
-import { getProjects, getTasks } from "@/lib/queries";
-import { projectScope, requirePage } from "@/lib/session";
-import { taskStatusColor } from "@/lib/status";
-import { cn } from "@/lib/utils";
+import { CalendarView } from "@/components/projects/calendar-view";
+import { todayIso } from "@/lib/domain";
+import { getEvents, getMembers, getProjects, getTasks } from "@/lib/queries";
+import { hasPermission, projectScope, requirePage } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Calendar" };
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+/**
+ * The first and last day of the month containing `iso`.
+ *
+ * The grid draws leading and trailing blanks rather than a neighbouring
+ * month's days, so a month is exactly what needs fetching.
+ */
+function monthBounds(iso: string) {
+  const [year, month] = iso.split("-").map(Number);
+  const first = new Date(Date.UTC(year, month - 1, 1));
+  const last = new Date(Date.UTC(year, month, 0));
+  return { from: first.toISOString().slice(0, 10), to: last.toISOString().slice(0, 10) };
+}
 
-export default async function CalendarPage() {
+/**
+ * Normalises `?month=YYYY-MM` to the 1st of that month.
+ *
+ * Anything unparseable falls back to today rather than erroring: a mistyped
+ * URL should land somewhere sensible, and the value reaches `getMonthGrid`
+ * and a date range where a malformed one would produce `Invalid Date`.
+ */
+function resolveMonth(requested: string | string[] | undefined, today: string): string {
+  const value = typeof requested === "string" ? requested : "";
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) return `${today.slice(0, 7)}-01`;
+  return `${value}-01`;
+}
+
+export default async function CalendarPage({ searchParams }: PageProps<"/projects/calendar">) {
   const viewer = await requirePage("calendar");
-  const [tasks, projects] = await Promise.all([
+  const { month: requested } = await searchParams;
+
+  const today = todayIso();
+  const month = resolveMonth(requested, today);
+  const { from, to } = monthBounds(month);
+
+  const [tasks, projects, members, events, canManageEvents] = await Promise.all([
     getTasks(viewer.workspaceId),
     getProjects(viewer.workspaceId, await projectScope()),
+    getMembers(viewer.workspaceId),
+    getEvents(viewer.workspaceId, from, to),
+    hasPermission("events.manage"),
   ]);
-  const today = todayIso();
-  const { cells, label } = getMonthGrid(today);
-  const projectName = (id: string) => projects.find((project) => project.id === id)?.name ?? "";
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold leading-tight tracking-tight">Calendar</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{label} — Task deadlines overview</p>
-      </div>
-
-      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg bg-border">
-        {WEEKDAYS.map((day) => (
-          <div
-            key={day}
-            className="bg-muted p-2 text-center text-xs font-medium text-muted-foreground"
-          >
-            {day}
-          </div>
-        ))}
-
-        {cells.map((date, index) => {
-          const due = date ? tasks.filter((task) => task.dueDate === date) : [];
-          return (
-            <div
-              key={date ?? `empty-${index}`}
-              className={cn(
-                "min-h-[80px] bg-card p-2",
-                date === today && "bg-primary/5 ring-1 ring-inset ring-primary/30",
-              )}
-            >
-              {date ? (
-                <>
-                  <span className="font-mono text-xs font-medium text-muted-foreground">
-                    {Number(date.slice(8))}
-                  </span>
-                  <div className="mt-1 space-y-0.5">
-                    {due.map((task) => (
-                      <Link
-                        key={task.id}
-                        href={`/projects/project/${task.projectId}`}
-                        title={`${task.title} · ${projectName(task.projectId)}`}
-                        className="flex items-center gap-1 rounded bg-muted/60 px-1 py-0.5 text-[11px] hover:underline"
-                      >
-                        <span
-                          className="h-1.5 w-1.5 shrink-0 rounded-full"
-                          style={{ backgroundColor: taskStatusColor[task.status] }}
-                        />
-                        <span className="truncate">{task.title}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </>
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <CalendarView
+      month={month}
+      today={today}
+      tasks={tasks}
+      events={events}
+      // The dialog narrows its attendee list to the chosen project's members,
+      // so each project carries its own roster rather than the dialog going
+      // back to the server on every change of the dropdown.
+      projects={projects.map((project) => ({
+        id: project.id,
+        name: project.name,
+        memberIds: project.members.map((member) => member.id),
+      }))}
+      members={members}
+      projectNames={Object.fromEntries(
+        projects.map((project) => [project.id, project.name]),
+      )}
+      canManageEvents={canManageEvents}
+    />
   );
 }

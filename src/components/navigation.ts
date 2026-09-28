@@ -7,6 +7,7 @@
 
 import {
   Building2,
+  CalendarDays,
   Clock,
   FileText,
   FolderKanban,
@@ -22,34 +23,55 @@ import {
   Timer,
   User,
   UserCog,
+  UserMinus,
   UserPlus,
-  Users,
-  UsersRound,
+  Users
 } from "lucide-react";
 import {
   PROJECT_FEATURE_KEYS,
   type Project,
-  type ProjectFeature,
-  type Role,
+  type ProjectFeature
 } from "@/lib/domain";
-import { APP_PAGES, type AppPage } from "@/lib/permissions";
+import { APP_PAGES, type AppPage, type Permission } from "@/lib/permissions";
+
+/**
+ * Page key per nav href, so an item that corresponds to an assignable page is
+ * filtered by that assignment.
+ *
+ * Derived from `APP_PAGES` rather than written out again: the two lists drifted
+ * before — Team Members and Display & Appearance were admin-only here while
+ * `APP_PAGES` had them open to everyone — and a lookup cannot drift.
+ */
+const PAGE_BY_HREF = new Map<string, AppPage>(
+  APP_PAGES.map((page) => [page.href, page.key as AppPage]),
+);
 
 export interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   badge?: string;
-  roles: Role[];
-  /** Set on a project row, so the sidebar can offer its feature picker. */
-  projectId?: string;
   /**
-   * The assignable page this link belongs to, when its own href is not one.
+   * The assignable page this item opens, when it is not simply `href`.
    *
-   * "Add Users" is part of Users, not a page in its own right — without this
-   * it would survive an admin unassigning Users, which is the one thing page
-   * assignment is supposed to decide.
+   * Set it for a sub-route that belongs to a listed page — "Add Users" lives
+   * under Users — so the two appear and disappear together.
    */
   page?: AppPage;
+  /**
+   * The permission this item needs, for the things that are **not** assignable
+   * pages: a project's own sub-pages, which are switched on per project rather
+   * than handed out per role.
+   *
+   * There is deliberately no `roles` list any more. One used to sit here and
+   * was filtered against the base role on the session token — which is both
+   * stale until the token is re-minted and blind to a custom role's narrowing,
+   * so a role with `time.log` removed still saw a project's Time Tracking
+   * link and was bounced by the page behind it.
+   */
+  permission?: Permission;
+  /** Set on a project row, so the sidebar can offer its feature picker. */
+  projectId?: string;
   children?: NavItem[];
 }
 
@@ -58,59 +80,56 @@ export interface NavSection {
   items: NavItem[];
 }
 
-const EVERYONE: Role[] = ["admin", "manager", "member", "viewer", "guest"];
-const ADMINS: Role[] = ["admin"];
-const REPORT_READERS: Role[] = ["admin", "manager", "member", "viewer"];
-/** Roles holding `time.log` — the people who can actually record hours. */
-const WORKERS: Role[] = ["admin", "manager", "member"];
-
 function baseSections(): NavSection[] {
   return [
     {
       title: "Navigation",
       items: [
-        { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: EVERYONE },
-        { title: "All Projects", href: "/projects", icon: FolderKanban, roles: EVERYONE },
-      ],
+        { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+        { title: "Team Members", href: "/team-members", icon: Users },
+        { title: "Projects", href: "/projects", icon: FolderKanban },
+        { title: "Calendar", href: "/projects/calendar", icon: CalendarDays },
+        { title: "Messages", href: "/messages", icon: MessageSquare },
+      ]
     },
-    {
-      title: "Team Members",
-      items: [
-        { title: "Team Memebers", href: "/team-members", icon: Users, roles: ADMINS },
-        { title: "All Teams", href: "/admin/teams", icon: UsersRound, roles: ADMINS },
-        { title: "Messages", href: "/messages", icon: MessageSquare, roles: EVERYONE },
-      ],
-    },
+    // {
+    //   title: "Team Members",
+    //   items: [
+    //   ],
+    // },
     {
       title: "Administration",
       items: [
-        // The directory of *every* account, including people who are not in
-        // this workspace yet, so an admin can find someone to add.
-        // `members.invite` is admin-only, matching ADMINS.
-        { title: "Users", href: "/admin/users", icon: UserCog, roles: ADMINS },
+        { title: "Users", href: "/admin/users", icon: UserCog },
         {
           title: "Add Users",
           href: "/admin/users/new",
           icon: UserPlus,
-          roles: ADMINS,
+          // Not an assignable page of its own — it comes and goes with Users.
+          page: "users"
+        },
+        { title: "Roles", href: "/admin/users/roles", icon: ShieldCheck },
+        {
+          title: "Removal History",
+          href: "/admin/users/history",
+          icon: UserMinus,
+          // Part of Users, like Add Users — no assignment of its own.
           page: "users",
         },
-        { title: "Roles", href: "/admin/users/roles", icon: ShieldCheck, roles: ADMINS },
-        { title: "Workspaces", href: "/workspaces", icon: Building2, roles: ADMINS },
-        {title: "Timesheet", href: "/projects/timesheet", icon: Clock, roles: ADMINS,},
-      ],
+        { title: "Workspaces", href: "/workspaces", icon: Building2 },
+        {title: "Timesheet", href: "/projects/timesheet", icon: Clock},
+      ]
     },
     {
       title: "Settings",
       items: [
-        { title: "Profile", href: "/profile", icon: User, roles: EVERYONE },
+        { title: "Profile", href: "/profile", icon: User },
         {
           title: "Display & Appearance",
           href: "/settings/appearance",
-          icon: Palette,
-          roles: ADMINS
+          icon: Palette
         },
-      ],
+      ]
     },
   ];
 }
@@ -121,37 +140,39 @@ function baseSections(): NavSection[] {
  */
 const FEATURE_ITEMS: Record<
   ProjectFeature,
-  { title: string; segment: string; icon: NavItem["icon"]; roles: Role[] }
+  { title: string; segment: string; icon: NavItem["icon"]; permission?: Permission }
 > = {
-  tasks: { title: "Tasks", segment: "tasks", icon: ListTodo, roles: EVERYONE },
-  campaigns: { title: "Campaigns", segment: "campaigns", icon: Megaphone, roles: EVERYONE },
+  tasks: { title: "Tasks", segment: "tasks", icon: ListTodo },
+  campaigns: { title: "Campaigns", segment: "campaigns", icon: Megaphone },
   // Still typed, but absent from PROJECT_FEATURES — so it is never offered in
   // the picker and never appears in the nav. The route remains reachable by URL
   // for any project that already had it stored.
   "landing-pages": {
     title: "Landing Pages",
     segment: "landing-pages",
-    icon: Layout,
-    roles: EVERYONE,
+    icon: Layout
   },
   "time-tracking": {
     title: "Time Tracking",
     segment: "time-tracking",
     icon: Timer,
-    // Logging time is `time.log`, which viewers and guests do not hold.
-    roles: WORKERS,
+    // Logging time is `time.log`. Checked against the resolved permission set,
+    // so a custom role that narrowed it away loses the link as well as the page.
+    permission: "time.log",
   },
   // Still typed, but absent from PROJECT_FEATURES — never offered in the
   // picker and never shown in the nav. The route stays reachable by URL for
   // any project that already had it stored.
-  timesheet: { title: "Timesheet", segment: "timesheet", icon: Clock, roles: EVERYONE },
+  timesheet: { title: "Timesheet", segment: "timesheet", icon: Clock },
   "excel-sheet": {
     title: "Excel Sheets",
     segment: "excel-sheet",
-    icon: Sheet,
-    roles: EVERYONE,
+    icon: Sheet
   },
-  report: { title: "Reports", segment: "report", icon: FileText, roles: REPORT_READERS },
+  // Retired from PROJECT_FEATURES, so nothing reaches this entry — the filter
+  // above only maps keys the picker still offers. Kept because the Record is
+  // keyed by ProjectFeature and the type still has it.
+  report: { title: "Reports", segment: "report", icon: FileText, permission: "reports.view" }
 };
 
 /**
@@ -168,15 +189,13 @@ function projectSection(
       title: project.name,
       href: `/projects/project/${project.id}`,
       icon: Hash,
-      roles: EVERYONE,
       projectId: project.id,
       children: [
         // Overview is the project itself, so it is never optional.
         {
           title: "Overview",
           href: `/projects/project/${project.id}`,
-          icon: FolderKanban,
-          roles: EVERYONE,
+          icon: FolderKanban
         },
         // Listed in PROJECT_FEATURES order rather than the stored order, so the
         // sidebar reads the same whichever order they were switched on.
@@ -186,36 +205,66 @@ function projectSection(
             title: item.title,
             href: `/projects/project/${project.id}/${item.segment}`,
             icon: item.icon,
-            roles: item.roles,
+            permission: item.permission,
           };
         }),
-      ],
-    })),
+      ]
+    }))
   };
 }
 
 /**
  * Bottom tab bar shown below `lg` — the handful of destinations reached most
- * often, mirroring the sidebar's role rules.
+ * often. Filtered by the same rules as the sidebar.
  */
 export const bottomTabItems: NavItem[] = [
-  { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: EVERYONE },
-  { title: "Projects", href: "/projects", icon: FolderKanban, roles: EVERYONE },
-  { title: "Tasks", href: "/projects/tasks", icon: ListTodo, roles: EVERYONE },
-  { title: "Messages", href: "/messages", icon: MessageSquare, roles: EVERYONE },
-  { title: "People", href: "/team-members", icon: Users, roles: EVERYONE },
+  { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { title: "Projects", href: "/projects", icon: FolderKanban },
+  { title: "Tasks", href: "/projects/tasks", icon: ListTodo },
+  { title: "Messages", href: "/messages", icon: MessageSquare },
+  { title: "People", href: "/team-members", icon: Users },
 ];
 
-/** Tabs a role may see, with count badges merged in. */
+/**
+ * Whether one nav item should be shown.
+ *
+ * Three cases, in order:
+ *
+ *   An assignable page is decided by the assignment alone — that list is what
+ *   `requirePage` enforces, so the nav offers exactly what the URL will open.
+ *
+ *   A project sub-page is decided by the permission its page gate asks for.
+ *   These are switched on per project, not handed out per role, so there is no
+ *   page key to consult.
+ *
+ *   Anything else — a project row itself — is shown to everyone who can see the
+ *   project at all, which `getProjects` has already decided by scope.
+ *
+ * Both lists are resolved server-side from the database, so neither is the
+ * stale base role that used to be read off the session token.
+ */
+function isVisible(
+  item: NavItem,
+  pages: readonly AppPage[],
+  permissions: readonly Permission[],
+): boolean {
+  const page = item.page ?? PAGE_BY_HREF.get(item.href);
+  if (page) return pages.includes(page);
+  if (item.permission) return permissions.includes(item.permission);
+  return true;
+}
+
+/** Tabs this viewer may see, with count badges merged in. */
 export function visibleMobileTabs(
-  role: Role,
+  pages: readonly AppPage[],
+  permissions: readonly Permission[],
   badges: Record<string, number> = {},
 ): NavItem[] {
   return bottomTabItems
-    .filter((item) => item.roles.includes(role))
+    .filter((item) => isVisible(item, pages, permissions))
     .map((item) => ({
       ...item,
-      badge: badges[item.href] ? String(badges[item.href]) : item.badge,
+      badge: badges[item.href] ? String(badges[item.href]) : item.badge
     }));
 }
 
@@ -236,59 +285,41 @@ export function activeTabHref(pathname: string, tabs: NavItem[]): string | null 
 }
 
 /**
- * The sections a role sees, with per-item and per-child role filtering applied
+ * The sections a viewer sees, with per-item and per-child filtering applied
  * and count badges merged in. Empty sections are dropped.
+ *
+ * `pages` is the role's assigned page list and `permissions` its resolved
+ * permission set — the two things `requirePage` and `requirePermission`
+ * enforce — so the sidebar offers exactly what the URLs behind it will open.
+ *
+ * Both used to be one base role read off the session token, which was stale
+ * until the token was re-minted and blind to a custom role's narrowing: an item
+ * would show and then bounce to /forbidden on arrival.
  */
 export function visibleSections(
-  role: Role,
+  pages: readonly AppPage[],
+  permissions: readonly Permission[],
   projects: Pick<Project, "id" | "name" | "features">[],
   badges: Record<string, number> = {},
-  /**
-   * Pages this member may reach, from `resolvePages`. Omitted means "no
-   * per-user restriction", which is what every caller wanted before page
-   * assignment existed — so passing nothing keeps the old behaviour.
-   *
-   * Matching is by href: an entry whose href is in `APP_PAGES` but not in this
-   * list is dropped, so the sidebar never offers a link that would bounce the
-   * member to /forbidden. Project sub-pages carry no page key and are governed
-   * by `Project.features` instead, so they pass through untouched.
-   */
-  pages?: readonly AppPage[],
 ): NavSection[] {
-  const blocked =
-    pages === undefined
-      ? null
-      : {
-        hrefs: new Set<string>(
-          APP_PAGES.filter((page) => !pages.includes(page.key)).map((page) => page.href),
-        ),
-        has: (page: AppPage) => pages.includes(page),
-      };
-
-  /** An item is out when its own page is unassigned, or the one it belongs to is. */
-  const isBlocked = (item: NavItem) =>
-    blocked !== null && (blocked.hrefs.has(item.href) || (item.page ? !blocked.has(item.page) : false));
-
   // Filter children as well as top-level items, so what this returns is exactly
-  // what the role may see — the renderer never has to re-check.
+  // what the viewer may see — the renderer never has to re-check.
   const prepare = (item: NavItem): NavItem => {
     const children = item.children
-      ?.filter((child) => child.roles.includes(role))
+      ?.filter((child) => isVisible(child, pages, permissions))
       .map(prepare);
 
     return {
       ...item,
       badge: badges[item.href] ? String(badges[item.href]) : item.badge,
-      children: children && children.length > 0 ? children : undefined,
+      children: children && children.length > 0 ? children : undefined
     };
   };
 
   return [...baseSections(), projectSection(projects)]
     .map((section) => ({
       ...section,
-      items: section.items
-        .filter((item) => item.roles.includes(role) && !isBlocked(item))
-        .map(prepare),
+      items: section.items.filter((item) => isVisible(item, pages, permissions)).map(prepare)
     }))
     .filter((section) => section.items.length > 0);
 }

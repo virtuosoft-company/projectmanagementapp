@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { CircleAlert } from "lucide-react";
 import {
   HoursAreaChart,
   ProjectEffortChart,
@@ -13,24 +11,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatDay } from "@/lib/domain";
-import { priorityVariant } from "@/lib/status";
 import {
   getHoursByDay,
   getMetrics,
-  getOverdueTasks,
   getProjectStats,
   getProjects,
   getTaskDistribution,
 } from "@/lib/queries";
 
 export async function OverviewTab({ workspaceId }: { workspaceId: string }) {
-  const [metrics, hoursByDay, distribution, projects, overdue] = await Promise.all([
+  const [metrics, hoursByDay, distribution, projects] = await Promise.all([
     getMetrics(workspaceId),
     getHoursByDay(workspaceId),
     getTaskDistribution(workspaceId),
     getProjects(workspaceId),
-    getOverdueTasks(workspaceId),
   ]);
 
   const effort = await Promise.all(
@@ -41,7 +35,6 @@ export async function OverviewTab({ workspaceId }: { workspaceId: string }) {
   );
 
   const hours = hoursByDay.map((point) => ({ date: point.label, hours: point.hours }));
-  const projectName = (id: string) => projects.find((project) => project.id === id)?.name ?? "";
 
   return (
     <div className="space-y-6">

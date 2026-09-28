@@ -50,9 +50,12 @@ async function findList(listId: string, workspaceId: string) {
 
 // --- Boards ----------------------------------------------------------------
 
-export async function createBoardAction(input: unknown): Promise<ActionResult> {
+const createBoardSchema = z.object({ projectId: z.string().min(1), name });
+type CreateBoardInput = z.input<typeof createBoardSchema>;
+
+export async function createBoardAction(input: CreateBoardInput): Promise<ActionResult> {
   const user = await requirePermission("tasks.manage");
-  const parsed = z.object({ projectId: z.string().min(1), name }).safeParse(input);
+  const parsed = createBoardSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
 
   const project = await prisma.project.findFirst({
@@ -77,9 +80,12 @@ export async function createBoardAction(input: unknown): Promise<ActionResult> {
   return { ok: true, id: board.id };
 }
 
-export async function renameBoardAction(input: unknown): Promise<ActionResult> {
+const renameBoardSchema = z.object({ boardId: z.string().min(1), name });
+type RenameBoardInput = z.input<typeof renameBoardSchema>;
+
+export async function renameBoardAction(input: RenameBoardInput): Promise<ActionResult> {
   const user = await requirePermission("tasks.manage");
-  const parsed = z.object({ boardId: z.string().min(1), name }).safeParse(input);
+  const parsed = renameBoardSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
 
   const board = await findBoard(parsed.data.boardId, user.workspaceId);
@@ -140,15 +146,16 @@ export async function deleteBoardAction(boardId: string): Promise<ActionResult> 
  * The card takes the list's status, which is what makes the board and every
  * report agree about where work stands.
  */
-export async function moveCardAction(input: unknown): Promise<ActionResult> {
+const moveCardSchema = z.object({
+  taskId: z.string().min(1),
+  listId: z.string().min(1),
+  index: z.number().int().min(0).max(10_000),
+});
+type MoveCardInput = z.input<typeof moveCardSchema>;
+
+export async function moveCardAction(input: MoveCardInput): Promise<ActionResult> {
   const user = await requirePermission("tasks.manage");
-  const parsed = z
-    .object({
-      taskId: z.string().min(1),
-      listId: z.string().min(1),
-      index: z.number().int().min(0).max(10_000),
-    })
-    .safeParse(input);
+  const parsed = moveCardSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
 
   const [task, list] = await Promise.all([
@@ -173,15 +180,16 @@ export async function moveCardAction(input: unknown): Promise<ActionResult> {
 }
 
 /** Add a card to the bottom of a list with just a title — Trello's "Add a card". */
-export async function addCardAction(input: unknown): Promise<ActionResult> {
+const addCardSchema = z.object({
+  listId: z.string().min(1),
+  title: z.string().trim().min(1, "Give the card a title.").max(200),
+  description: z.string().trim().max(5000).default(""),
+});
+type AddCardInput = z.input<typeof addCardSchema>;
+
+export async function addCardAction(input: AddCardInput): Promise<ActionResult> {
   const user = await requirePermission("tasks.manage");
-  const parsed = z
-    .object({
-      listId: z.string().min(1),
-      title: z.string().trim().min(1, "Give the card a title.").max(200),
-      description: z.string().trim().max(5000).default(""),
-    })
-    .safeParse(input);
+  const parsed = addCardSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
 
   const list = await prisma.boardList.findFirst({

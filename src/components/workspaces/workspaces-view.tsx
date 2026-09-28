@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import { Building2, Check, Pencil, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -100,6 +101,7 @@ export function WorkspacesView({
         return;
       }
 
+      toast.success(`${workspace.name} deleted`);
       setRemoving(null);
 
       // Deleting the one you were in leaves the session pointing at a workspace
@@ -142,6 +144,7 @@ export function WorkspacesView({
         setError(result.error ?? "Could not create that workspace.");
         return;
       }
+      toast.success("Workspace created");
       setCreating(false);
       setDraft({ name: "", slug: "" });
       setSlugTouched(false);

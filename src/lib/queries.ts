@@ -13,6 +13,7 @@ import {
   type AppNotification,
   type Attachment,
   type Branding,
+  type CalendarEvent,
   type Campaign,
   type Label,
   type LandingSection,
@@ -25,7 +26,6 @@ import {
   type Task,
   type TaskEntry,
   type TaskStatus,
-  type Team,
   type TimeEntry,
   type Workspace,
   type SheetDetail,
@@ -45,6 +45,7 @@ import {
 import {
   campaignStatusToDomain,
   dateToIso,
+  isoToDate,
   priorityToDomain,
   projectStatusToDomain,
   roleToDomain,
@@ -111,6 +112,7 @@ export const getWorkspace = cache(async (id: string): Promise<Workspace | null> 
 
 // --- People ------------------------------------------------------------------
 
+/** Everyone in the workspace, for every picker and roster in the app. */
 export const getMembers = cache(async (workspaceId: string): Promise<Member[]> => {
   const rows = await prisma.workspaceMember.findMany({
     where: { workspaceId },
@@ -124,7 +126,6 @@ export const getMembers = cache(async (workspaceId: string): Promise<Member[]> =
     email: row.user.email,
     image: row.user.image,
     role: roleToDomain[row.role],
-    teamId: row.user.teamId,
     designation: row.user.designation,
     hourlyRate: row.user.hourlyRate,
     monthlyHours: row.user.monthlyHours,
@@ -137,19 +138,6 @@ export const getMember = cache(async (workspaceId: string, id: string) => {
   return members.find((member) => member.id === id) ?? null;
 });
 
-export const getTeams = cache(async (workspaceId: string): Promise<Team[]> => {
-  const teams = await prisma.team.findMany({ where: { workspaceId }, orderBy: { name: "asc" } });
-  return teams.map((team) => ({
-    id: team.id,
-    name: team.name,
-    slug: team.slug,
-    code: team.code,
-    description: team.description,
-    color: team.color,
-    leadId: team.leadId,
-  }));
-});
-
 // --- Projects and tasks ------------------------------------------------------
 
 /**
@@ -157,7 +145,7 @@ export const getTeams = cache(async (workspaceId: string): Promise<Team[]> => {
  *
  * Pass `memberId` for anything the signed-in user *browses* — the sidebar, All
  * Projects, tasks, the calendar — so they only see projects they were added to.
- * Omit it for workspace-level aggregates like `getMetrics` and `getTeamStats`,
+ * Omit it for workspace-level aggregates like `getMetrics`,
  * which report on the workspace rather than on the viewer, and would otherwise
  * quietly change meaning per person.
  *
@@ -181,7 +169,6 @@ export const getProjects = cache(
     description: project.description,
     status: projectStatusToDomain[project.status],
     color: project.color,
-    teamId: project.teamId,
     startDate: dateToIso(project.startDate),
     endDate: dateToIso(project.endDate),
     // Null means the project predates the column, so it keeps the pages it
@@ -193,10 +180,24 @@ export const getProjects = cache(
   }));
 });
 
-export const getProject = cache(async (workspaceId: string, id: string) => {
-  const projects = await getProjects(workspaceId);
-  return projects.find((project) => project.id === id) ?? null;
-});
+/**
+ * One project, **as the viewer is allowed to see it**.
+ *
+ * `memberId` is `projectScope()`: undefined for an admin, who is responsible
+ * for the whole workspace, and the viewer's own id for everybody else.
+ *
+ * Omitting it is what the bug was. This resolved through the unscoped
+ * `getProjects`, so the project *list* was narrowed to what you had been added
+ * to while the project *page* was not — anybody in the workspace could open any
+ * project by id and read its tasks, members and hours. Returning null for a
+ * non-member turns that into the `notFound()` these pages already handle.
+ */
+export const getProject = cache(
+  async (workspaceId: string, id: string, memberId?: string) => {
+    const projects = await getProjects(workspaceId, memberId);
+    return projects.find((project) => project.id === id) ?? null;
+  },
+);
 
 /**
  * Every task in the workspace, archived ones included.
@@ -635,6 +636,8 @@ export const getProjectStats = cache(async (workspaceId: string, projectId: stri
 export const getMemberStats = cache(async (workspaceId: string, memberId: string) => {
   const [allTasks, entries, member] = await Promise.all([
     getTasks(workspaceId),
+    // Not scoped: this is already asked for one person by id, and the caller
+    // only ever has ids it was allowed to see.
     getTimeEntries(workspaceId),
     getMember(workspaceId, memberId),
   ]);
@@ -658,32 +661,6 @@ export const getMemberStats = cache(async (workspaceId: string, memberId: string
       }),
     ).size,
     utilization: member?.monthlyHours ? percent(hours, member.monthlyHours) : 0,
-  };
-});
-
-export const getTeamStats = cache(async (workspaceId: string, teamId: string) => {
-  const [members, tasks, projects] = await Promise.all([
-    getMembers(workspaceId),
-    getTasks(workspaceId),
-    getProjects(workspaceId),
-  ]);
-
-  const teamMembers = members.filter((m) => m.teamId === teamId);
-  const memberIds = teamMembers.map((m) => m.id);
-  const teamTasks = tasks.filter((task) =>
-    task.assignees.some((person) => memberIds.includes(person.id)),
-  );
-  const done = teamTasks.filter((task) => task.status === "done").length;
-  const teamProjects = projects.filter((project) => project.teamId === teamId);
-
-  return {
-    memberIds,
-    /** Only active accounts block deletion — disabled ones do not. */
-    activeMemberCount: teamMembers.filter((member) => !member.disabled).length,
-    projectCount: teamProjects.length,
-    taskCount: teamTasks.length,
-    done,
-    progress: percent(done, teamTasks.length),
   };
 });
 
@@ -731,14 +708,38 @@ export const getOverdueTasks = cache(async (workspaceId: string) => {
   );
 });
 
-export const getMetrics = cache(async (workspaceId: string) => {
-  const [projects, tasks, entries, members, teams] = await Promise.all([
-    getProjects(workspaceId),
+/**
+ * The headline figures, counted over **what the viewer may see**.
+ *
+ * Two scopes, because two different questions decide the answer:
+ *
+ *   `projects` is `projectScope()` — which projects you were added to. It
+ *   narrows the project counts, and through them the task counts and hours,
+ *   since a task belongs to a project.
+ *
+ * It was absent, so these read the whole workspace while the grid beside them
+ * was already narrowed: somebody on one of five projects saw "Total Projects:
+ * 5" above a grid showing one. A figure on a scoped screen has to be counted
+ * over the same rows the screen is showing, or it is not a total of anything
+ * the viewer can point at.
+ */
+export const getMetrics = cache(
+  async (workspaceId: string, scope: { projects?: string } = {}) => {
+  const [projects, allTasks, allEntries, members] = await Promise.all([
+    getProjects(workspaceId, scope.projects),
     getTasks(workspaceId),
     getTimeEntries(workspaceId),
     getMembers(workspaceId),
-    getTeams(workspaceId),
   ]);
+
+  // Tasks and hours follow the projects: `getTasks` is workspace-wide and
+  // `cache()`d, so narrowing here reuses that one query rather than issuing a
+  // second, differently-filtered one.
+  const visibleProjects = new Set(projects.map((project) => project.id));
+  const tasks = allTasks.filter((task) => visibleProjects.has(task.projectId));
+
+  const visibleTasks = new Set(tasks.map((task) => task.id));
+  const entries = allEntries.filter((entry) => visibleTasks.has(entry.taskId));
 
   const totalHours = entries.reduce((sum, entry) => sum + entry.hours, 0);
   const done = tasks.filter((task) => task.status === "done").length;
@@ -757,10 +758,10 @@ export const getMetrics = cache(async (workspaceId: string) => {
     hoursTracked: round1(totalHours),
     totalHoursExact: totalHours,
     memberCount: members.length,
-    teamCount: teams.length,
     overdueCount: overdue,
   };
-});
+  },
+);
 
 export type Metrics = Awaited<ReturnType<typeof getMetrics>>;
 
@@ -865,48 +866,6 @@ function formatTimestamp(value: Date) {
   return `${formatDay(value.toISOString().slice(0, 10))}, ${formatClock(value)}`;
 }
 
-/**
- * Validates a team id supplied by a client against `workspaceId`.
- *
- * Team ids reach the server from a `<select>`, so they are untrusted input: a
- * crafted request could otherwise file a user under another tenant's team. An
- * empty string is the legitimate "no team" choice and resolves to `null`.
- *
- * Returns `{ ok: false }` for an id that names no team in this workspace, so
- * callers can surface it as a validation error rather than a crash.
- */
-export async function resolveWorkspaceTeamId(
-  teamId: string,
-  workspaceId: string,
-): Promise<{ ok: true; teamId: string | null } | { ok: false }> {
-  if (!teamId) return { ok: true, teamId: null };
-
-  const team = await prisma.team.findFirst({
-    where: { id: teamId, workspaceId },
-    select: { id: true },
-  });
-
-  return team ? { ok: true, teamId: team.id } : { ok: false };
-}
-
-/**
- * The pages assigned to one member, exactly as stored.
- *
- * `null` means never assigned, which `resolvePages` reads as "the role's own
- * pages" — so this returns the raw column rather than a resolved list, keeping
- * "unset" and "assigned nothing" distinguishable.
- */
-export const getMemberPages = cache(
-  async (workspaceId: string, userId: string): Promise<string[] | null> => {
-    const membership = await prisma.workspaceMember.findUnique({
-      where: { workspaceId_userId: { workspaceId, userId } },
-      select: { pages: true },
-    });
-
-    return Array.isArray(membership?.pages) ? (membership.pages as string[]) : null;
-  },
-);
-
 // --- Project sheets -----------------------------------------------------------
 
 /** Every sheet in a project, without their cells — enough to draw the tabs. */
@@ -959,5 +918,47 @@ export const getProjectSheet = cache(
       colWidths: normaliseWidths(sheet.colWidths, colCount),
       frozenRows: sheet.frozenRows > 0 ? 1 : 0,
     };
+  },
+);
+
+/**
+ * Calendar events for one month, oldest first.
+ *
+ * Scoped by the `[workspaceId, date]` index rather than read whole and
+ * filtered: a workspace accumulates events indefinitely, and the grid only
+ * ever draws one month.
+ *
+ * Not scoped to the viewer's projects, unlike `getProjects`. An event is a
+ * commitment on the shared calendar — hiding one because its project is not
+ * yours would leave a gap in a day everybody else can see, and the attendee
+ * list is what decides who is actually expected.
+ */
+export const getEvents = cache(
+  async (workspaceId: string, fromIso: string, toIso: string): Promise<CalendarEvent[]> => {
+    const rows = await prisma.event.findMany({
+      where: {
+        workspaceId,
+        date: { gte: isoToDate(fromIso)!, lte: isoToDate(toIso)! },
+      },
+      orderBy: [{ date: "asc" }, { startTime: "asc" }],
+      include: {
+        project: { select: { id: true, name: true } },
+        attendees: { include: { user: { select: personSelect } } },
+      },
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      date: dateToIso(row.date)!,
+      startTime: row.startTime,
+      endTime: row.endTime,
+      reminderMinutes: row.reminderMinutes,
+      projectId: row.project?.id ?? null,
+      projectName: row.project?.name ?? null,
+      attendees: row.attendees.map((attendee) => attendee.user as Person),
+      createdById: row.createdById,
+    }));
   },
 );

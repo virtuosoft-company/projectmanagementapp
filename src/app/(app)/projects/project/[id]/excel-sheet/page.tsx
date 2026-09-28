@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SheetWorkspace } from "@/components/projects/sheet-workspace";
-import { can } from "@/lib/permissions";
 import { getMembers, getProject, getProjectSheet, getProjectSheets } from "@/lib/queries";
-import { getSessionUser, requireUser } from "@/lib/session";
+import { getSessionUser, hasPermission, projectScope, requireUser } from "@/lib/session";
 
 export async function generateMetadata({
   params,
 }: PageProps<"/projects/project/[id]/excel-sheet">): Promise<Metadata> {
   const { id } = await params;
   const viewer = await getSessionUser();
-  const project = viewer?.workspaceId ? await getProject(viewer.workspaceId, id) : null;
+  const project = viewer?.workspaceId ? await getProject(viewer.workspaceId, id, await projectScope()) : null;
   return { title: `${project?.name ?? "Project"} — Excel Sheets` };
 }
 
@@ -33,7 +32,7 @@ export default async function ProjectSpreadsheetPage({
   const { id } = await params;
   const { sheet: requested } = await searchParams;
 
-  const project = await getProject(viewer.workspaceId, id);
+  const project = await getProject(viewer.workspaceId, id, await projectScope());
   // A feature switched off is genuinely gone, not just hidden from the nav.
   if (!project || !project.features.includes("excel-sheet")) notFound();
 
@@ -61,7 +60,7 @@ export default async function ProjectSpreadsheetPage({
         sheets={sheets}
         active={active}
         members={members}
-        canEdit={can(viewer.role, "projects.edit")}
+        canEdit={await hasPermission("projects.edit")}
       />
     </div>
   );

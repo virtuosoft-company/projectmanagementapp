@@ -2,18 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { CircleAlert } from "lucide-react";
 import { updateUserAction } from "@/app/(app)/admin/users/actions";
 import { DialogActions } from "@/components/ui/form-actions";
 import { Field } from "@/components/ui/field";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { Input } from "@/components/ui/input";
-import { SelectField } from "@/components/ui/select-field";
 import type { AdminUser } from "@/lib/admin";
-import type { Team } from "@/lib/domain";
-
-/** Radix rejects an empty option value, so "no team" travels as a sentinel. */
-const NO_TEAM = "none";
 
 /**
  * Edit one account's profile from the Users table.
@@ -24,11 +20,9 @@ const NO_TEAM = "none";
  */
 export function EditUserDialog({
   user,
-  teams,
   onClose,
 }: {
   user: AdminUser;
-  teams: Team[];
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -39,7 +33,6 @@ export function EditUserDialog({
     email: user.email,
     phone: user.phone ?? "",
     designation: user.designation ?? "",
-    teamId: user.teamId ?? NO_TEAM,
     monthlyHours: user.monthlyHours,
   });
 
@@ -57,7 +50,6 @@ export function EditUserDialog({
         email: draft.email,
         phone: draft.phone,
         designation: draft.designation,
-        teamId: draft.teamId === NO_TEAM ? "" : draft.teamId,
         monthlyHours: draft.monthlyHours,
       });
 
@@ -66,6 +58,7 @@ export function EditUserDialog({
         return;
       }
 
+      toast.success("Account updated");
       onClose();
       router.refresh();
     });
@@ -121,17 +114,6 @@ export function EditUserDialog({
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Team">
-            <SelectField
-              value={draft.teamId}
-              disabled={pending}
-              onValueChange={(value) => set("teamId", value)}
-              options={[
-                { value: NO_TEAM, label: "No team" },
-                ...teams.map((team) => ({ value: team.id, label: team.name })),
-              ]}
-            />
-          </Field>
           <Field label="Monthly hours" hint="What utilization is measured against.">
             <Input
               type="number"

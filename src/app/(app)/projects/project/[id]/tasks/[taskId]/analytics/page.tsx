@@ -9,7 +9,7 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { TASK_STATUSES, todayIso } from "@/lib/domain";
 import { formatMinutes } from "@/lib/duration";
 import { getProject, getTask, getTaskEntries, getTaskSubtasks } from "@/lib/queries";
-import { getSessionUser, requireUser } from "@/lib/session";
+import { getSessionUser, projectScope, requireUser } from "@/lib/session";
 import { taskStatusColor } from "@/lib/status";
 import { MAX_CHART_DAYS, WHOLE_TASK_LABEL, computeTaskAnalytics } from "@/lib/task-analytics";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,7 @@ export default async function TaskAnalyticsPage({
   const viewer = await requireUser();
   const { id, taskId } = await params;
 
-  const project = await getProject(viewer.workspaceId, id);
+  const project = await getProject(viewer.workspaceId, id, await projectScope());
   if (!project || !project.features.includes("tasks")) notFound();
 
   const task = await getTask(viewer.workspaceId, taskId);

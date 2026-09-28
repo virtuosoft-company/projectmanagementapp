@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Pause, Play, Square, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/ui/form-dialog";
@@ -51,7 +52,6 @@ export function TimerControls({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [notice, setNotice] = useState<string | null>(null);
 
   // For a subtask, only a timer on that subtask is "this one"; for the task,
   // any timer running on it is.
@@ -63,14 +63,19 @@ export function TimerControls({
   const paused = Boolean(isThisTask && running?.pausedAt);
 
   function run(action: () => Promise<{ ok: boolean; error?: string }>, done?: string) {
-    setNotice(null);
     startTransition(async () => {
       const result = await action();
-      // `stopTimerAction` reports a discarded sub-minute run as ok-with-a-note,
-      // so the message is shown either way rather than only on failure.
-      if (result.error) setNotice(result.error);
-      else if (done) setNotice(done);
-      if (result.ok) router.refresh();
+
+      if (!result.ok) {
+        toast.error(result.error ?? "That did not work.");
+        return;
+      }
+
+      // `stopTimerAction` reports a discarded sub-minute run as ok-with-a-note.
+      if (result.error) toast.warning(result.error);
+      else if (done) toast.success(done);
+
+      router.refresh();
     });
   }
 
@@ -171,7 +176,8 @@ export function TimerControls({
       {/* The live region is what a screen reader gets instead of the ticking
           clock: one announcement per state change, not one per second. */}
       <p role="status" aria-live="polite" className="text-xs text-muted-foreground">
-        {notice ?? (isThisTask ? (paused ? "Timer paused." : "Timer running.") : "")}
+        {/* State only; the outcome is carried by the toast. */}
+        {isThisTask ? (paused ? "Timer paused." : "Timer running.") : ""}
       </p>
     </div>
   );

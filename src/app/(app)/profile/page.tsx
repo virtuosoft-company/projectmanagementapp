@@ -1,40 +1,34 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Clock, FolderKanban, SquareCheckBig } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { PersonalInfoForm } from "@/components/profile/personal-info-form";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { Field } from "@/components/ui/field";
-import { Progress } from "@/components/ui/progress";
-import { TabbedPanel } from "@/components/ui/tabbed-panel";
+import { Card, CardContent } from "@/components/ui/card";
 import { roleLabel } from "@/lib/permissions";
-import { getMember, getMemberStats, getProjectStats, getProjects } from "@/lib/queries";
-import { projectScope, requirePage } from "@/lib/session";
-import { statusVariant } from "@/lib/status";
+import { getMember } from "@/lib/queries";
+import { hasPermission, requirePage } from "@/lib/session";
 
 export const metadata: Metadata = { title: "My Profile" };
 
+/**
+ * Who you are, and the details you can change about yourself.
+ *
+ * Deliberately only that. The four stat tiles, your projects and your assigned
+ * tasks used to sit here too; they now live on the dashboard, which is the
+ * screen for what you are working on. Keeping them in both places meant two
+ * screens answering the same question and drifting apart — the shared
+ * components in `components/dashboard/personal-overview` were extracted for
+ * exactly that reason and are now used from one place.
+ *
+ * One consequence worth the note: this page no longer reads projects, project
+ * stats or member stats at all, so it costs a single query.
+ */
 export default async function ProfilePage() {
   const viewer = await requirePage("profile");
-  const [stats, profile, projects] = await Promise.all([
-    getMemberStats(viewer.workspaceId, viewer.id),
-    getMember(viewer.workspaceId, viewer.id),
-    getProjects(viewer.workspaceId, await projectScope()),
-  ]);
+  const profile = await getMember(viewer.workspaceId, viewer.id);
 
-  const myProjects = projects.filter((project) =>
-    project.members.some((person) => person.id === viewer.id),
-  );
-  const projectStats = await Promise.all(
-    myProjects.map(async (project) => ({
-      project,
-      stats: await getProjectStats(viewer.workspaceId, project.id),
-    })),
-  );
-  const projectName = (id: string) => projects.find((project) => project.id === id)?.name ?? "";
+  // The session's copy is whatever the JWT was minted with; the row is current.
+  const name = profile?.name ?? viewer.name;
+  const email = profile?.email ?? viewer.email;
 
   return (
     <div className="space-y-6">
@@ -57,141 +51,24 @@ export default async function ProfilePage() {
             />
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-xl font-semibold">{viewer.name}</h2>
+                <h2 className="text-xl font-semibold">{name}</h2>
                 <Badge variant="outline">{roleLabel(viewer.role)}</Badge>
               </div>
-              <p className="mt-0.5 text-sm text-muted-foreground">{viewer.email}</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">{email}</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Tile icon={<FolderKanban className="h-4 w-4 text-primary" />} value={myProjects.length} label="Projects" />
-        <Tile icon={<SquareCheckBig className="h-4 w-4 text-primary" />} value={stats.tasksTotal} label="Tasks" />
-        <Tile icon={<SquareCheckBig className="h-4 w-4 text-primary" />} value={stats.tasksDone} label="Completed" />
-        <Tile icon={<Clock className="h-4 w-4 text-primary" />} value={stats.hours} label="Hours Logged" />
-      </div>
-
-      <TabbedPanel
-        items={[
-          {
-            value: "details",
-            label: "Details",
-            content: (
-              <Card className="shadow-none">
-                <CardHeader>
-                  <CardTitle>Personal Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="Display Name">
-                      <Input defaultValue={viewer.name} />
-                    </Field>
-                    <Field label="Email" hint="Email cannot be changed">
-                      <Input defaultValue={viewer.email} disabled />
-                    </Field>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="Monthly Hours">
-                      <Input type="number" defaultValue={profile?.monthlyHours ?? 0} />
-                    </Field>
-                  </div>
-                  <div className="flex justify-end">
-                    <Button size="sm">Save Changes</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ),
-          },
-          {
-            value: "projects",
-            label: "Projects",
-            content: (
-              <div className="space-y-2">
-                {projectStats.map(({ project, stats: projectStat }) => (
-                  <Card key={project.id} className="shadow-none">
-                    <CardContent className="space-y-3 p-4">
-                      <div className="flex items-center justify-between gap-2">
-                        <Link
-                          href={`/projects/project/${project.id}`}
-                          className="truncate font-medium hover:underline"
-                        >
-                          {project.name}
-                        </Link>
-                        <Badge variant={statusVariant[project.status]}>{project.status}</Badge>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Progress
-                          value={projectStat.progress}
-                          aria-label={`${project.name} progress`}
-                        />
-                        <span className="w-10 text-right font-mono text-xs text-muted-foreground">
-                          {projectStat.progress}%
-                        </span>
-                      </div>
-                      <p className="font-mono text-xs text-muted-foreground">
-                        {projectStat.done}/{projectStat.taskCount} tasks · {projectStat.hours}h
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
-                {projectStats.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Not on any project yet.</p>
-                ) : null}
-              </div>
-            ),
-          },
-          {
-            value: "tasks",
-            label: "Tasks",
-            content: (
-              <div className="space-y-2">
-                {stats.tasks.map((task) => (
-                  <Card key={task.id} className="shadow-none">
-                    <CardContent className="flex items-center justify-between gap-3 p-4">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{task.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {projectName(task.projectId)}
-                        </p>
-                      </div>
-                      <Badge variant="secondary">{task.status}</Badge>
-                    </CardContent>
-                  </Card>
-                ))}
-                {stats.tasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No tasks assigned.</p>
-                ) : null}
-              </div>
-            ),
-          },
-        ]}
-      />
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold">Details</h2>
+        <PersonalInfoForm
+          name={name}
+          email={email}
+          monthlyHours={profile?.monthlyHours ?? 0}
+          manages={await hasPermission("members.invite")}
+        />
+      </section>
     </div>
-  );
-}
-
-function Tile({
-  icon,
-  value,
-  label,
-}: {
-  icon: React.ReactNode;
-  value: number;
-  label: string;
-}) {
-  return (
-    <Card className="shadow-none">
-      <CardContent className="flex items-center gap-3 p-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10">
-          {icon}
-        </div>
-        <div>
-          <p className="font-mono text-xl font-bold leading-none">{value}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{label}</p>
-        </div>
-      </CardContent>
-    </Card>
   );
 }

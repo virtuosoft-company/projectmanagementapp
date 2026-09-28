@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+/.vitest-reports/
+*.timestamp-*.mjs
+src/**/*.test.ts
+vitest.config.ts
 
 # next.js
 /.next/
@@ -49,4 +53,3 @@ CLAUDE.md
 .claude
 .agents
 
-/src/lib/generated/prisma

@@ -14,6 +14,9 @@ const themeSchema = z.object({
   theme: z.enum(THEMES.map((option) => option.value) as [Theme, ...Theme[]]),
 });
 
+/** Local, because the schema is: this payload has no reason to be shared. */
+type ThemeInput = z.input<typeof themeSchema>;
+
 /**
  * Save the signed-in person's theme.
  *
@@ -28,7 +31,7 @@ const themeSchema = z.object({
  * rendered by the root layout — revalidating the page alone would leave the
  * old class in place until the next full navigation.
  */
-export async function setThemeAction(input: unknown): Promise<ActionResult> {
+export async function setThemeAction(input: ThemeInput): Promise<ActionResult> {
   const user = await requireAccount();
 
   const parsed = themeSchema.safeParse(input);

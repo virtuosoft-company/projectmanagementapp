@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { TasksView } from "@/components/projects/tasks-view";
-import { can } from "@/lib/permissions";
 import {
   getArchivedTasks,
   getLabelUsage,
@@ -9,7 +8,7 @@ import {
   getProjects,
   getTasks,
 } from "@/lib/queries";
-import { projectScope, requirePage } from "@/lib/session";
+import { hasPermission, projectScope, requirePage } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Tasks" };
 
@@ -38,7 +37,7 @@ export default async function TasksPage() {
       members={members}
       labels={labels}
       labelUsage={Object.fromEntries(labelUsage)}
-      canManage={can(viewer.role, "tasks.manage")}
+      canManage={await hasPermission("tasks.manage")}
     />
   );
 }

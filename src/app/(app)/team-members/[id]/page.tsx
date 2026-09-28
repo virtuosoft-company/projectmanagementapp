@@ -22,9 +22,8 @@ import {
   getMemberStats,
   getMemberVariance,
   getProjects,
-  getTeams,
 } from "@/lib/queries";
-import { requirePage } from "@/lib/session";
+import { projectScope, requirePage, requireUser } from "@/lib/session";
 import { priorityVariant, taskStatusColor } from "@/lib/status";
 import { formatDuration } from "@/lib/utils";
 
@@ -32,27 +31,35 @@ export async function generateMetadata({
   params,
 }: PageProps<"/team-members/[id]">): Promise<Metadata> {
   const { id } = await params;
-  const viewer = await requirePage("team-members");
+  const viewer = await requireUser();
   const member = await getMember(viewer.workspaceId, id);
   return { title: member ? `${member.name} — Analytics` : "Member" };
 }
 
 /** One person's analytics: their workload, what they logged, and where it went. */
 export default async function MemberAnalyticsPage({ params }: PageProps<"/team-members/[id]">) {
+  /*
+   * The same assignment as the roster this hangs off, not a bare `requireUser`.
+   *
+   * It was the latter, which meant a role without Team Members assigned could
+   * not see the list but could still open any member's page straight from the
+   * URL — including their rate and their hours. A detail route has to carry its
+   * parent's gate, the way `/admin/users/new` carries `page: "users"`.
+   */
   const viewer = await requirePage("team-members");
   const { id } = await params;
 
   const member = await getMember(viewer.workspaceId, id);
   if (!member) notFound();
 
-  const [stats, variance, teams, projects] = await Promise.all([
+  const [stats, variance, projects] = await Promise.all([
     getMemberStats(viewer.workspaceId, member.id),
     getMemberVariance(viewer.workspaceId, member.id),
-    getTeams(viewer.workspaceId),
-    getProjects(viewer.workspaceId),
+    // Only used to put a name against a project id, but it was every project in
+    // the workspace — scoped like everywhere else.
+    getProjects(viewer.workspaceId, await projectScope()),
   ]);
 
-  const team = teams.find((item) => item.id === member.teamId);
   const open = stats.tasks.filter((task) => task.status !== "done");
   const projectName = (projectId: string) =>
     projects.find((project) => project.id === projectId)?.name ?? "";
@@ -79,20 +86,6 @@ export default async function MemberAnalyticsPage({ params }: PageProps<"/team-m
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline">{roleLabel(member.role)}</Badge>
-            {team ? (
-              <Link href={`/admin/teams/${team.id}`}>
-                <Badge variant="secondary" className="gap-1.5">
-                  <span
-                    aria-hidden
-                    className="h-2 w-2 rounded-full"
-                    style={{ backgroundColor: team.color }}
-                  />
-                  {team.name}
-                </Badge>
-              </Link>
-            ) : (
-              <Badge variant="muted">No team</Badge>
-            )}
             {member.disabled ? <Badge variant="destructive">Disabled</Badge> : null}
           </div>
         </div>

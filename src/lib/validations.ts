@@ -30,10 +30,23 @@ const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\
 
 export const PASSWORD_MIN_LENGTH = 8;
 
+/**
+ * Trim and lowercase **before** validating, not after.
+ *
+ * `z.email()` is the validator, and `.trim()`/`.toLowerCase()` chained onto it
+ * run on the value it already accepted — so a pasted address with a trailing
+ * space was rejected outright rather than cleaned up. That reached sign-in,
+ * invitations and both user forms.
+ *
+ * Lowercasing matters beyond tidiness: `authorize()` looks an account up by the
+ * lowercased address, so a capitalised one stored here would lock the holder
+ * out.
+ */
 export const emailSchema = z
-  .email("Enter a valid email address.")
+  .string()
   .trim()
-  .toLowerCase();
+  .toLowerCase()
+  .pipe(z.email("Enter a valid email address."));
 
 export const passwordSchema = z
   .string()
@@ -92,9 +105,6 @@ export const createUserSchema = z
     phone: phoneSchema,
     role: roleSchema,
     designation: z.string().trim().max(60).default(""),
-    /// Empty means "no team". Whether the id names a team in *this* workspace
-    /// is checked in the action — zod cannot reach the database.
-    teamId: z.string().trim().default(""),
     monthlyHours: z.coerce.number().int().min(0).max(744, "That is more hours than a month has."),
     active: z.boolean(),
   })
@@ -102,8 +112,6 @@ export const createUserSchema = z
     message: "The two passwords do not match.",
     path: ["confirmPassword"],
   });
-
-export type CreateUserInput = z.infer<typeof createUserSchema>;
 
 /**
  * Editing an existing account.
@@ -118,21 +126,14 @@ export const updateUserSchema = z.object({
   email: emailSchema,
   phone: phoneSchema,
   designation: z.string().trim().max(60).default(""),
-  /// Empty means "no team"; the action checks it belongs to this workspace.
-  teamId: z.string().trim().default(""),
   monthlyHours: z.coerce.number().int().min(0).max(744, "That is more hours than a month has."),
 });
-
-export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
 /** The lighter invite used from the settings screen — no password required. */
 export const inviteMemberSchema = z.object({
   name: nameSchema("Name"),
   email: emailSchema,
   role: roleSchema,
-  /// Optional, and only offered by callers that have a team list to show — the
-  /// settings card posts no `teamId` at all, which lands here as "".
-  teamId: z.string().trim().default(""),
   password: z
     .string()
     .refine(
@@ -175,21 +176,31 @@ export const customRoleSchema = z.object({
   description: z.string().trim().max(500).default(""),
   inheritsFrom: roleSchema,
   permissions: z.array(z.enum(PERMISSION_KEYS as [string, ...string[]])),
+  // Assigned outright, so no ceiling is applied here or in the action — unlike
+  // `permissions`, a page may be granted to a role that holds none of the
+  // permissions behind it. The page then opens read-only.
+  pages: z.array(z.enum(APP_PAGE_KEYS as [string, ...string[]])).default([]),
 });
 
-/** Assign which pages a member may reach. */
-export const setUserPagesSchema = z.object({
-  userId: z.string().min(1, "Pick a member."),
-  /// Unknown keys are rejected rather than ignored, so a stale client cannot
-  /// quietly write junk into the column that `resolvePages` then has to skip.
-  pages: z.array(z.enum(APP_PAGE_KEYS as [string, ...string[]])),
+/**
+ * Taking somebody off a workspace.
+ *
+ * The reason is required and not trimmed to nothing: this record is the only
+ * account of why somebody left, and "" a year later answers nothing.
+ */
+export const removeMemberSchema = z.object({
+  userId: z.string().min(1),
+  reason: z
+    .string()
+    .trim()
+    .min(3, "Say why they are being removed.")
+    .max(500, "Keep the reason under 500 characters."),
 });
 
 /** Add an account that already exists to the caller's workspace. */
 export const addMemberSchema = z.object({
   userId: z.string().min(1, "Pick someone to add."),
   role: roleSchema,
-  teamId: z.string().trim().min(1, "Pick a team."),
 });
 
 // ============================================================================
@@ -213,31 +224,6 @@ export const createWorkspaceSchema = z.object({
 });
 
 // ============================================================================
-// TEAMS
-// ============================================================================
-
-export const teamSchema = z.object({
-  name: z.string().trim().min(1, "Give the team a name.").max(60),
-  slug: z
-    .string()
-    .trim()
-    .min(1, "A slug is required.")
-    .max(60)
-    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Use lowercase letters, numbers and hyphens."),
-  code: z
-    .string()
-    .trim()
-    .toUpperCase()
-    .regex(/^[A-Z0-9]{2,6}$/, "Team code must be 2-6 letters or numbers."),
-  description: z.string().trim().max(500).default(""),
-  color: z.string().min(1),
-  leadId: z.string().trim().default(""),
-  memberIds: z.array(z.string().min(1)).default([]),
-});
-
-export const updateTeamSchema = teamSchema.extend({ id: z.string().min(1) });
-
-// ============================================================================
 // PROJECTS
 // ============================================================================
 
@@ -246,7 +232,6 @@ export const createProjectSchema = z.object({
   description: z.string().trim().max(2000).default(""),
   status: z.enum(PROJECT_STATUSES as [string, ...string[]]),
   color: z.string().min(1),
-  teamId: z.string().trim().default(""),
   startDate: isoDateSchema,
   endDate: isoDateSchema,
   memberIds: z.array(z.string().min(1)).default([]),
@@ -257,9 +242,13 @@ export const updateProjectSchema = z.object({
   name: z.string().trim().min(1, "Give the project a name.").max(120),
   description: z.string().trim().max(2000).default(""),
   status: z.enum(PROJECT_STATUSES as [string, ...string[]]),
-  teamId: z.string().trim().default(""),
   startDate: isoDateSchema,
   endDate: isoDateSchema,
+  // The whole membership, not an addition: the edit dialog renders a checkbox
+  // per member with the current ones ticked, so what comes back is the set the
+  // project should end up with. It was missing here entirely — zod strips keys
+  // it does not declare, so ticking somebody saved cleanly and changed nothing.
+  memberIds: z.array(z.string().min(1)).default([]),
 });
 
 export const addProjectMembersSchema = z.object({
@@ -335,8 +324,16 @@ export const createSubtaskSchema = z.object({
   parentId: z.string().min(1).nullable().default(null),
   title: z.string().trim().min(1, "Give the subtask a title.").max(200),
   description: z.string().trim().max(5000).default(""),
-  /** Empty means nobody. */
-  assigneeId: z.string().trim().min(1, "Choose who this subtask is for."),
+  /**
+   * Empty means nobody, which is what `resolveAssignee` in the action already
+   * does with it — `if (!assigneeId) return null`.
+   *
+   * It was `.min(1, "Choose who this subtask is for.")`, contradicting both
+   * that comment and the action: the quick-add on the task screen sends a
+   * title and nothing else, so every quick-added subtask failed validation on
+   * a field the form does not even offer.
+   */
+  assigneeId: z.string().trim().default(""),
   estimateMinutes: subtaskEstimate.default(0),
 });
 
@@ -486,9 +483,6 @@ export const startTimerSchema = z.object({
   note: z.string().trim().max(500).default(""),
 });
 
-export type ManualTimeEntryInput = z.infer<typeof manualTimeEntrySchema>;
-export type UpdateTimeEntryInput = z.infer<typeof updateTimeEntrySchema>;
-
 // ============================================================================
 // CAMPAIGNS
 // ============================================================================
@@ -550,3 +544,141 @@ export function fieldErrors(error: z.ZodError): FieldErrors {
 export function firstError(error: z.ZodError): string {
   return error.issues[0]?.message ?? "That input is not valid.";
 }
+
+// ============================================================================
+// CALENDAR EVENTS
+// ============================================================================
+
+/** Wall-clock time as `HH:MM`, or empty for an all-day event. */
+const timeOfDaySchema = z
+  .string()
+  .trim()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$|^$/, "Enter a time as HH:MM.")
+  .transform((value) => value || null);
+
+export const eventSchema = z
+  .object({
+    title: z.string().trim().min(1, "Give the event a title.").max(200),
+    description: z.string().trim().max(5000).default(""),
+    // Required, unlike a task's due date: an event with no day has nowhere to
+    // sit on the grid.
+    date: z
+      .string()
+      .trim()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date."),
+    startTime: timeOfDaySchema,
+    endTime: timeOfDaySchema,
+    projectId: z
+      .string()
+      .trim()
+      .transform((value) => value || null),
+    attendeeIds: z.array(z.string().min(1)).default([]),
+    // 0 means "no reminder". The ceiling is a week, past which a reminder is
+    // not a reminder.
+    reminderMinutes: z.coerce.number().int().min(0).max(10_080).default(30),
+  })
+  .refine(
+    (value) => !value.startTime || !value.endTime || value.endTime > value.startTime,
+    { message: "The end time must be after the start time.", path: ["endTime"] },
+  )
+  .refine((value) => !value.endTime || value.startTime, {
+    message: "Set a start time as well as an end time.",
+    path: ["startTime"],
+  });
+
+// ============================================================================
+// INVITATIONS
+// ============================================================================
+
+/** What an admin fills in to invite somebody who has no account yet. */
+export const inviteSchema = z.object({
+  email: emailSchema,
+  role: roleSchema,
+});
+
+/**
+ * What the invitee submits on the accept page.
+ *
+ * No email field: it comes from the invitation row, so a valid token cannot be
+ * used to claim a different address. The password rules are the same
+ * `passwordSchema` the admin-side create form applies — an account made this
+ * way is not held to a lower standard.
+ */
+export const acceptInvitationSchema = z
+  .object({
+    token: z.string().min(1).max(512),
+    name: nameSchema("Name"),
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, "Confirm the password."),
+  })
+  .refine((value) => value.password === value.confirmPassword, {
+    message: "The passwords do not match.",
+    path: ["confirmPassword"],
+  });
+
+// ============================================================================
+// PAYLOAD TYPES
+// ============================================================================
+
+/**
+ * The shape each schema **accepts**, for typing both ends of an action.
+ *
+ * `z.input`, not `z.infer`: these describe what a caller sends, before
+ * defaults are filled in and transforms applied. `z.infer` is what the action
+ * receives *after* `safeParse`, and the two differ wherever a field has a
+ * default or a transform — `description` is optional going in and a string
+ * coming out; an empty date goes in as `""` and comes out as `null`.
+ *
+ * **These types do not replace validation.** A server action is a public
+ * endpoint: the argument arrives over the wire and can be anything, whatever
+ * the signature says. Every action still calls `safeParse` and still refuses
+ * what fails. The type is a compile-time aid for this codebase's own call
+ * sites, nothing more.
+ *
+ * Use them in two places, because they catch different mistakes:
+ *
+ *   **On the action's parameter** — catches a missing or wrong-typed field at
+ *   the call site.
+ *
+ *   **On the form's draft state** — catches a field the form sends that the
+ *   schema does not declare. That one matters most and is not covered by the
+ *   first: a draft passed as `{ ...draft, id }` is a spread, and TypeScript
+ *   does not apply excess-property checking through a spread. Typing the
+ *   `useState` initialiser does apply it. The bug that prompted all of this —
+ *   an edit dialog posting `memberIds` that the schema silently dropped, with
+ *   no error anywhere — is exactly this case.
+ */
+export type SignInInput = z.input<typeof signInSchema>;
+export type CreateUserInput = z.input<typeof createUserSchema>;
+export type UpdateUserInput = z.input<typeof updateUserSchema>;
+export type InviteMemberInput = z.input<typeof inviteMemberSchema>;
+export type UpdateRoleInput = z.input<typeof updateRoleSchema>;
+export type SetDisabledInput = z.input<typeof setDisabledSchema>;
+export type CustomRoleInput = z.input<typeof customRoleSchema>;
+export type AddMemberInput = z.input<typeof addMemberSchema>;
+export type RemoveMemberInput = z.input<typeof removeMemberSchema>;
+export type UpdateWorkspaceInput = z.input<typeof updateWorkspaceSchema>;
+export type CreateWorkspaceInput = z.input<typeof createWorkspaceSchema>;
+export type CreateProjectInput = z.input<typeof createProjectSchema>;
+export type UpdateProjectInput = z.input<typeof updateProjectSchema>;
+export type AddProjectMembersInput = z.input<typeof addProjectMembersSchema>;
+export type ProjectFeaturesInput = z.input<typeof projectFeaturesSchema>;
+export type CreateTaskInput = z.input<typeof createTaskSchema>;
+export type MoveTaskInput = z.input<typeof moveTaskSchema>;
+export type UpdateTaskInput = z.input<typeof updateTaskSchema>;
+export type ArchiveTaskInput = z.input<typeof archiveTaskSchema>;
+export type CreateSubtaskInput = z.input<typeof createSubtaskSchema>;
+export type UpdateSubtaskInput = z.input<typeof updateSubtaskSchema>;
+export type LabelInput = z.input<typeof labelSchema>;
+export type UpdateLabelInput = z.input<typeof updateLabelSchema>;
+export type LogTimeInput = z.input<typeof logTimeSchema>;
+export type ManualTimeEntryInput = z.input<typeof manualTimeEntrySchema>;
+export type UpdateTimeEntryInput = z.input<typeof updateTimeEntrySchema>;
+export type StartTimerInput = z.input<typeof startTimerSchema>;
+export type CampaignInput = z.input<typeof campaignSchema>;
+export type AddSectionInput = z.input<typeof addSectionSchema>;
+export type UpdateSectionInput = z.input<typeof updateSectionSchema>;
+export type SendMessageInput = z.input<typeof sendMessageSchema>;
+export type EventInput = z.input<typeof eventSchema>;
+export type InviteInput = z.input<typeof inviteSchema>;
+export type AcceptInvitationInput = z.input<typeof acceptInvitationSchema>;

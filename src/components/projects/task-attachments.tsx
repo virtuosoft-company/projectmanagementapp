@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { CircleAlert, FileText, ImagePlus, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -405,6 +406,8 @@ export function TaskAttachments({
               setError(result.error ?? "Could not delete that image.");
               return;
             }
+
+            toast.success("Image deleted");
             router.refresh();
           });
         }}

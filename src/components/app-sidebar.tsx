@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { ProjectFeaturesDialog } from "@/components/projects/project-features-dialog";
 import { visibleSections, type NavItem } from "@/components/navigation";
 import type { Project, WorkspaceSummary } from "@/lib/domain";
-import { roleLabel, type AppPage } from "@/lib/permissions";
+import { roleLabel, type AppPage, type Permission } from "@/lib/permissions";
 import type { ActiveSessionUser } from "@/lib/session";
 import { createWorkspaceAction } from "@/lib/workspace-actions";
 import { cn } from "@/lib/utils";
@@ -37,9 +37,10 @@ function slugify(value: string) {
 export function AppSidebar({
   user,
   projects,
-  teamCount,
+  projectCount,
   workspaces,
   pages,
+  permissions,
   canCreateWorkspace,
   canManageFeatures,
   badges = {},
@@ -48,10 +49,20 @@ export function AppSidebar({
 }: {
   user: ActiveSessionUser;
   projects: Pick<Project, "id" | "name" | "features">[];
-  teamCount: number;
+  projectCount: number;
   workspaces: WorkspaceSummary[];
-  /** Pages this member may reach — unassigned ones are dropped from the nav. */
+  /**
+   * The pages assigned to this viewer's role — unassigned ones are dropped
+   * from the nav. The same list `requirePage` enforces, so nothing the sidebar
+   * offers can bounce to /forbidden on arrival.
+   */
   pages: AppPage[];
+  /**
+   * The viewer’s resolved permission set, for the nav items that are not
+   * assignable pages — a project’s own sub-pages. Resolved on the server, so
+   * unlike `user.role` it honours a custom role’s narrowing and is never stale.
+   */
+  permissions: Permission[];
   /**
    * `workspace.create`, resolved on the server.
    *
@@ -154,7 +165,7 @@ export function AppSidebar({
         : [...previous, href],
     );
 
-  const sections = visibleSections(user.role, projects, badges, pages);
+  const sections = visibleSections(pages, permissions, projects, badges);
 
   function renderNavItem(item: NavItem, level = 0): React.ReactNode {
     const isActive = pathname === item.href;
@@ -317,7 +328,7 @@ export function AppSidebar({
                       {currentWorkspace?.name ?? "Workspace"}
                     </span>
                     <span className="block truncate text-xs text-sidebar-foreground/70">
-                      <span className="font-mono">{teamCount}</span> teams
+                      <span className="font-mono">{projectCount}</span> projects
                     </span>
                   </span>
                   <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-sidebar-foreground/50" />

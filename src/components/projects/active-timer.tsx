@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Pause, Play, Square, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,6 +37,7 @@ export function ActiveTimer({
   running,
   todayMinutes,
   weekMinutes,
+  canLog,
 }: {
   userName: string;
   tasks: { id: string; label: string }[];
@@ -44,23 +46,40 @@ export function ActiveTimer({
   /** This person's own logged time, for the summary line. */
   todayMinutes: number;
   weekMinutes: number;
+  /**
+   * `time.log`. The card is nothing but timer controls, so without it there is
+   * nothing here to show read-only.
+   *
+   * It used to rely on the page gate, which asked for `time.log` directly.
+   * Time Tracking is now a page an admin assigns per role, so reaching the
+   * screen no longer implies the permission and the card has to ask.
+   */
+  canLog: boolean;
 }) {
   const router = useRouter();
   const [taskId, setTaskId] = useState("");
-  const [notice, setNotice] = useState<string | null>(null);
   const [pending, startSaving] = useTransition();
 
   const elapsed = useElapsed(running?.startedAt ?? null, running?.pausedAt ?? null);
   const paused = Boolean(running?.pausedAt);
 
+  if (!canLog) return null;
+
   function run(action: () => Promise<{ ok: boolean; error?: string }>, done: string) {
-    setNotice(null);
     startSaving(async () => {
       const result = await action();
-      // A sub-minute run comes back ok with an explanation, so the message is
-      // taken either way rather than only on failure.
-      setNotice(result.error ?? done);
-      if (result.ok) router.refresh();
+
+      if (!result.ok) {
+        toast.error(result.error ?? "That did not work.");
+        return;
+      }
+
+      // Ok *with* a message means the run was too short to log. Reporting that
+      // as a success would claim time was recorded when it was discarded.
+      if (result.error) toast.warning(result.error);
+      else toast.success(done);
+
+      router.refresh();
     });
   }
 
@@ -161,8 +180,11 @@ export function ActiveTimer({
         {/* The clock is aria-hidden — a per-second announcement is unusable —
             so state changes are announced here instead. */}
         <p role="status" aria-live="polite" className="text-center text-xs text-muted-foreground">
-          {notice ??
-            (running ? `${paused ? "Paused on" : "Timing"} ${running.taskTitle}.` : "")}
+          {/*
+            State only. What just happened is carried by the toast, which sonner
+            renders in its own live region — so the outcome is still announced.
+          */}
+          {running ? `${paused ? "Paused on" : "Timing"} ${running.taskTitle}.` : ""}
         </p>
       </CardContent>
     </Card>

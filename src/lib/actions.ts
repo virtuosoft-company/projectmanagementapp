@@ -12,19 +12,28 @@ import {
   taskStatusToDb,
 } from "@/lib/mappers";
 import { DEFAULT_LISTS, syncTaskList } from "@/lib/boards";
+import { notify } from "@/lib/notifications";
+import { publishToUsers } from "@/lib/live-events";
 import { requirePermission } from "@/lib/session";
 import {
   addProjectMembersSchema,
   addSectionSchema,
+  type CampaignInput,
   campaignSchema,
+  type CreateProjectInput,
   createProjectSchema,
+  type CreateTaskInput,
   createTaskSchema,
   firstError,
+  type LogTimeInput,
   logTimeSchema,
   moveTaskSchema,
+  type ProjectFeaturesInput,
   projectFeaturesSchema,
   sendMessageSchema,
+  type UpdateProjectInput,
   updateProjectSchema,
+  type UpdateSectionInput,
   updateSectionSchema,
 } from "@/lib/validations";
 import type {
@@ -48,6 +57,11 @@ export type ActionResult = { ok: boolean; error?: string };
 const NOT_FOUND: ActionResult = { ok: false, error: "That record no longer exists." };
 
 function refreshProject(projectId?: string) {
+  // The sidebar lists the viewer’s projects and lives in the (app) layout, so a
+  // change to who is on a project has to invalidate the layout as well as the
+  // pages. Without this the list of projects down the side kept whatever it was
+  // rendered with, even after the screens beside it had updated.
+  revalidatePath("/", "layout");
   revalidatePath("/dashboard");
   revalidatePath("/projects");
   revalidatePath("/projects/tasks");
@@ -59,7 +73,7 @@ function refreshProject(projectId?: string) {
 
 // --- Projects --------------------------------------------------------------
 
-export async function createProjectAction(input: unknown): Promise<ActionResult> {
+export async function createProjectAction(input: CreateProjectInput): Promise<ActionResult> {
   const user = await requirePermission("projects.create");
 
   const parsed = createProjectSchema.safeParse(input);
@@ -78,7 +92,6 @@ export async function createProjectAction(input: unknown): Promise<ActionResult>
       description: data.description,
       status: projectStatusToDb[data.status as ProjectStatus],
       color: data.color,
-      teamId: data.teamId || null,
       startDate: isoToDate(data.startDate),
       endDate: isoToDate(data.endDate),
       members: { create: memberIds.map((userId) => ({ userId })) },
@@ -98,7 +111,7 @@ export async function createProjectAction(input: unknown): Promise<ActionResult>
   return { ok: true };
 }
 
-export async function updateProjectAction(input: unknown): Promise<ActionResult> {
+export async function updateProjectAction(input: UpdateProjectInput): Promise<ActionResult> {
   const user = await requirePermission("projects.edit");
 
   const parsed = updateProjectSchema.safeParse(input);
@@ -107,21 +120,75 @@ export async function updateProjectAction(input: unknown): Promise<ActionResult>
 
   const existing = await prisma.project.findFirst({
     where: { id: data.id, workspaceId: user.workspaceId },
-    select: { id: true },
+    select: { id: true, name: true, members: { select: { userId: true } } },
   });
   if (!existing) return NOT_FOUND;
 
-  await prisma.project.update({
-    where: { id: data.id },
-    data: {
-      name: data.name,
-      description: data.description,
-      status: projectStatusToDb[data.status as ProjectStatus],
-      teamId: data.teamId || null,
-      startDate: isoToDate(data.startDate),
-      endDate: isoToDate(data.endDate),
-    },
+  /*
+   * The dialog posts the membership it wants, so this is a set difference
+   * rather than an append: ticking adds, unticking removes.
+   *
+   * Everyone named is checked against this workspace first. The picker only
+   * offers members of it, but the picker is the half an attacker skips, and an
+   * unchecked id would put somebody from another workspace on the project.
+   */
+  const requested = [...new Set(data.memberIds)];
+  const allowed = new Set(
+    (
+      await prisma.workspaceMember.findMany({
+        where: { workspaceId: user.workspaceId, userId: { in: requested } },
+        select: { userId: true },
+      })
+    ).map((member) => member.userId),
+  );
+
+  const current = new Set(existing.members.map((member) => member.userId));
+  const wanted = requested.filter((userId) => allowed.has(userId));
+  const added = wanted.filter((userId) => !current.has(userId));
+  const removed = [...current].filter((userId) => !wanted.includes(userId));
+
+  await prisma.$transaction(async (tx) => {
+    await tx.project.update({
+      where: { id: data.id },
+      data: {
+        name: data.name,
+        description: data.description,
+        status: projectStatusToDb[data.status as ProjectStatus],
+        startDate: isoToDate(data.startDate),
+        endDate: isoToDate(data.endDate),
+      },
+    });
+
+    if (removed.length > 0) {
+      await tx.projectMember.deleteMany({
+        where: { projectId: data.id, userId: { in: removed } },
+      });
+    }
+
+    if (added.length > 0) {
+      await tx.projectMember.createMany({
+        data: added.map((userId) => ({ projectId: data.id, userId })),
+        skipDuplicates: true,
+      });
+    }
   });
+
+  // The same message the Members card sends, so being added reads identically
+  // wherever it happened from.
+  await notify(prisma, {
+    workspaceId: user.workspaceId,
+    userIds: added,
+    actorId: user.id,
+    kind: "project-added",
+    title: `You were added to ${existing.name}`,
+    href: `/projects/project/${existing.id}`,
+  });
+
+  // Someone taken off gets no bell entry — being removed is not news worth
+  // one — but their open tabs still have to stop showing the project, and only
+  // a push can tell them. The nudge that `notify` would have sent is sent here
+  // directly instead.
+  publishToUsers(removed);
 
   refreshProject(data.id);
   revalidatePath("/projects/settings");
@@ -140,11 +207,20 @@ export async function deleteProjectAction(projectId: string): Promise<ActionResu
 
   const project = await prisma.project.findFirst({
     where: { id: projectId, workspaceId: user.workspaceId },
-    select: { id: true, name: true },
+    // Members are read *before* the delete cascades them away — afterwards
+    // there is no longer anybody to tell.
+    select: { id: true, name: true, members: { select: { userId: true } } },
   });
   if (!project) return NOT_FOUND;
 
+  const affected = project.members.map((member) => member.userId);
+
   await prisma.project.delete({ where: { id: project.id } });
+
+  // No bell entry: a deleted project is not something anyone can act on, and
+  // the admin doing it usually says so themselves. But an open Projects page
+  // or sidebar still lists it, so those tabs are told to refetch.
+  publishToUsers(affected);
 
   revalidatePath("/projects", "layout");
   revalidatePath("/dashboard");
@@ -163,13 +239,31 @@ export async function addProjectMembersAction(
 
   const project = await prisma.project.findFirst({
     where: { id: parsed.data.projectId, workspaceId: user.workspaceId },
-    select: { id: true },
+    select: { id: true, name: true, members: { select: { userId: true } } },
   });
   if (!project) return NOT_FOUND;
 
+  // Who is genuinely new. `skipDuplicates` silently absorbs the rest, so
+  // without this an admin re-saving the member list would notify everybody on
+  // the project all over again.
+  const already = new Set(project.members.map((member) => member.userId));
+  const added = [...new Set(parsed.data.userIds)].filter((userId) => !already.has(userId));
+
   await prisma.projectMember.createMany({
-    data: parsed.data.userIds.map((userId) => ({ projectId: parsed.data.projectId, userId })),
+    data: added.map((userId) => ({ projectId: parsed.data.projectId, userId })),
     skipDuplicates: true,
+  });
+
+  // Being put on a project changes what someone sees on their own Projects
+  // page and in their sidebar, and they have no other way to learn it happened
+  // — the same reason assigning a task notifies.
+  await notify(prisma, {
+    workspaceId: user.workspaceId,
+    userIds: added,
+    actorId: user.id,
+    kind: "project-added",
+    title: `You were added to ${project.name}`,
+    href: `/projects/project/${project.id}`,
   });
 
   refreshProject(projectId);
@@ -185,7 +279,7 @@ export async function addProjectMembersAction(
  * `projects.edit` a member could remove Reports or Billing-adjacent pages from
  * a project for everyone on it, which is not theirs to decide.
  */
-export async function updateProjectFeaturesAction(input: unknown): Promise<ActionResult> {
+export async function updateProjectFeaturesAction(input: ProjectFeaturesInput): Promise<ActionResult> {
   const user = await requirePermission("workspace.settings");
 
   const parsed = projectFeaturesSchema.safeParse(input);
@@ -194,7 +288,7 @@ export async function updateProjectFeaturesAction(input: unknown): Promise<Actio
 
   const existing = await prisma.project.findFirst({
     where: { id: data.projectId, workspaceId: user.workspaceId },
-    select: { id: true },
+    select: { id: true, members: { select: { userId: true } } },
   });
   if (!existing) return NOT_FOUND;
 
@@ -203,6 +297,11 @@ export async function updateProjectFeaturesAction(input: unknown): Promise<Actio
     data: { features: data.features },
   });
 
+  // These are the project's rows in everyone's sidebar. Switching one off
+  // leaves a link that now 404s, and switching one on hides a page they are
+  // entitled to until they happen to navigate.
+  publishToUsers(existing.members.map((member) => member.userId));
+
   refreshProject(data.projectId);
   return { ok: true };
 }
@@ -210,7 +309,7 @@ export async function updateProjectFeaturesAction(input: unknown): Promise<Actio
 // --- Tasks -----------------------------------------------------------------
 
 /** Returns the new task's id, so a cover and a file can be uploaded to it next. */
-export async function createTaskAction(input: unknown): Promise<ActionResult & { id?: string }> {
+export async function createTaskAction(input: CreateTaskInput): Promise<ActionResult & { id?: string }> {
   const user = await requirePermission("tasks.manage");
 
   const parsed = createTaskSchema.safeParse(input);
@@ -246,6 +345,18 @@ export async function createTaskAction(input: unknown): Promise<ActionResult & {
 
   // Onto the first board, in a list that counts as the chosen status.
   await syncTaskList(prisma, created.id);
+
+  // Assigning somebody at creation is the same event as assigning them later,
+  // and `updateTaskAction` has always notified. Only this path was silent, so
+  // a task created straight onto a person reached them without a word.
+  await notify(prisma, {
+    workspaceId: user.workspaceId,
+    userIds: data.assigneeIds,
+    actorId: user.id,
+    kind: "task-assigned",
+    title: `You were assigned "${data.title}"`,
+    href: `/projects/project/${data.projectId}/tasks/${created.id}`,
+  });
 
   refreshProject(data.projectId);
   return { ok: true, id: created.id };
@@ -294,7 +405,7 @@ export async function deleteTaskAction(taskId: string): Promise<ActionResult> {
 
 // --- Time entries ----------------------------------------------------------
 
-export async function logTimeAction(input: unknown): Promise<ActionResult> {
+export async function logTimeAction(input: LogTimeInput): Promise<ActionResult> {
   const user = await requirePermission("time.log");
 
   const parsed = logTimeSchema.safeParse(input);
@@ -325,7 +436,7 @@ export async function logTimeAction(input: unknown): Promise<ActionResult> {
 
 export async function createCampaignAction(
   projectId: string,
-  input: unknown,
+  input: CampaignInput,
 ): Promise<ActionResult> {
   const user = await requirePermission("projects.edit");
 
@@ -356,7 +467,7 @@ export async function createCampaignAction(
   return { ok: true };
 }
 
-export async function updateCampaignAction(id: string, input: unknown): Promise<ActionResult> {
+export async function updateCampaignAction(id: string, input: CampaignInput): Promise<ActionResult> {
   const user = await requirePermission("projects.edit");
 
   const parsed = campaignSchema.safeParse(input);
@@ -442,7 +553,7 @@ export async function addSectionAction(
   return { ok: true };
 }
 
-export async function updateSectionAction(input: unknown): Promise<ActionResult> {
+export async function updateSectionAction(input: UpdateSectionInput): Promise<ActionResult> {
   const user = await requirePermission("projects.edit");
 
   const parsed = updateSectionSchema.safeParse(input);

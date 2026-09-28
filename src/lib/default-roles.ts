@@ -1,4 +1,4 @@
-import { permissionsFor, roleLabel } from "./permissions";
+import { pagesForPermissions, permissionsFor, roleLabel, type AppPage } from "./permissions";
 import type { Role } from "./domain";
 
 /**
@@ -28,6 +28,39 @@ const REFUSED: string[] = ["roles.manage"];
 /** What a default role starts with: its base role's permissions, minus the refused ones. */
 export function defaultRolePermissions(role: Role): string[] {
   return (permissionsFor(role) as string[]).filter((permission) => !REFUSED.includes(permission));
+}
+
+/**
+ * Never in a default role's starting page list, whatever its permissions imply.
+ *
+ * These four are the pages the sidebar has always treated as admin-only while
+ * `APP_PAGES` left them open to everyone — the two disagreed, and the nav was
+ * the stricter. Deriving the starting list from permissions alone would hand
+ * them to every role the moment assignment started being enforced, so the
+ * stricter reading wins.
+ *
+ * It is a *starting* list only: an admin can tick any of these on afterwards.
+ */
+const WITHHELD_BY_DEFAULT: AppPage[] = [
+  "team-members",
+  "workspaces",
+  "timesheet",
+  "appearance",
+];
+
+/**
+ * The pages a default role starts with.
+ *
+ * Kept in step with the backfill in
+ * `migrations/20260925140000_role_page_access` — a workspace created after
+ * that migration must start with the same lists it wrote for the workspaces
+ * that already existed. From here on the list is edited on the Roles screen
+ * and no longer tracks permissions at all.
+ */
+export function defaultRolePages(role: Role): AppPage[] {
+  return pagesForPermissions(
+    permissionsFor(role).filter((permission) => !REFUSED.includes(permission)),
+  ).filter((page) => !WITHHELD_BY_DEFAULT.includes(page));
 }
 
 /** Enough of the Prisma client for this to run inside a transaction or out of one. */
@@ -79,6 +112,7 @@ export async function ensureWorkspaceRoles(db: Db, workspaceId: string): Promise
           label: roleLabel(role),
           description,
           permissions: defaultRolePermissions(role),
+          pages: defaultRolePages(role),
           inheritsFrom: role.toUpperCase(),
           isActive: true,
           // Never a system role: that flag disables Edit and Delete, and these

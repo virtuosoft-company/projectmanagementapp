@@ -2,19 +2,30 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { roleToDomain } from "@/lib/mappers";
 import { ensureWorkspaceRoles } from "@/lib/default-roles";
-import { can } from "@/lib/permissions";
-import { requireAccount } from "@/lib/session";
-import { createWorkspaceSchema, firstError } from "@/lib/validations";
+import { resolveMemberRole } from "@/lib/resolve-role";
+import { requireAccount, viewerCan } from "@/lib/session";
+import {
+  type CreateWorkspaceInput,
+  createWorkspaceSchema,
+  firstError,
+} from "@/lib/validations";
 
 export type CreateWorkspaceResult = { ok: boolean; error?: string; workspaceId?: string };
 
-export async function createWorkspaceAction(input: unknown): Promise<CreateWorkspaceResult> {
+export async function createWorkspaceAction(input: CreateWorkspaceInput): Promise<CreateWorkspaceResult> {
   const user = await requireAccount();
 
   const memberships = await prisma.workspaceMember.count({ where: { userId: user.id } });
-  if (memberships > 0 && !can(user.role, "workspace.create")) {
+  // `viewerCan` rather than `can(user.role, …)`: `user.role` is the base enum
+  // from the JWT, so a custom role that narrows `workspace.create` away would
+  // still pass here — while the sidebar entry and the /workspaces button, both
+  // of which go through `hasPermission`, are already hidden for that person.
+  // The two must agree, and the resolver is the side that knows the narrowing.
+  //
+  // Someone with no memberships at all is signing up: they are creating their
+  // first workspace and become its admin, so there is no role to check yet.
+  if (memberships > 0 && !(await viewerCan("workspace.create"))) {
     return { ok: false, error: "Only an admin can create a workspace." };
   }
 
@@ -50,7 +61,7 @@ export type DeleteWorkspaceResult = {
 };
 
 /**
- * Delete a workspace, provided it is empty of projects and teams.
+ * Delete a workspace, provided it is empty of projects.
  *
  * **Ownership is checked against the target**, not against the session's
  * current workspace. `requirePermission` would ask "is this person an admin
@@ -59,8 +70,8 @@ export type DeleteWorkspaceResult = {
  * otherwise delete B from A's session.
  *
  * The emptiness rule is what makes this safe to expose at all: deleting cascades
- * to every team, project, task, time entry, message and custom role inside. By
- * refusing while any project or team remains, the destructive reach is limited
+ * to every project, task, time entry, message and custom role inside. By
+ * refusing while any project remains, the destructive reach is limited
  * to memberships and the workspace row itself, and the person is made to
  * dismantle the contents deliberately first.
  */
@@ -69,13 +80,19 @@ export async function deleteWorkspaceAction(
 ): Promise<DeleteWorkspaceResult> {
   const user = await requireAccount();
 
-  const membership = await prisma.workspaceMember.findUnique({
-    where: { workspaceId_userId: { workspaceId, userId: user.id } },
-    select: { role: true },
-  });
-  if (!membership) return { ok: false, error: "That workspace no longer exists." };
+  // `resolveMemberRole` rather than reading `membership.role` and passing it to
+  // `can()`: the stored enum is only the *base* role, so a custom role that
+  // narrows `workspace.delete` away would still have passed. It resolves the
+  // membership in the **target** workspace, which is the whole point of doing
+  // this by hand instead of through `viewerCan` — that one answers for the
+  // workspace the session is currently in.
+  //
+  // It returns null when the membership is gone, so this is also the
+  // membership check; no separate query is needed.
+  const resolved = await resolveMemberRole(workspaceId, user.id);
+  if (!resolved) return { ok: false, error: "That workspace no longer exists." };
 
-  if (!can(roleToDomain[membership.role], "workspace.delete")) {
+  if (!resolved.permissions.includes("workspace.delete")) {
     return { ok: false, error: "Only an admin of that workspace can delete it." };
   }
 

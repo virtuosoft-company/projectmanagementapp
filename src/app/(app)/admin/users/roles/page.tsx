@@ -130,6 +130,25 @@ export default async function RolesPage() {
                     ) : null}
                   </div>
 
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Pages (<span className="font-mono">{role.pages.length}</span>/
+                      <span className="font-mono">{APP_PAGES.length}</span>)
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {APP_PAGES.filter((page) => role.pages.includes(page.key)).map((page) => (
+                        <Badge key={page.key} variant="outline" className="font-normal">
+                          {page.label}
+                        </Badge>
+                      ))}
+                      {role.pages.length === 0 ? (
+                        <span className="text-xs text-muted-foreground">
+                          No pages — holders can sign in but reach nothing.
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+
                   {canManage ? (
                     <div className="flex justify-end border-t pt-2">
                       <RoleRowActions role={role} />
@@ -222,9 +241,11 @@ export default async function RolesPage() {
                     <span className="font-mono">{APP_PAGES.length}</span>)
                   </p>
                   {/*
-                    The ceiling, not the guarantee: an owner or admin can
-                    unassign any of these per person. Nobody can be given a page
-                    that is missing here — assignment only narrows.
+                    Admin is the fixed role, so its pages are the whole
+                    catalogue and are not editable — that is what keeps a
+                    workspace administrable no matter how the other roles are
+                    retuned. Every other role's list is assigned on its own card
+                    above.
                   */}
                   <div className="flex flex-wrap gap-1">
                     {APP_PAGES.filter((page) => pages.includes(page.key)).map((page) => (
@@ -243,39 +264,19 @@ export default async function RolesPage() {
                     <p className="text-xs text-muted-foreground">Nobody holds this role.</p>
                   ) : (
                     <ul className="space-y-1">
-                      {holders.map((user) => {
-                        // A narrowed member reaches fewer pages than their role
-                        // suggests, which this card would otherwise overstate.
-                        const restricted = user.pages !== null;
-                        const reach = restricted
-                          ? pages.filter((page) => user.pages?.includes(page)).length
-                          : pages.length;
-
-                        return (
-                          <li key={user.id} className="flex items-center gap-2">
-                            <UserAvatar
-                              name={user.name}
-                              className="h-6 w-6 bg-primary/10"
-                              textClassName="text-[10px] text-primary"
-                            />
-                            <span className="min-w-0 flex-1 truncate text-xs">{user.name}</span>
-                            {restricted ? (
-                              <Badge
-                                variant="outline"
-                                title={`Assigned ${reach} of ${pages.length} pages this role allows`}
-                              >
-                                <span className="font-mono">
-                                  {reach}/{pages.length}
-                                </span>{" "}
-                                pages
-                              </Badge>
-                            ) : null}
-                            {!user.active ? (
-                              <Badge variant="destructive">Disabled</Badge>
-                            ) : null}
-                          </li>
-                        );
-                      })}
+                      {/* Everyone holding the role reaches exactly its pages —
+                          there is no per-member narrowing to report. */}
+                      {holders.map((user) => (
+                        <li key={user.id} className="flex items-center gap-2">
+                          <UserAvatar
+                            name={user.name}
+                            className="h-6 w-6 bg-primary/10"
+                            textClassName="text-[10px] text-primary"
+                          />
+                          <span className="min-w-0 flex-1 truncate text-xs">{user.name}</span>
+                          {!user.active ? <Badge variant="destructive">Disabled</Badge> : null}
+                        </li>
+                      ))}
                     </ul>
                   )}
                 </div>

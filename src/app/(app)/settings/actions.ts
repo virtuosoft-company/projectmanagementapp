@@ -5,8 +5,9 @@ import bcrypt from "bcryptjs";
 import type { Role } from "@/lib/domain";
 import { roleToDb } from "@/lib/mappers";
 import { prisma } from "@/lib/prisma";
-import { resolveWorkspaceTeamId } from "@/lib/queries";
 import { requirePermission } from "@/lib/session";
+import { roleRowIdFor } from "@/lib/resolve-role";
+import { notify } from "@/lib/notifications";
 import {
   firstError,
   inviteMemberSchema,
@@ -57,11 +58,31 @@ export async function updateRoleAction(formData: FormData): Promise<ActionResult
 
   await prisma.workspaceMember.update({
     where: { workspaceId_userId: { workspaceId: actor.workspaceId, userId: parsed.data.userId } },
-    data: { role: roleToDb[parsed.data.role as Role] },
+    // Re-pointed as well as restamped, so the Roles screen counts them under
+    // the role they now hold rather than the one they left.
+    data: {
+      role: roleToDb[parsed.data.role as Role],
+      customRoleId: await roleRowIdFor(actor.workspaceId, parsed.data.role as Role),
+    },
   });
 
-  // The role lives in the target's JWT, so it takes effect on their next
-  // session refresh rather than instantly.
+  // The same message the Users screen sends — this is the second way to change
+  // somebody’s role and it was the silent one.
+  //
+  // What the new role allows already applied on their next request, because
+  // every gate resolves from the database. This is what reaches a tab that is
+  // already open, and what makes their session re-mint so the role they see
+  // matches the role they have.
+  await notify(prisma, {
+    workspaceId: actor.workspaceId,
+    userIds: [parsed.data.userId],
+    actorId: actor.id,
+    kind: "role-changed",
+    title: "Your role changed",
+    body: `You are now ${parsed.data.role}.`,
+    href: "/profile",
+  });
+
   refresh();
 
   return { ok: true };
@@ -75,9 +96,6 @@ export async function inviteMemberAction(formData: FormData): Promise<ActionResu
     name: formData.get("name"),
     email: formData.get("email"),
     role: formData.get("role") ?? "member",
-    // Only the Team Members dialog offers a team picker; the settings card
-    // posts no such field, which parses to "" and means "no team".
-    teamId: formData.get("teamId") ?? "",
     password: formData.get("password") ?? "",
   });
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
@@ -86,21 +104,22 @@ export async function inviteMemberAction(formData: FormData): Promise<ActionResu
   const existing = await prisma.user.findUnique({ where: { email: data.email } });
   if (existing) return { ok: false, error: "Someone already uses that email." };
 
-  const team = await resolveWorkspaceTeamId(data.teamId, actor.workspaceId);
-  if (!team.ok) return { ok: false, error: "That team is not in this workspace." };
-
   await prisma.$transaction(async (tx) => {
     const created = await tx.user.create({
       data: {
         name: data.name,
         email: data.email,
-        teamId: team.teamId,
         passwordHash: data.password ? await bcrypt.hash(data.password, 12) : null,
         lastWorkspaceId: actor.workspaceId,
       },
     });
     await tx.workspaceMember.create({
-      data: { workspaceId: actor.workspaceId, userId: created.id, role: roleToDb[data.role as Role] },
+      data: {
+        workspaceId: actor.workspaceId,
+        userId: created.id,
+        role: roleToDb[data.role as Role],
+        customRoleId: await roleRowIdFor(actor.workspaceId, data.role as Role),
+      },
     });
   });
 

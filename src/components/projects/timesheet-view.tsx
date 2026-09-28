@@ -10,19 +10,15 @@ export type TimesheetEntry = {
   projectId: string;
   memberId: string;
   memberName: string;
-  /** The member's team, or "" when they are on none. */
-  teamId: string;
   /** ISO day. */
   date: string;
   hours: number;
 };
 
 const ALL = "all";
-/** Radix rejects an empty value, so "no team" travels as a sentinel. */
-const NO_TEAM = "none";
 
 /**
- * The weekly grid with project and team filters above it.
+ * The weekly grid with its project filter above it.
  *
  * Rows are aggregated here rather than on the server so switching project is
  * instant: the entries are already loaded, and re-deriving them is a pass over
@@ -35,27 +31,18 @@ const NO_TEAM = "none";
 export function TimesheetView({
   entries,
   projects,
-  teams,
   initialWeek,
 }: {
   entries: TimesheetEntry[];
   /** Every project the viewer may see, whether or not it has hours logged. */
   projects: { id: string; name: string }[];
-  /** Every team in the workspace, whether or not its people logged anything. */
-  teams: { id: string; name: string }[];
   initialWeek: string;
 }) {
   const [projectId, setProjectId] = useState<string>(ALL);
-  const [teamId, setTeamId] = useState<string>(ALL);
 
   const visible = useMemo(
-    () =>
-      entries.filter((entry) => {
-        if (projectId !== ALL && entry.projectId !== projectId) return false;
-        if (teamId === ALL) return true;
-        return entry.teamId === (teamId === NO_TEAM ? "" : teamId);
-      }),
-    [entries, projectId, teamId],
+    () => entries.filter((entry) => projectId === ALL || entry.projectId === projectId),
+    [entries, projectId],
   );
 
   const rows = useMemo(() => {
@@ -76,13 +63,7 @@ export function TimesheetView({
 
   const total = visible.reduce((sum, entry) => sum + entry.hours, 0);
   const selected = projects.find((project) => project.id === projectId);
-  const selectedTeam = teams.find((team) => team.id === teamId);
-  const scope = [
-    selected ? selected.name : "all projects",
-    teamId === ALL ? "" : selectedTeam ? `the ${selectedTeam.name} team` : "people with no team",
-  ]
-    .filter(Boolean)
-    .join(", ");
+  const scope = selected ? selected.name : "all projects";
 
   return (
     <div className="space-y-4">
@@ -95,18 +76,6 @@ export function TimesheetView({
           options={[
             { value: ALL, label: `All projects (${projects.length})` },
             ...projects.map((project) => ({ value: project.id, label: project.name })),
-          ]}
-        />
-
-        <SelectField
-          value={teamId}
-          onValueChange={setTeamId}
-          aria-label="Filter by team"
-          className="w-[200px]"
-          options={[
-            { value: ALL, label: `All teams (${teams.length})` },
-            ...teams.map((team) => ({ value: team.id, label: team.name })),
-            { value: NO_TEAM, label: "No team" },
           ]}
         />
 
@@ -124,7 +93,7 @@ export function TimesheetView({
             An empty *filter* and an empty *timesheet* are different situations,
             and saying which one this is saves the reader checking.
           */}
-          {projectId === ALL && teamId === ALL
+          {projectId === ALL
             ? "No time has been logged on your projects yet."
             : `No time has been logged in ${scope} yet.`}
         </p>

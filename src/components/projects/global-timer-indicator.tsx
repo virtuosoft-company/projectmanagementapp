@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Pause, Play, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useElapsed } from "@/hooks/use-elapsed";
@@ -18,20 +19,44 @@ import type { RunningTimer } from "@/lib/domain";
  * all night on a task nobody is looking at. Stopping is one click from here,
  * and the task title links back to where it came from.
  */
-export function GlobalTimerIndicator({ running }: { running: RunningTimer | null }) {
+export function GlobalTimerIndicator({
+  running,
+  canLog,
+}: {
+  running: RunningTimer | null;
+  /**
+   * `time.log`, resolved on the server. Pause, stop and resume are all
+   * `time.log` actions, so the control is hidden without it rather than
+   * offering three buttons that fail on click — the same rule
+   * `TimerControls` applies on the task screen.
+   *
+   * It only bites when the permission was taken away while a timer was
+   * already running, which is exactly the case where a stale control is
+   * most confusing.
+   */
+  canLog: boolean;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [notice, setNotice] = useState<string | null>(null);
   const elapsed = useElapsed(running?.startedAt ?? null, running?.pausedAt ?? null);
 
-  if (!running) return null;
+  if (!running || !canLog) return null;
   const paused = Boolean(running.pausedAt);
 
   function act(action: () => Promise<{ ok: boolean; error?: string }>, done: string) {
     startTransition(async () => {
       const result = await action();
-      setNotice(result.error ?? done);
-      if (result.ok) router.refresh();
+
+      if (!result.ok) {
+        toast.error(result.error ?? "That did not work.");
+        return;
+      }
+
+      // Ok with a message: the run was under a minute and nothing was logged.
+      if (result.error) toast.warning(result.error);
+      else toast.success(done);
+
+      router.refresh();
     });
   }
 
@@ -99,7 +124,8 @@ export function GlobalTimerIndicator({ running }: { running: RunningTimer | null
       {/* The clock itself is aria-hidden — announcing it every second would be
           unusable — so this carries the state change instead. */}
       <span role="status" aria-live="polite" className="sr-only">
-        {notice ?? `Timer ${paused ? "paused" : "running"} on ${running.taskTitle}.`}
+        {/* State only; the outcome is carried by the toast. */}
+        {`Timer ${paused ? "paused" : "running"} on ${running.taskTitle}.`}
       </span>
     </div>
   );

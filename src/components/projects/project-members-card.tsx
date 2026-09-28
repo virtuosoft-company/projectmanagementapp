@@ -3,16 +3,15 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChartNoAxesColumn, Plus, Users } from "lucide-react";
+import { ChartNoAxesColumn, Plus } from "lucide-react";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { DialogActions } from "@/components/ui/form-actions";
 import { addProjectMembersAction } from "@/lib/actions";
-import type { Member, Team } from "@/lib/domain";
+import type { Member } from "@/lib/domain";
 
 export type ProjectMemberRow = {
   member: Member;
@@ -25,17 +24,12 @@ export function ProjectMembersCard({
   projectId,
   rows,
   candidates,
-  teams,
-  owningTeamId,
   canEdit,
 }: {
   projectId: string;
   rows: ProjectMemberRow[];
   /** Every workspace member; those already on the project are filtered out. */
   candidates: Member[];
-  teams: Pick<Team, "id" | "name">[];
-  /** The project's own team, listed first so it reads as the core group. */
-  owningTeamId: string | null;
   canEdit: boolean;
 }) {
   const router = useRouter();
@@ -48,48 +42,11 @@ export function ProjectMembersCard({
     (member) => !rows.some((row) => row.member.id === member.id),
   );
 
-  const teamNameById = useMemo(
-    () => new Map(teams.map((team) => [team.id, team.name])),
-    [teams],
+  // One flat list, by name. The grouping that used to sit here was per team.
+  const ordered = useMemo(
+    () => [...rows].sort((a, b) => a.member.name.localeCompare(b.member.name)),
+    [rows],
   );
-
-  /**
-   * Rows bucketed by the member's team, so it is obvious who is core to the
-   * project's own team and who was pulled in from elsewhere.
-   *
-   * Order: the owning team, then the remaining teams alphabetically, then the
-   * unassigned. Members carry a single `teamId`, so every person lands in
-   * exactly one bucket.
-   */
-  const groups = useMemo(() => {
-    const byTeam = new Map<string, ProjectMemberRow[]>();
-    for (const row of rows) {
-      const key = row.member.teamId ?? "";
-      const bucket = byTeam.get(key);
-      if (bucket) bucket.push(row);
-      else byTeam.set(key, [row]);
-    }
-
-    const label = (id: string) =>
-      id ? (teamNameById.get(id) ?? "Other team") : "No team";
-
-    return [...byTeam.entries()]
-      .sort(([a], [b]) => {
-        if (a === b) return 0;
-        if (a === owningTeamId) return -1;
-        if (b === owningTeamId) return 1;
-        // Unassigned always sits at the bottom.
-        if (a === "") return 1;
-        if (b === "") return -1;
-        return label(a).localeCompare(label(b));
-      })
-      .map(([id, members]) => ({
-        id,
-        label: label(id),
-        isOwningTeam: Boolean(id) && id === owningTeamId,
-        members,
-      }));
-  }, [rows, teamNameById, owningTeamId]);
 
   function add() {
     startTransition(async () => {
@@ -115,51 +72,36 @@ export function ProjectMembersCard({
           ) : null}
         </div>
       </div>
-      <CardContent className="space-y-4">
-        {groups.map((group) => (
-          <div key={group.id || "unassigned"} className="space-y-1">
-            <p className="flex items-center gap-1.5 px-2 text-xs font-medium text-muted-foreground">
-              <Users className="h-3 w-3" />
-              {group.label}
-              <span className="font-mono">({group.members.length})</span>
-              {group.isOwningTeam ? (
-                <Badge variant="secondary" className="ml-1">
-                  Owning team
-                </Badge>
-              ) : null}
-            </p>
-
-            {group.members.map(({ member, tasksDone, tasksTotal, hours }) => (
-              <div
-                key={member.id}
-                className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted/50"
+      <CardContent className="space-y-1">
+        {ordered.map(({ member, tasksDone, tasksTotal, hours }) => (
+          <div
+            key={member.id}
+            className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted/50"
+          >
+            <UserAvatar
+              name={member.name}
+              className="h-9 w-9 bg-primary/10"
+              textClassName="text-xs text-primary"
+            />
+            <div className="min-w-0 flex-1">
+              <button
+                type="button"
+                className="block max-w-full truncate rounded text-left text-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label={`Analytics for ${member.name}`}
+                onClick={() => setViewing({ member, tasksDone, tasksTotal, hours })}
               >
-                <UserAvatar
-                  name={member.name}
-                  className="h-9 w-9 bg-primary/10"
-                  textClassName="text-xs text-primary"
-                />
-                <div className="min-w-0 flex-1">
-                  <button
-                    type="button"
-                    className="block max-w-full truncate rounded text-left text-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    aria-label={`Analytics for ${member.name}`}
-                    onClick={() => setViewing({ member, tasksDone, tasksTotal, hours })}
-                  >
-                    {member.name}
-                  </button>
-                  <p className="truncate text-xs text-muted-foreground">
-                    <span className="capitalize">{member.role}</span> · {member.email}
-                  </p>
-                </div>
-                <div className="shrink-0 text-right text-xs">
-                  <p className="font-mono font-medium">
-                    {tasksDone}/{tasksTotal} tasks
-                  </p>
-                  <p className="font-mono text-muted-foreground">{hours.toFixed(1)}h logged</p>
-                </div>
-              </div>
-            ))}
+                {member.name}
+              </button>
+              <p className="truncate text-xs text-muted-foreground">
+                <span className="capitalize">{member.role}</span> · {member.email}
+              </p>
+            </div>
+            <div className="shrink-0 text-right text-xs">
+              <p className="font-mono font-medium">
+                {tasksDone}/{tasksTotal} tasks
+              </p>
+              <p className="font-mono text-muted-foreground">{hours.toFixed(1)}h logged</p>
+            </div>
           </div>
         ))}
 
@@ -198,13 +140,7 @@ export function ProjectMembersCard({
               </div>
             </div>
 
-            <p className="text-xs text-muted-foreground">
-              Their work on this project. Team:{" "}
-              {viewing.member.teamId
-                ? (teamNameById.get(viewing.member.teamId) ?? "Other team")
-                : "No team"}
-              .
-            </p>
+            <p className="text-xs text-muted-foreground">Their work on this project.</p>
 
             <div className="flex justify-end">
               <Button variant="outline" size="sm" asChild>
@@ -252,11 +188,6 @@ export function ProjectMembersCard({
                   <span className="block truncate text-xs text-muted-foreground">
                     {member.email}
                   </span>
-                </span>
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {member.teamId
-                    ? (teamNameById.get(member.teamId) ?? "Other team")
-                    : "No team"}
                 </span>
               </label>
             ))}

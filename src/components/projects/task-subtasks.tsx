@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition, type ReactNode } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   AlignLeft,
   Circle,
@@ -143,7 +144,10 @@ export function TaskSubtasks({
     if (!trimmed) return;
     run(
       () => createSubtaskAction({ taskId, title: trimmed }),
-      () => setTitle(""),
+      () => {
+        toast.success("Subtask added");
+        setTitle("");
+      },
     );
   }
 
@@ -176,7 +180,7 @@ export function TaskSubtasks({
       // A lone subtask with nothing logged goes at once, as the checklist did.
       // One with a branch or with time asks first: more goes than the box shows.
       if (node.children.length || node.rollup.trackedMinutes) setRemoving(node);
-      else run(() => deleteSubtaskAction(node.id));
+      else run(() => deleteSubtaskAction(node.id), () => toast.success("Subtask deleted"));
     },
     startTimer: (subtaskId) =>
       run(() => startTimerAction({ taskId, subtaskId, note: "" })),

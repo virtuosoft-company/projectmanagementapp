@@ -9,15 +9,16 @@ export const metadata: Metadata = { title: "Not allowed" };
 
 export default async function ForbiddenPage({ searchParams }: PageProps<"/forbidden">) {
   const user = await getSessionUser();
+  // Two ways to land here: `requirePermission` sends `need`, `requirePage`
+  // sends `page`. They call for different advice — one is a permission the
+  // role lacks, the other a page it was simply not assigned.
   const { need, page } = await searchParams;
   const permission = typeof need === "string" ? (need as Permission) : undefined;
   const label = permission ? PERMISSION_LABELS[permission] : undefined;
-
-  // `?page=` means their role allows it but an owner or admin has not assigned
-  // it to them — a different problem from lacking the permission, and a
-  // different fix, so it gets its own wording.
-  const pageEntry =
-    typeof page === "string" ? APP_PAGES.find((item) => item.key === page) : undefined;
+  const pageLabel =
+    typeof page === "string"
+      ? APP_PAGES.find((entry) => entry.key === page)?.label
+      : undefined;
 
   return (
     <main className="flex min-h-svh items-center justify-center p-6">
@@ -31,10 +32,10 @@ export default async function ForbiddenPage({ searchParams }: PageProps<"/forbid
               You don&apos;t have access
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {pageEntry ? (
+              {pageLabel ? (
                 <>
-                  <span className="font-medium">{pageEntry.label}</span> isn&apos;t assigned to
-                  your account.
+                  <span className="font-medium">{pageLabel}</span> is not one of the pages
+                  assigned to your role.
                 </>
               ) : label ? (
                 <>
@@ -52,10 +53,14 @@ export default async function ForbiddenPage({ searchParams }: PageProps<"/forbid
               ) : null}
             </p>
           </div>
+          {/*
+            No “sign out and back in” any more: every gate resolves the role from
+            the database on each request, so a change on the Roles screen
+            applies to this person’s very next navigation.
+          */}
           <p className="text-sm text-muted-foreground">
-            {pageEntry
-              ? "Ask a workspace owner or admin to assign you this page. It takes effect immediately."
-              : "Ask a workspace owner or admin to change your role, then sign out and back in."}
+            Ask an admin to {pageLabel ? "add this page to" : "grant this permission to"} your
+            role on the Roles screen. It applies straight away.
           </p>
           <Link
             href="/dashboard"
