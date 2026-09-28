@@ -22,7 +22,6 @@ CREATE TABLE `User` (
     `imageKey` VARCHAR(191) NULL,
     `passwordHash` VARCHAR(191) NULL,
     `lastWorkspaceId` VARCHAR(191) NULL,
-    `teamId` VARCHAR(191) NULL,
     `designation` VARCHAR(191) NULL,
     `phone` VARCHAR(191) NULL,
     `hourlyRate` INTEGER NOT NULL DEFAULT 0,
@@ -35,7 +34,6 @@ CREATE TABLE `User` (
     `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `User_email_key`(`email`),
-    INDEX `User_teamId_idx`(`teamId`),
     INDEX `User_lastWorkspaceId_idx`(`lastWorkspaceId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -48,6 +46,7 @@ CREATE TABLE `CustomRole` (
     `label` VARCHAR(191) NOT NULL,
     `description` TEXT NOT NULL DEFAULT '',
     `permissions` JSON NOT NULL,
+    `pages` JSON NULL,
     `inheritsFrom` ENUM('ADMIN', 'MANAGER', 'MEMBER', 'VIEWER', 'GUEST') NOT NULL,
     `isActive` BOOLEAN NOT NULL DEFAULT true,
     `isSystem` BOOLEAN NOT NULL DEFAULT false,
@@ -68,30 +67,12 @@ CREATE TABLE `WorkspaceMember` (
     `role` ENUM('ADMIN', 'MANAGER', 'MEMBER', 'VIEWER', 'GUEST') NOT NULL DEFAULT 'MEMBER',
     `joinedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `customRoleId` VARCHAR(191) NULL,
-    `pages` JSON NULL,
+    `managerId` VARCHAR(191) NULL,
 
     INDEX `WorkspaceMember_userId_idx`(`userId`),
     INDEX `WorkspaceMember_customRoleId_idx`(`customRoleId`),
+    INDEX `WorkspaceMember_workspaceId_managerId_idx`(`workspaceId`, `managerId`),
     PRIMARY KEY (`workspaceId`, `userId`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `Team` (
-    `id` VARCHAR(191) NOT NULL,
-    `workspaceId` VARCHAR(191) NOT NULL,
-    `name` VARCHAR(191) NOT NULL,
-    `slug` VARCHAR(191) NOT NULL,
-    `code` VARCHAR(191) NOT NULL,
-    `description` TEXT NULL,
-    `color` VARCHAR(191) NOT NULL,
-    `leadId` VARCHAR(191) NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
-
-    INDEX `Team_workspaceId_idx`(`workspaceId`),
-    INDEX `Team_leadId_idx`(`leadId`),
-    UNIQUE INDEX `Team_workspaceId_slug_key`(`workspaceId`, `slug`),
-    PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -102,7 +83,6 @@ CREATE TABLE `Project` (
     `description` TEXT NOT NULL,
     `status` ENUM('ACTIVE', 'PLANNING', 'ON_HOLD', 'COMPLETED') NOT NULL DEFAULT 'PLANNING',
     `color` VARCHAR(191) NOT NULL,
-    `teamId` VARCHAR(191) NULL,
     `startDate` DATE NULL,
     `endDate` DATE NULL,
     `features` JSON NULL,
@@ -110,7 +90,6 @@ CREATE TABLE `Project` (
     `updatedAt` DATETIME(3) NOT NULL,
 
     INDEX `Project_workspaceId_idx`(`workspaceId`),
-    INDEX `Project_teamId_idx`(`teamId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -440,11 +419,84 @@ CREATE TABLE `AppSetting` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- AddForeignKey
-ALTER TABLE `User` ADD CONSTRAINT `User_lastWorkspaceId_fkey` FOREIGN KEY (`lastWorkspaceId`) REFERENCES `Workspace`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+-- CreateTable
+CREATE TABLE `Event` (
+    `id` VARCHAR(191) NOT NULL,
+    `workspaceId` VARCHAR(191) NOT NULL,
+    `projectId` VARCHAR(191) NULL,
+    `title` VARCHAR(191) NOT NULL,
+    `description` TEXT NOT NULL DEFAULT '',
+    `date` DATE NOT NULL,
+    `startTime` VARCHAR(191) NULL,
+    `endTime` VARCHAR(191) NULL,
+    `startsAt` DATETIME(3) NOT NULL,
+    `reminderMinutes` INTEGER NOT NULL DEFAULT 30,
+    `reminderSentAt` DATETIME(3) NULL,
+    `createdById` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `Event_workspaceId_date_idx`(`workspaceId`, `date`),
+    INDEX `Event_reminderSentAt_startsAt_idx`(`reminderSentAt`, `startsAt`),
+    INDEX `Event_projectId_idx`(`projectId`),
+    INDEX `Event_createdById_idx`(`createdById`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `EventAttendee` (
+    `eventId` VARCHAR(191) NOT NULL,
+    `userId` VARCHAR(191) NOT NULL,
+
+    INDEX `EventAttendee_userId_idx`(`userId`),
+    PRIMARY KEY (`eventId`, `userId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Invitation` (
+    `id` VARCHAR(191) NOT NULL,
+    `workspaceId` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NOT NULL,
+    `role` ENUM('ADMIN', 'MANAGER', 'MEMBER', 'VIEWER', 'GUEST') NOT NULL,
+    `customRoleId` VARCHAR(191) NULL,
+    `tokenHash` VARCHAR(191) NOT NULL,
+    `expiresAt` DATETIME(3) NOT NULL,
+    `acceptedAt` DATETIME(3) NULL,
+    `revokedAt` DATETIME(3) NULL,
+    `invitedById` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `Invitation_tokenHash_key`(`tokenHash`),
+    INDEX `Invitation_workspaceId_createdAt_idx`(`workspaceId`, `createdAt`),
+    INDEX `Invitation_email_idx`(`email`),
+    INDEX `Invitation_customRoleId_idx`(`customRoleId`),
+    INDEX `Invitation_invitedById_idx`(`invitedById`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `MemberRemoval` (
+    `id` VARCHAR(191) NOT NULL,
+    `workspaceId` VARCHAR(191) NOT NULL,
+    `userId` VARCHAR(191) NULL,
+    `userName` VARCHAR(191) NOT NULL,
+    `userEmail` VARCHAR(191) NOT NULL,
+    `role` ENUM('ADMIN', 'MANAGER', 'MEMBER', 'VIEWER', 'GUEST') NOT NULL,
+    `reason` TEXT NOT NULL,
+    `projectCount` INTEGER NOT NULL DEFAULT 0,
+    `hoursLogged` DOUBLE NOT NULL DEFAULT 0,
+    `removedById` VARCHAR(191) NULL,
+    `removedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    INDEX `MemberRemoval_workspaceId_removedAt_idx`(`workspaceId`, `removedAt`),
+    INDEX `MemberRemoval_userId_idx`(`userId`),
+    INDEX `MemberRemoval_removedById_idx`(`removedById`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `User` ADD CONSTRAINT `User_teamId_fkey` FOREIGN KEY (`teamId`) REFERENCES `Team`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `User` ADD CONSTRAINT `User_lastWorkspaceId_fkey` FOREIGN KEY (`lastWorkspaceId`) REFERENCES `Workspace`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `CustomRole` ADD CONSTRAINT `CustomRole_workspaceId_fkey` FOREIGN KEY (`workspaceId`) REFERENCES `Workspace`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -459,16 +511,10 @@ ALTER TABLE `WorkspaceMember` ADD CONSTRAINT `WorkspaceMember_userId_fkey` FOREI
 ALTER TABLE `WorkspaceMember` ADD CONSTRAINT `WorkspaceMember_customRoleId_fkey` FOREIGN KEY (`customRoleId`) REFERENCES `CustomRole`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Team` ADD CONSTRAINT `Team_workspaceId_fkey` FOREIGN KEY (`workspaceId`) REFERENCES `Workspace`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Team` ADD CONSTRAINT `Team_leadId_fkey` FOREIGN KEY (`leadId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `WorkspaceMember` ADD CONSTRAINT `WorkspaceMember_managerId_fkey` FOREIGN KEY (`managerId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Project` ADD CONSTRAINT `Project_workspaceId_fkey` FOREIGN KEY (`workspaceId`) REFERENCES `Workspace`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Project` ADD CONSTRAINT `Project_teamId_fkey` FOREIGN KEY (`teamId`) REFERENCES `Team`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Board` ADD CONSTRAINT `Board_projectId_fkey` FOREIGN KEY (`projectId`) REFERENCES `Project`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -580,3 +626,36 @@ ALTER TABLE `TaskAttachment` ADD CONSTRAINT `TaskAttachment_subtaskId_fkey` FORE
 
 -- AddForeignKey
 ALTER TABLE `TaskAttachment` ADD CONSTRAINT `TaskAttachment_uploadedById_fkey` FOREIGN KEY (`uploadedById`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Event` ADD CONSTRAINT `Event_workspaceId_fkey` FOREIGN KEY (`workspaceId`) REFERENCES `Workspace`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Event` ADD CONSTRAINT `Event_projectId_fkey` FOREIGN KEY (`projectId`) REFERENCES `Project`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Event` ADD CONSTRAINT `Event_createdById_fkey` FOREIGN KEY (`createdById`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `EventAttendee` ADD CONSTRAINT `EventAttendee_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `Event`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `EventAttendee` ADD CONSTRAINT `EventAttendee_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Invitation` ADD CONSTRAINT `Invitation_workspaceId_fkey` FOREIGN KEY (`workspaceId`) REFERENCES `Workspace`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Invitation` ADD CONSTRAINT `Invitation_customRoleId_fkey` FOREIGN KEY (`customRoleId`) REFERENCES `CustomRole`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Invitation` ADD CONSTRAINT `Invitation_invitedById_fkey` FOREIGN KEY (`invitedById`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `MemberRemoval` ADD CONSTRAINT `MemberRemoval_workspaceId_fkey` FOREIGN KEY (`workspaceId`) REFERENCES `Workspace`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `MemberRemoval` ADD CONSTRAINT `MemberRemoval_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `MemberRemoval` ADD CONSTRAINT `MemberRemoval_removedById_fkey` FOREIGN KEY (`removedById`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;

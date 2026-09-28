@@ -20,8 +20,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
-    "ci": "npm run typecheck && npm run lint && npm run test"
+    "typecheck": "tsc --noEmit"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
