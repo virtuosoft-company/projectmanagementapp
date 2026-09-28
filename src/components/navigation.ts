@@ -52,6 +52,16 @@ export interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   badge?: string;
   /**
+   * How the mobile bottom-tab badge is coloured. The sidebar tints every badge
+   * the same way, so this only affects the mobile bar.
+   *
+   * `alert` is red, and means a count that represents something wrong and
+   * shrinks as it is dealt with — overdue tasks. Anything that only ever counts
+   * up, like messages received, stays on the default tone: a red badge that can
+   * never reach zero reads as a permanently unresolved problem.
+   */
+  badgeTone?: "default" | "alert";
+  /**
    * The assignable page this item opens, when it is not simply `href`.
    *
    * Set it for a sub-route that belongs to a listed page — "Add Users" lives
@@ -220,7 +230,7 @@ function projectSection(
 export const bottomTabItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "Projects", href: "/projects", icon: FolderKanban },
-  { title: "Tasks", href: "/projects/tasks", icon: ListTodo },
+  { title: "Tasks", href: "/projects/tasks", icon: ListTodo, badgeTone: "alert" },
   { title: "Messages", href: "/messages", icon: MessageSquare },
   { title: "People", href: "/team-members", icon: Users },
 ];

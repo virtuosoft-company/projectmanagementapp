@@ -546,6 +546,11 @@ model Message {
   recipientId String
   body        String   @db.Text
   sentAt      DateTime @default(now())
+  /// When the recipient read it. Null until then, which is what the sidebar
+  /// badge counts. Per row rather than a single "last read" stamp per thread,
+  /// for the same reason `Notification.readAt` is: reading one conversation
+  /// must not silently clear another.
+  readAt      DateTime?
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   sender    User      @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
@@ -555,6 +560,8 @@ model Message {
   @@index([senderId])
   @@index([recipientId])
   @@index([sentAt])
+  /// The badge's query: unread messages to one person in one workspace.
+  @@index([workspaceId, recipientId, readAt])
 }
 
 model ActivityEntry {

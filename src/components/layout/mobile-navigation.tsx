@@ -3,8 +3,12 @@
  * Bottom tab bar for small screens, replacing the sidebar below `lg`.
  *
  * Ported from the PropertyPro component of the same name: fixed bottom bar,
- * role-filtered tabs, icon over label, destructive count badge, and a spacer so
- * page content is never hidden behind it.
+ * role-filtered tabs, icon over label, a count badge, and a spacer so page
+ * content is never hidden behind it.
+ *
+ * The badge is red only for a tab whose `badgeTone` is `alert` — a count that
+ * ought to reach zero. Every badge here used to be red, which made the messages
+ * count, which only ever grows, look like an unresolved problem.
  */
 
 "use client";
@@ -66,7 +70,7 @@ export function MobileNavigation({
                   <tab.icon className="h-5 w-5" />
                   {tab.badge ? (
                     <Badge
-                      variant="destructive"
+                      variant={tab.badgeTone === "alert" ? "destructive" : "default"}
                       className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center p-0 px-1 font-mono text-[10px]"
                     >
                       {tab.badge}

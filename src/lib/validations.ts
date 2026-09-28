@@ -524,6 +524,13 @@ export const sendMessageSchema = z.object({
   body: z.string().trim().min(1, "Write a message first.").max(4000),
 });
 
+/** Marking one thread read — the other participant, not a message id. */
+export const markMessagesReadSchema = z.object({
+  contactId: z.string().min(1, "Pick a conversation."),
+});
+
+export type MarkMessagesReadInput = z.input<typeof markMessagesReadSchema>;
+
 // ============================================================================
 // ERROR HELPERS
 // ============================================================================

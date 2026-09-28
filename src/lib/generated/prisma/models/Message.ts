@@ -31,6 +31,7 @@ export type MessageMinAggregateOutputType = {
   recipientId: string | null
   body: string | null
   sentAt: Date | null
+  readAt: Date | null
 }
 
 export type MessageMaxAggregateOutputType = {
@@ -40,6 +41,7 @@ export type MessageMaxAggregateOutputType = {
   recipientId: string | null
   body: string | null
   sentAt: Date | null
+  readAt: Date | null
 }
 
 export type MessageCountAggregateOutputType = {
@@ -49,6 +51,7 @@ export type MessageCountAggregateOutputType = {
   recipientId: number
   body: number
   sentAt: number
+  readAt: number
   _all: number
 }
 
@@ -60,6 +63,7 @@ export type MessageMinAggregateInputType = {
   recipientId?: true
   body?: true
   sentAt?: true
+  readAt?: true
 }
 
 export type MessageMaxAggregateInputType = {
@@ -69,6 +73,7 @@ export type MessageMaxAggregateInputType = {
   recipientId?: true
   body?: true
   sentAt?: true
+  readAt?: true
 }
 
 export type MessageCountAggregateInputType = {
@@ -78,6 +83,7 @@ export type MessageCountAggregateInputType = {
   recipientId?: true
   body?: true
   sentAt?: true
+  readAt?: true
   _all?: true
 }
 
@@ -160,6 +166,7 @@ export type MessageGroupByOutputType = {
   recipientId: string
   body: string
   sentAt: Date
+  readAt: Date | null
   _count: MessageCountAggregateOutputType | null
   _min: MessageMinAggregateOutputType | null
   _max: MessageMaxAggregateOutputType | null
@@ -190,6 +197,7 @@ export type MessageWhereInput = {
   recipientId?: Prisma.StringFilter<"Message"> | string
   body?: Prisma.StringFilter<"Message"> | string
   sentAt?: Prisma.DateTimeFilter<"Message"> | Date | string
+  readAt?: Prisma.DateTimeNullableFilter<"Message"> | Date | string | null
   workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>
   sender?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   recipient?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -202,6 +210,7 @@ export type MessageOrderByWithRelationInput = {
   recipientId?: Prisma.SortOrder
   body?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
+  readAt?: Prisma.SortOrderInput | Prisma.SortOrder
   workspace?: Prisma.WorkspaceOrderByWithRelationInput
   sender?: Prisma.UserOrderByWithRelationInput
   recipient?: Prisma.UserOrderByWithRelationInput
@@ -218,6 +227,7 @@ export type MessageWhereUniqueInput = Prisma.AtLeast<{
   recipientId?: Prisma.StringFilter<"Message"> | string
   body?: Prisma.StringFilter<"Message"> | string
   sentAt?: Prisma.DateTimeFilter<"Message"> | Date | string
+  readAt?: Prisma.DateTimeNullableFilter<"Message"> | Date | string | null
   workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>
   sender?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   recipient?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -230,6 +240,7 @@ export type MessageOrderByWithAggregationInput = {
   recipientId?: Prisma.SortOrder
   body?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
+  readAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.MessageCountOrderByAggregateInput
   _max?: Prisma.MessageMaxOrderByAggregateInput
   _min?: Prisma.MessageMinOrderByAggregateInput
@@ -245,12 +256,14 @@ export type MessageScalarWhereWithAggregatesInput = {
   recipientId?: Prisma.StringWithAggregatesFilter<"Message"> | string
   body?: Prisma.StringWithAggregatesFilter<"Message"> | string
   sentAt?: Prisma.DateTimeWithAggregatesFilter<"Message"> | Date | string
+  readAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Message"> | Date | string | null
 }
 
 export type MessageCreateInput = {
   id?: string
   body: string
   sentAt?: Date | string
+  readAt?: Date | string | null
   workspace: Prisma.WorkspaceCreateNestedOneWithoutMessagesInput
   sender: Prisma.UserCreateNestedOneWithoutSentMessagesInput
   recipient: Prisma.UserCreateNestedOneWithoutReceivedMessagesInput
@@ -263,12 +276,14 @@ export type MessageUncheckedCreateInput = {
   recipientId: string
   body: string
   sentAt?: Date | string
+  readAt?: Date | string | null
 }
 
 export type MessageUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutMessagesNestedInput
   sender?: Prisma.UserUpdateOneRequiredWithoutSentMessagesNestedInput
   recipient?: Prisma.UserUpdateOneRequiredWithoutReceivedMessagesNestedInput
@@ -281,6 +296,7 @@ export type MessageUncheckedUpdateInput = {
   recipientId?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type MessageCreateManyInput = {
@@ -290,12 +306,14 @@ export type MessageCreateManyInput = {
   recipientId: string
   body: string
   sentAt?: Date | string
+  readAt?: Date | string | null
 }
 
 export type MessageUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type MessageUncheckedUpdateManyInput = {
@@ -305,6 +323,7 @@ export type MessageUncheckedUpdateManyInput = {
   recipientId?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type MessageListRelationFilter = {
@@ -330,6 +349,7 @@ export type MessageCountOrderByAggregateInput = {
   recipientId?: Prisma.SortOrder
   body?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
+  readAt?: Prisma.SortOrder
 }
 
 export type MessageMaxOrderByAggregateInput = {
@@ -339,6 +359,7 @@ export type MessageMaxOrderByAggregateInput = {
   recipientId?: Prisma.SortOrder
   body?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
+  readAt?: Prisma.SortOrder
 }
 
 export type MessageMinOrderByAggregateInput = {
@@ -348,6 +369,7 @@ export type MessageMinOrderByAggregateInput = {
   recipientId?: Prisma.SortOrder
   body?: Prisma.SortOrder
   sentAt?: Prisma.SortOrder
+  readAt?: Prisma.SortOrder
 }
 
 export type MessageCreateNestedManyWithoutWorkspaceInput = {
@@ -480,6 +502,7 @@ export type MessageCreateWithoutWorkspaceInput = {
   id?: string
   body: string
   sentAt?: Date | string
+  readAt?: Date | string | null
   sender: Prisma.UserCreateNestedOneWithoutSentMessagesInput
   recipient: Prisma.UserCreateNestedOneWithoutReceivedMessagesInput
 }
@@ -490,6 +513,7 @@ export type MessageUncheckedCreateWithoutWorkspaceInput = {
   recipientId: string
   body: string
   sentAt?: Date | string
+  readAt?: Date | string | null
 }
 
 export type MessageCreateOrConnectWithoutWorkspaceInput = {
@@ -528,12 +552,14 @@ export type MessageScalarWhereInput = {
   recipientId?: Prisma.StringFilter<"Message"> | string
   body?: Prisma.StringFilter<"Message"> | string
   sentAt?: Prisma.DateTimeFilter<"Message"> | Date | string
+  readAt?: Prisma.DateTimeNullableFilter<"Message"> | Date | string | null
 }
 
 export type MessageCreateWithoutSenderInput = {
   id?: string
   body: string
   sentAt?: Date | string
+  readAt?: Date | string | null
   workspace: Prisma.WorkspaceCreateNestedOneWithoutMessagesInput
   recipient: Prisma.UserCreateNestedOneWithoutReceivedMessagesInput
 }
@@ -544,6 +570,7 @@ export type MessageUncheckedCreateWithoutSenderInput = {
   recipientId: string
   body: string
   sentAt?: Date | string
+  readAt?: Date | string | null
 }
 
 export type MessageCreateOrConnectWithoutSenderInput = {
@@ -560,6 +587,7 @@ export type MessageCreateWithoutRecipientInput = {
   id?: string
   body: string
   sentAt?: Date | string
+  readAt?: Date | string | null
   workspace: Prisma.WorkspaceCreateNestedOneWithoutMessagesInput
   sender: Prisma.UserCreateNestedOneWithoutSentMessagesInput
 }
@@ -570,6 +598,7 @@ export type MessageUncheckedCreateWithoutRecipientInput = {
   senderId: string
   body: string
   sentAt?: Date | string
+  readAt?: Date | string | null
 }
 
 export type MessageCreateOrConnectWithoutRecipientInput = {
@@ -620,12 +649,14 @@ export type MessageCreateManyWorkspaceInput = {
   recipientId: string
   body: string
   sentAt?: Date | string
+  readAt?: Date | string | null
 }
 
 export type MessageUpdateWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sender?: Prisma.UserUpdateOneRequiredWithoutSentMessagesNestedInput
   recipient?: Prisma.UserUpdateOneRequiredWithoutReceivedMessagesNestedInput
 }
@@ -636,6 +667,7 @@ export type MessageUncheckedUpdateWithoutWorkspaceInput = {
   recipientId?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type MessageUncheckedUpdateManyWithoutWorkspaceInput = {
@@ -644,6 +676,7 @@ export type MessageUncheckedUpdateManyWithoutWorkspaceInput = {
   recipientId?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type MessageCreateManySenderInput = {
@@ -652,6 +685,7 @@ export type MessageCreateManySenderInput = {
   recipientId: string
   body: string
   sentAt?: Date | string
+  readAt?: Date | string | null
 }
 
 export type MessageCreateManyRecipientInput = {
@@ -660,12 +694,14 @@ export type MessageCreateManyRecipientInput = {
   senderId: string
   body: string
   sentAt?: Date | string
+  readAt?: Date | string | null
 }
 
 export type MessageUpdateWithoutSenderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutMessagesNestedInput
   recipient?: Prisma.UserUpdateOneRequiredWithoutReceivedMessagesNestedInput
 }
@@ -676,6 +712,7 @@ export type MessageUncheckedUpdateWithoutSenderInput = {
   recipientId?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type MessageUncheckedUpdateManyWithoutSenderInput = {
@@ -684,12 +721,14 @@ export type MessageUncheckedUpdateManyWithoutSenderInput = {
   recipientId?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type MessageUpdateWithoutRecipientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutMessagesNestedInput
   sender?: Prisma.UserUpdateOneRequiredWithoutSentMessagesNestedInput
 }
@@ -700,6 +739,7 @@ export type MessageUncheckedUpdateWithoutRecipientInput = {
   senderId?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type MessageUncheckedUpdateManyWithoutRecipientInput = {
@@ -708,6 +748,7 @@ export type MessageUncheckedUpdateManyWithoutRecipientInput = {
   senderId?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.StringFieldUpdateOperationsInput | string
   sentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  readAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -719,6 +760,7 @@ export type MessageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   recipientId?: boolean
   body?: boolean
   sentAt?: boolean
+  readAt?: boolean
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   sender?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   recipient?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -733,9 +775,10 @@ export type MessageSelectScalar = {
   recipientId?: boolean
   body?: boolean
   sentAt?: boolean
+  readAt?: boolean
 }
 
-export type MessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workspaceId" | "senderId" | "recipientId" | "body" | "sentAt", ExtArgs["result"]["message"]>
+export type MessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workspaceId" | "senderId" | "recipientId" | "body" | "sentAt" | "readAt", ExtArgs["result"]["message"]>
 export type MessageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   sender?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -756,6 +799,13 @@ export type $MessagePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     recipientId: string
     body: string
     sentAt: Date
+    /**
+     * When the recipient read it. Null until then, which is what the sidebar
+     * badge counts. Per row rather than a single "last read" stamp per thread,
+     * for the same reason `Notification.readAt` is: reading one conversation
+     * must not silently clear another.
+     */
+    readAt: Date | null
   }, ExtArgs["result"]["message"]>
   composites: {}
 }
@@ -1134,6 +1184,7 @@ export interface MessageFieldRefs {
   readonly recipientId: Prisma.FieldRef<"Message", 'String'>
   readonly body: Prisma.FieldRef<"Message", 'String'>
   readonly sentAt: Prisma.FieldRef<"Message", 'DateTime'>
+  readonly readAt: Prisma.FieldRef<"Message", 'DateTime'>
 }
     
 

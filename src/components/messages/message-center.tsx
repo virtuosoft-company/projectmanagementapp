@@ -2,11 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Search, Send } from "lucide-react";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { sendMessageAction } from "@/lib/actions";
+import { markMessagesReadAction, sendMessageAction } from "@/lib/actions";
 import type { Member, Message } from "@/lib/domain";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,16 @@ export function MessageCenter({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  /*
+   * Marking read gets its own transition, deliberately.
+   *
+   * Sharing `send`'s meant that focusing the reply box raised `pending`, and
+   * `pending` disables the Send button — so clicking into a thread with unread
+   * messages disabled Send for the length of a round trip, which is precisely
+   * the moment someone is typing their reply. Nothing should block on a
+   * background write the user never asked for.
+   */
+  const [, startMarkingRead] = useTransition();
   const [activeId, setActiveId] = useState(contacts[0]?.id);
   const [query, setQuery] = useState("");
   const [draft, setDraft] = useState("");
@@ -31,6 +42,23 @@ export function MessageCenter({
   const active = contacts.find((contact) => contact.id === activeId);
   const thread = all.filter((message) => message.memberId === activeId);
 
+  // Anything from them in this thread that has not been read yet. Checked
+  // before calling, so focusing the box on an already-read thread — which is
+  // most focuses — writes nothing and does not refresh the page.
+  const hasUnread = thread.some((message) => message.from === "them" && !message.read);
+
+  function markRead() {
+    if (!activeId || !hasUnread) return;
+
+    startMarkingRead(async () => {
+      const result = await markMessagesReadAction(activeId);
+      // Deliberately quiet on failure: the badge staying up is the whole
+      // consequence, and a toast for it would interrupt someone who is in the
+      // middle of typing a reply.
+      if (result.ok) router.refresh();
+    });
+  }
+
   function send(event: React.FormEvent) {
     event.preventDefault();
     const text = draft.trim();
@@ -38,10 +66,16 @@ export function MessageCenter({
 
     startTransition(async () => {
       const result = await sendMessageAction(activeId, text);
-      if (result.ok) {
-        setDraft("");
-        router.refresh();
+
+      // The draft is deliberately left alone on failure: clearing it would
+      // throw away what they typed with nothing to show for it.
+      if (!result.ok) {
+        toast.error(result.error ?? "That message did not send.");
+        return;
       }
+
+      setDraft("");
+      router.refresh();
     });
   }
 
@@ -159,6 +193,10 @@ export function MessageCenter({
               <Input
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
+                // `onFocus` rather than `onClick`: it fires for a click and
+                // also for tabbing in, so the count clears for someone who
+                // never touches the mouse.
+                onFocus={markRead}
                 placeholder={`Message ${active.name.split(" ")[0]}`}
                 aria-label="Message"
               />
