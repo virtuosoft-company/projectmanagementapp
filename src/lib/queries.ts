@@ -845,8 +845,28 @@ export const getMessages = cache(
       text: row.body,
       date: formatDay(row.sentAt.toISOString().slice(0, 10)),
       time: formatClock(row.sentAt),
+      // Your own messages are never "unread": `readAt` records the recipient
+      // reading it, and for those rows you are the sender.
+      read: row.senderId === userId || row.readAt !== null,
     }));
   },
+);
+
+/**
+ * Unread messages sent to this person in this workspace — the sidebar badge.
+ *
+ * A `count` rather than the length of `getMessages`: this runs in the app
+ * layout, so it is on every page in the group, while `getMessages` loads every
+ * row in both directions and formats each one. Counting is a single query
+ * against the `workspaceId, recipientId, readAt` index and returns a number
+ * instead of every message body the viewer has ever received.
+ *
+ * Sends are excluded because `readAt` only exists on the receiving side: a
+ * badge that counted your own messages would never reach zero.
+ */
+export const getUnreadMessageCount = cache(
+  async (workspaceId: string, userId: string): Promise<number> =>
+    prisma.message.count({ where: { workspaceId, recipientId: userId, readAt: null } }),
 );
 
 const HOUR_FORMAT = new Intl.DateTimeFormat("en-US", {

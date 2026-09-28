@@ -6,6 +6,7 @@ import {
   getNotifications,
   getOverdueTasks,
   getProjects,
+  getUnreadMessageCount,
   getRunningTimer,
   getUserWorkspaces,
 } from "@/lib/queries";
@@ -35,6 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     runningTimer,
     notifications,
     profile,
+    unreadMessages,
   ] = await Promise.all([
     getProjects(user.workspaceId, await projectScope()),
     getOverdueTasks(user.workspaceId),
@@ -61,6 +63,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     // profile left the sidebar showing the old one until the next sign-in;
     // this row is current.
     getMember(user.workspaceId, user.id),
+    // The Messages badge. Counted here rather than on the Messages page itself
+    // because the sidebar is rendered for every route in this group.
+    getUnreadMessageCount(user.workspaceId, user.id),
   ]);
 
   return (
@@ -86,7 +91,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         canCreateWorkspace={canCreateWorkspace}
         canManageFeatures={canManageFeatures}
         // Sidebar count badges, resolved server-side rather than polled.
-        badges={{ "/projects/tasks": overdue.length }}
+        badges={{ "/projects/tasks": overdue.length, "/messages": unreadMessages }}
         runningTimer={runningTimer}
         canLogTime={canLogTime}
         notifications={notifications.items}

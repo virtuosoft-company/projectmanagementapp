@@ -408,6 +408,12 @@ export type Message = {
   text: string;
   date: string;
   time: string;
+  /**
+   * Whether the recipient has read it. Always true for a message you sent —
+   * only the recipient's own reading is tracked — so the thread view uses this
+   * to decide whether opening it has anything left to mark.
+   */
+  read: boolean;
 };
 
 /** Product branding shown before sign-in, when there's no session/workspace yet. */

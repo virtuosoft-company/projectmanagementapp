@@ -14,7 +14,7 @@ import {
 import { DEFAULT_LISTS, syncTaskList } from "@/lib/boards";
 import { notify } from "@/lib/notifications";
 import { publishToUsers } from "@/lib/live-events";
-import { requirePermission } from "@/lib/session";
+import { requirePage, requirePermission } from "@/lib/session";
 import {
   addProjectMembersSchema,
   addSectionSchema,
@@ -30,6 +30,7 @@ import {
   moveTaskSchema,
   type ProjectFeaturesInput,
   projectFeaturesSchema,
+  markMessagesReadSchema,
   sendMessageSchema,
   type UpdateProjectInput,
   updateProjectSchema,
@@ -639,7 +640,14 @@ export async function sendMessageAction(
   recipientId: string,
   body: string,
 ): Promise<ActionResult> {
-  const user = await requirePermission("projects.view");
+  // The same gate the page uses. It asked for `projects.view` before, which no
+  // part of Messages is derived from: the nav entry carries `permission: null`,
+  // so assignment is the only authority over this screen. The mismatch cut both
+  // ways — somebody assigned the page but without `projects.view` could read
+  // every thread and have each send refused, and somebody holding
+  // `projects.view` without the page could still send by calling this directly,
+  // which a server action always allows.
+  const user = await requirePage("messages");
 
   const parsed = sendMessageSchema.safeParse({ recipientId, body });
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
@@ -661,6 +669,52 @@ export async function sendMessageAction(
     },
   });
 
+  // Just this page. The badge lives in the app layout, but nothing reaches the
+  // new count through the cache anyway: both sides arrive via `router.refresh()`,
+  // which re-runs the tree from the root layout and refetches regardless. The
+  // root-layout form invalidated every route under `(app)` on every send, for
+  // no gain the refresh was not already delivering.
+  revalidatePath("/messages");
+
+  // Push to the recipient, so the message lands without them navigating. Their
+  // `LiveUpdates` turns this into a `router.refresh()`, which re-runs the route
+  // and its layouts — the open thread and the unread badge in one pass.
+  //
+  // Only the recipient: the sender's own client already refreshes when the
+  // action returns, and publishing to them would just queue a second one.
+  publishToUsers([parsed.data.recipientId]);
+
+  return { ok: true };
+}
+
+/**
+ * Mark one thread's incoming messages read — what clicking into the reply box
+ * does. The badge counts unread rows, so this is what makes it go down.
+ *
+ * Scoped three ways on purpose: `recipientId` is always the caller, so this can
+ * only ever mark your own mail read, never someone else's; `senderId` limits it
+ * to the thread actually opened rather than the whole inbox; and `readAt: null`
+ * means an already-read message keeps its original timestamp instead of being
+ * bumped every time the box is focused.
+ */
+export async function markMessagesReadAction(contactId: string): Promise<ActionResult> {
+  const user = await requirePage("messages");
+
+  const parsed = markMessagesReadSchema.safeParse({ contactId });
+  if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
+
+  await prisma.message.updateMany({
+    where: {
+      workspaceId: user.workspaceId,
+      recipientId: user.id,
+      senderId: parsed.data.contactId,
+      readAt: null,
+    },
+    data: { readAt: new Date() },
+  });
+
+  // Same reasoning as `sendMessageAction`: the caller refreshes when this
+  // returns, and that re-runs the layout the badge is rendered by.
   revalidatePath("/messages");
   return { ok: true };
 }
