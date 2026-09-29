@@ -2,12 +2,9 @@
   "name": "projectmanagementapp",
   "version": "0.1.0",
   "private": true,
-  "engines": {
-    "node": "^20.19 || ^22.12 || >=24.0"
-  },
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack && npm run db:sync",
+    "build": "next build && npm run db:sync",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
@@ -17,16 +14,10 @@
     "db:deploy": "prisma migrate deploy",
     "db:push": "prisma db push",
     "db:sync": "prisma migrate deploy || echo \"[build] migrate deploy skipped - database unreachable, schema NOT synced\"",
-    "db:seed": "tsx prisma/seed.ts",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
-  },
+    "db:seed": "tsx prisma/seed.ts"
+    },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
-  },
-  "overrides": {
-    "nodemailer": "$nodemailer"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
