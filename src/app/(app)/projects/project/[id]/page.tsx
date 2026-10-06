@@ -10,8 +10,8 @@ import { ExportReportButton } from "@/components/dashboard/export-report-button"
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { formatDay, todayIso } from "@/lib/domain";
-import { getMembers, getProject, getProjectStats } from "@/lib/queries";
+import { formatDay, minutesToHours, todayIso } from "@/lib/domain";
+import { getCommittedMinutes, getMembers, getProject, getProjectStats } from "@/lib/queries";
 import { getSessionUser, hasPermission, projectScope, requireUser, viewerSupervises } from "@/lib/session";
 import { statusVariant, taskStatusColor } from "@/lib/status";
 
@@ -30,10 +30,12 @@ export default async function ProjectPage({ params }: PageProps<"/projects/proje
   const project = await getProject(viewer.workspaceId, id, await projectScope());
   if (!project) notFound();
 
-  const [stats, members, supervises] = await Promise.all([
+  const [stats, members, supervises, committed] = await Promise.all([
     getProjectStats(viewer.workspaceId, project.id),
     getMembers(viewer.workspaceId),
     viewerSupervises(),
+    // Workspace-wide, not this project's — see `ProjectMemberRow.committedHours`.
+    getCommittedMinutes(viewer.workspaceId),
   ]);
 
   // Resolved server-side so the filename cannot differ by timezone.
@@ -53,6 +55,10 @@ export default async function ProjectPage({ params }: PageProps<"/projects/proje
       hours: stats.entries
         .filter((entry) => entry.userId === person.id)
         .reduce((sum, entry) => sum + entry.hours, 0),
+      committedHours: minutesToHours(committed.get(person.id) ?? 0),
+      // 0 when the member row could not be resolved above, which withholds the
+      // bar rather than dividing by it.
+      capacityHours: member?.monthlyHours ?? 0,
     };
   });
 

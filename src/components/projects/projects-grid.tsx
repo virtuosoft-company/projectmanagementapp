@@ -47,6 +47,11 @@ import {
   type Project,
   type ProjectStatus,
 } from "@/lib/domain";
+import {
+  createProjectSchema,
+  fieldErrors,
+  type FieldErrors,
+} from "@/lib/validations";
 import { statusVariant } from "@/lib/status";
 import { cn } from "@/lib/utils";
 
@@ -59,6 +64,7 @@ export function ProjectsGrid({
   canEdit,
   canDelete,
   stats,
+  showingAll,
 }: {
   projects: ProjectCard[];
   members: Member[];
@@ -69,6 +75,16 @@ export function ProjectsGrid({
   canDelete: boolean;
   /** Summary cards rendered between the header and the project grid. */
   stats: React.ReactNode;
+  /**
+   * Whether `projects` is the whole workspace or only the viewer's own.
+   *
+   * Resolved from `projectScope()` on the server, because the narrowing happens
+   * in the query and nothing in the props reveals it: a manager with no
+   * projects and a workspace with no projects arrive here identically. The
+   * heading used to claim "All projects in your workspace" either way, which
+   * read as the page being broken rather than as a rule being applied.
+   */
+  showingAll: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -113,7 +129,9 @@ export function ProjectsGrid({
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold leading-tight tracking-tight">Projects</h1>
-          <p className="text-sm text-muted-foreground">All projects in your workspace</p>
+          <p className="text-sm text-muted-foreground">
+            {showingAll ? "All projects in your workspace" : "Projects you are a member of"}
+          </p>
         </div>
         {canCreate ? (
           <Button onClick={() => setCreating(true)} disabled={pending}>
@@ -361,8 +379,27 @@ function ProjectDialog({
     memberIds: project?.members.map((person) => person.id) ?? ([] as string[]),
   });
 
+  /**
+   * Per-field messages from the same schema the action parses with, so what the
+   * field says is what the server would have said.
+   *
+   * The name input used to carry the native `required` attribute, which meant
+   * the browser blocked submit with its own tooltip before any of this ran —
+   * no `aria-invalid`, nothing in the DOM, and nothing a test could assert.
+   */
+  const [errors, setErrors] = useState<FieldErrors>({});
+
   const set = <K extends keyof typeof draft>(key: K, value: (typeof draft)[K]) =>
-    setDraft((current) => ({ ...current, [key]: value }));
+    setDraft((current) => {
+      // Clears as soon as they start fixing it, rather than sitting there stale.
+      setErrors((shown) => {
+        if (!shown[key as string]) return shown;
+        const next = { ...shown };
+        delete next[key as string];
+        return next;
+      });
+      return { ...current, [key]: value };
+    });
 
   return (
     <FormDialog
@@ -380,13 +417,23 @@ function ProjectDialog({
         className="grid gap-4 py-2"
         onSubmit={(event) => {
           event.preventDefault();
+
+          // The action parses again on arrival — this is not a substitute for
+          // that, only the half that can tell the person which field is wrong.
+          const parsed = createProjectSchema.safeParse(draft);
+          if (!parsed.success) {
+            setErrors(fieldErrors(parsed.error));
+            return;
+          }
+
+          setErrors({});
           onSubmit(draft);
         }}
       >
-        <Field label="Name" required>
+        <Field label="Name" required error={errors.name}>
           <Input
-            required
             value={draft.name}
+            aria-invalid={errors.name ? true : undefined}
             placeholder="e.g. Marketing Site"
             onChange={(event) => set("name", event.target.value)}
           />

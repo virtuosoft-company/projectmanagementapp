@@ -869,6 +869,44 @@ export const getUnreadMessageCount = cache(
     prisma.message.count({ where: { workspaceId, recipientId: userId, readAt: null } }),
 );
 
+/**
+ * Committed hours per person across the whole workspace, keyed by user id.
+ *
+ * "Committed" is the estimate on work they still owe: tasks assigned to them
+ * that are neither done nor archived. Compared against `User.monthlyHours` this
+ * answers the only question a capacity figure is for — can this person take
+ * more — which a per-project number cannot, because somebody at their limit is
+ * usually at it because of *other* projects.
+ *
+ * Deliberately workspace-wide for that reason, even when the caller is one
+ * project's screen.
+ *
+ * `findMany` over the join rather than `groupBy`: the sum lives on `Task` while
+ * the grouping key lives on `TaskAssignee`, and Prisma cannot group one model by
+ * another's column. Selected down to two integers per row so this stays a thin
+ * read rather than loading tasks.
+ */
+export const getCommittedMinutes = cache(
+  async (workspaceId: string): Promise<Map<string, number>> => {
+    const rows = await prisma.taskAssignee.findMany({
+      where: {
+        task: {
+          project: { workspaceId },
+          status: { not: "DONE" },
+          archivedAt: null,
+        },
+      },
+      select: { userId: true, task: { select: { estimateMinutes: true } } },
+    });
+
+    const byUser = new Map<string, number>();
+    for (const row of rows) {
+      byUser.set(row.userId, (byUser.get(row.userId) ?? 0) + row.task.estimateMinutes);
+    }
+    return byUser;
+  },
+);
+
 const HOUR_FORMAT = new Intl.DateTimeFormat("en-US", {
   hour: "2-digit",
   minute: "2-digit",
