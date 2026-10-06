@@ -23,14 +23,22 @@ import type { Role } from "@/lib/domain";
 import {
   APP_PAGES,
   PERMISSION_LABELS,
+  NEVER_IN_CUSTOM_ROLE,
   ROLES,
   permissionsFor,
   roleLabel,
   type Permission,
 } from "@/lib/permissions";
 
-/** Mirrors `FORBIDDEN_IN_CUSTOM_ROLES` in the action, which is authoritative. */
-const NEVER_GRANTABLE: Permission[] = ["roles.manage"];
+/**
+ * The one list, not a copy of it.
+ *
+ * This used to restate `["roles.manage"]` with a comment promising it mirrored
+ * the action. It did not: when `members.invite` was added to the refusals, this
+ * stayed behind and the dialog went on offering a permission the server strips —
+ * so an admin could tick it, save, and be told the wrong thing.
+ */
+const NEVER_GRANTABLE: Permission[] = NEVER_IN_CUSTOM_ROLE;
 
 function slugify(value: string) {
   return value

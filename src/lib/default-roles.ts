@@ -1,4 +1,10 @@
-import { pagesForPermissions, permissionsFor, roleLabel, type AppPage } from "./permissions";
+import {
+  NEVER_IN_CUSTOM_ROLE,
+  pagesForPermissions,
+  permissionsFor,
+  roleLabel,
+  type AppPage,
+} from "./permissions";
 import type { Role } from "./domain";
 
 /**
@@ -19,11 +25,11 @@ export const DEFAULT_ROLES: { role: Role; description: string }[] = [
 /**
  * Never granted to a custom role, whatever its base allows.
  *
- * `roles.manage` is the escalation route: a holder could edit their own role
- * and grant themselves everything, so the narrowing that makes custom roles
- * safe would not bind them.
+ * Re-exported from `permissions.ts` rather than listed again — it used to be a
+ * second copy, and the copies disagreed: this one withheld a permission from a
+ * seeded role that the Roles screen would then let an admin tick back on.
  */
-const REFUSED: string[] = ["roles.manage"];
+const REFUSED: string[] = NEVER_IN_CUSTOM_ROLE;
 
 /** What a default role starts with: its base role's permissions, minus the refused ones. */
 export function defaultRolePermissions(role: Role): string[] {

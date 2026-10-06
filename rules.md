@@ -3,6 +3,11 @@
 ## Ask before implementing when unsure
 - If a request is ambiguous, conflicts with the existing code or another rule, or you have any open question about it, stop and discuss it with the user first. Only implement once the question is resolved — don't guess and build on the guess.
 
+## Skills
+- Run `find-skills` once a prompt has been written and before starting the work, when the prompt opens a **new feature** or a **task type not already seen in this session**. It checks whether an installed or installable skill already covers the work, so it comes from something purpose-built rather than from improvising the same thing again.
+- Not on every prompt. A follow-up, a correction, a revert, or a repeat of something already done this session is not a new task type — running it there costs a round trip and returns nothing. Once a type has been checked, it stays checked for the rest of the session.
+- A skill's guidance is advisory and ranks **below** this file. Where a skill's advice conflicts with a rule here — the design-token scale, composition over new components, preserving user-authored design — the rule wins. Say which skill was consulted and where it was overridden, rather than quietly following it.
+
 ## User shorthand
 - "Update content" means a text-only change — copy, wording, labels, data values. It does not authorize touching layout, spacing, color, component structure, or any other visual/design aspect, even if it would be convenient to adjust while in the file.
 
@@ -141,6 +146,11 @@ Two different failures, two different treatments:
 - Unit tests cover the reasoning that decides **who may see what**: the permission matrix, role resolution, the schemas guarding every action, and the nav filter. These are pure functions and need no database or browser; keep them that way by leaving anything `server-only` out of the test path.
 - A schema test asserts what **survives** parsing, not only what is refused. A field the schema fails to declare is stripped in silence, and no amount of rejection testing will show it.
 - When a bug is found, the test comes with the fix and says which bug it is. A regression test that does not name the failure it prevents gets deleted by whoever tidies up next.
+
+## Browser testing
+- Whenever Playwright is used, the run must be **visible**. `playwright-cli open` is headless by default, so always pass `--headed` — the point of driving the app is that the user can watch it happen, and a headless pass is a claim they have to take on trust.
+- `--headed` also disables the idle timeout, so the session stays open between commands instead of shutting down after an hour of inactivity.
+- Say which URL and which account the run is signed in as before driving it. A test that silently authenticates is a test nobody can reproduce.
 
 ## Verification
 - After a non-trivial edit, run `npx tsc --noEmit` and check the diff is clean of new errors before calling something done — don't rely on "it should work."

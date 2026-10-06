@@ -41,6 +41,25 @@ export const PERMISSIONS = {
 
 export type Permission = keyof typeof PERMISSIONS;
 
+/**
+ * Never held by a custom role, whatever its base role allows.
+ *
+ * `roles.manage` is the escalation route: a holder could edit their own role
+ * and grant themselves everything, so the narrowing that makes custom roles
+ * safe would not bind them.
+ *
+ * `members.invite` is the same shape of hole one step out. It is admin-only in
+ * the matrix, so a role inheriting from MANAGER or below can never reach it —
+ * but a role inheriting from ADMIN could, and whoever held it could then create
+ * accounts without being the workspace's admin.
+ *
+ * One list, because this was previously three: a `REFUSED` const used only when
+ * seeding default roles, a `FORBIDDEN_IN_CUSTOM_ROLES` const applied only when
+ * a role is saved, and nothing at all at resolution — so a row already in the
+ * database, or one edited by hand, kept whatever it held.
+ */
+export const NEVER_IN_CUSTOM_ROLE: Permission[] = ["roles.manage", "members.invite"];
+
 /** Human labels, in the order the settings table lists them. */
 export const PERMISSION_LABELS: Record<Permission, string> = {
   "projects.view": "View projects",
@@ -273,7 +292,12 @@ export function resolveCustomRole(row: {
   inheritsFrom: Role;
 }): ResolvedRole {
   const stored = Array.isArray(row.permissions) ? (row.permissions as string[]) : [];
-  const ceiling = permissionsFor(row.inheritsFrom);
+  // Two ceilings, in this order: what the base role grants, then the refusals
+  // above. Applying the second here rather than only when a role is saved is
+  // what binds rows that already exist and rows edited outside the app.
+  const ceiling = permissionsFor(row.inheritsFrom).filter(
+    (permission) => !NEVER_IN_CUSTOM_ROLE.includes(permission),
+  );
   const permissions = ceiling.filter((permission) => stored.includes(permission));
 
   return {

@@ -4,7 +4,13 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import type { Role } from "@/lib/domain";
 import { roleToDb, roleToDomain } from "@/lib/mappers";
-import { permissionsFor, sanitisePages, type Permission } from "@/lib/permissions";
+import {
+  NEVER_IN_CUSTOM_ROLE,
+  PERMISSION_LABELS,
+  permissionsFor,
+  sanitisePages,
+  type Permission,
+} from "@/lib/permissions";
 import { requirePermission } from "@/lib/session";
 import { notify } from "@/lib/notifications";
 import {
@@ -34,7 +40,7 @@ function refresh() {
  * grant themselves everything, and the narrowing that makes custom roles safe
  * would no longer bound them. Managing roles stays with the base owner role.
  */
-const FORBIDDEN_IN_CUSTOM_ROLES: Permission[] = ["roles.manage"];
+const FORBIDDEN_IN_CUSTOM_ROLES: Permission[] = NEVER_IN_CUSTOM_ROLE;
 
 /**
  * Validates a submitted role and returns the permissions it may actually hold.
@@ -50,6 +56,22 @@ const FORBIDDEN_IN_CUSTOM_ROLES: Permission[] = ["roles.manage"];
  * and the page opens read-only because every control inside is still gated on
  * `permissions` and every action re-checks.
  */
+/**
+ * Names what was refused, rather than guessing.
+ *
+ * The message used to be the literal "Managing roles cannot be granted to a
+ * custom role." — correct while `roles.manage` was the only refusal, and wrong
+ * the moment `members.invite` joined it: ticking Invite members was refused for
+ * managing roles, which is the kind of error that sends somebody looking in the
+ * wrong place.
+ */
+function refusalMessage(refused: string[]): string {
+  const names = refused.map(
+    (permission) => PERMISSION_LABELS[permission as Permission] ?? permission,
+  );
+  return `${names.join(" and ")} cannot be granted to a custom role.`;
+}
+
 function sanitisePermissions(inheritsFrom: Role, requested: string[]) {
   const ceiling = permissionsFor(inheritsFrom).filter(
     (permission) => !FORBIDDEN_IN_CUSTOM_ROLES.includes(permission),
@@ -78,7 +100,7 @@ export async function createCustomRoleAction(input: CustomRoleInput): Promise<Ac
 
   const { granted, refused } = sanitisePermissions(data.inheritsFrom as Role, data.permissions);
   if (refused.length > 0) {
-    return { ok: false, error: "Managing roles cannot be granted to a custom role." };
+    return { ok: false, error: refusalMessage(refused) };
   }
 
   const created = await prisma.customRole.create({
@@ -127,7 +149,7 @@ export async function updateCustomRoleAction(
 
   const { granted, refused } = sanitisePermissions(data.inheritsFrom as Role, data.permissions);
   if (refused.length > 0) {
-    return { ok: false, error: "Managing roles cannot be granted to a custom role." };
+    return { ok: false, error: refusalMessage(refused) };
   }
 
   await prisma.$transaction(async (tx) => {
