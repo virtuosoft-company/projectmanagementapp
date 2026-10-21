@@ -160,7 +160,7 @@ function InviteDialog({
       open={open}
       onClose={onClose}
       title="Invite to workspace"
-      description="They sign in with this email and the temporary password you set."
+      description="They sign in with this email and the temporary password you set. To let them choose their own password instead, send an invitation from Administration → Users."
     >
       <form
         className="grid gap-4 py-2"
@@ -184,9 +184,10 @@ function InviteDialog({
         </Field>
         <Field
           label="Temporary password"
-          hint="At least 8 characters. Leave blank to create the account without sign-in access yet."
+          required
+          hint="At least 8 characters, with an uppercase letter, a lowercase letter, a number and one of @$!%*?&."
         >
-          <Input name="password" type="password" autoComplete="new-password" minLength={8} />
+          <Input name="password" type="password" autoComplete="new-password" minLength={8} required />
         </Field>
 
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

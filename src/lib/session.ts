@@ -214,6 +214,62 @@ export async function projectScope(): Promise<string | undefined> {
 }
 
 /**
+ * Whether the viewer is the admin.
+ *
+ * Reads `effectiveRole` rather than the session enum, so a custom role that
+ * inherits from Admin counts as one — that field exists to be the answer to
+ * every role-based check, and a custom admin is still administering.
+ *
+ * This is for the handful of rules that are about *being* the admin rather
+ * than about holding a permission — the admin account administers the
+ * workspace instead of doing the work in it, so it records time by hand and
+ * never by the clock. Anything that is really about capability belongs in the
+ * permission matrix instead; reach for this only when the rule names the role.
+ */
+export async function viewerIsAdmin(): Promise<boolean> {
+  return (await getViewerRole())?.effectiveRole === "admin";
+}
+
+/**
+ * Whose time entries the viewer should be shown, as the `scopeToUserId`
+ * argument to `getTaskEntries`.
+ *
+ * Returns their own id for most people — a member sees the hours they logged
+ * and nobody else's. Returns `undefined` for whoever holds `time.manage`
+ * (admin and manager), who see everything on the task: they may correct other
+ * people's entries, and an entry you may edit but not read is not a rule, it
+ * is a bug.
+ *
+ * One helper rather than the check repeated at each call site, so the task page
+ * and its analytics page can never disagree about whose hours they are adding
+ * up — the failure being that the list is scoped and the totals beneath it
+ * are not.
+ */
+export async function timeEntryScope(): Promise<string | undefined> {
+  const user = await getSessionUser();
+  if (!user) return undefined;
+  return (await viewerCan("time.manage")) ? undefined : user.id;
+}
+
+/**
+ * Whose attendance the viewer should be shown.
+ *
+ * Their own id for most people; `undefined` for whoever holds
+ * `attendance.manage`. Same shape as `timeEntryScope` and `projectScope`
+ * deliberately — three questions of the form "whose rows is this person
+ * entitled to" should not be answered three different ways.
+ *
+ * Attendance is the most personal data this system holds: it says where
+ * somebody was and when, every day. So the scope is applied in the query, not
+ * by a page filtering rows it was already handed.
+ */
+export async function attendanceScope(): Promise<string | undefined> {
+  const user = await getSessionUser();
+  if (!user) return undefined;
+  return (await viewerCan("attendance.manage")) ? undefined : user.id;
+}
+
+/**
  * The signed-in person's theme, straight from their account row.
  *
  * Read on the server so the class is on `<html>` in the first response: there

@@ -130,16 +130,25 @@ export const updateUserSchema = z.object({
 });
 
 /** The lighter invite used from the settings screen — no password required. */
+/**
+ * Adding somebody to this workspace by creating their account outright.
+ *
+ * `password` is **required**. It used to accept `""`, which wrote a `User` with
+ * a null `passwordHash` — an account that cannot sign in by any route (there is
+ * no OAuth provider and `authorize()` refuses a null hash) and cannot be
+ * rescued either, because `inviteUserAction` declines any address that already
+ * has an account. The form offered that as "without sign-in access yet"; there
+ * was no later.
+ *
+ * Same strength as `createUserSchema`, since both are an admin setting somebody
+ * else's password. For the case where the person should choose their own, the
+ * invitation flow exists and writes no account until they accept.
+ */
 export const inviteMemberSchema = z.object({
   name: nameSchema("Name"),
   email: emailSchema,
   role: roleSchema,
-  password: z
-    .string()
-    .refine(
-      (value) => value === "" || value.length >= PASSWORD_MIN_LENGTH,
-      `Temporary password must be at least ${PASSWORD_MIN_LENGTH} characters.`,
-    ),
+  password: passwordSchema,
 });
 
 export const updateRoleSchema = z.object({

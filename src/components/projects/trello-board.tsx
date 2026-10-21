@@ -143,6 +143,7 @@ export function TrelloBoard({
   today,
   canManage,
   canLog,
+  canUseTimer,
   subtasks,
   members,
   labels,
@@ -165,6 +166,8 @@ export function TrelloBoard({
   canManage: boolean;
   /** `time.log` — whether subtask timers are offered. */
   canLog: boolean;
+  /** `time.log` *and* not the admin account — may run the clock. */
+  canUseTimer: boolean;
   /** Every subtask in the project; each card's dialog picks out its own. */
   subtasks: Subtask[];
   /** For the card's Edit dialog — its assignee and label pickers. */
@@ -515,6 +518,7 @@ export function TrelloBoard({
                         subtasks={subtasksByTask.get(task.id) ?? []}
                         today={today}
                         canLog={canLog}
+                        canUseTimer={canUseTimer}
                         running={running}
                         onTimerRequest={(subtask) => setDialog({ kind: "timer", task, subtask })}
                         canManage={canManage}
@@ -646,6 +650,7 @@ export function TrelloBoard({
           running={running}
           canManage={canManage}
           canLog={canLog}
+          canUseTimer={canUseTimer}
           onClose={() => setDialog(null)}
           onEdit={() => setDialog({ kind: "edit-card", task: subtasksTask })}
           onDelete={() => setDialog({ kind: "delete-card", task: subtasksTask })}
@@ -700,7 +705,7 @@ export function TrelloBoard({
           key={dialog.subtask.id}
           subtask={dialog.subtask}
           canManage={canManage}
-          canLog={canLog}
+          canUseTimer={canUseTimer}
           running={running}
           pending={pending}
           onStartTimer={() => startTimer(dialog.subtask.taskId, dialog.subtask.id)}

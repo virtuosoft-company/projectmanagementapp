@@ -10,7 +10,7 @@ import { ExportReportButton } from "@/components/dashboard/export-report-button"
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { formatDay, minutesToHours, todayIso } from "@/lib/domain";
+import { formatDay, minutesToHours, participatesInWork, todayIso } from "@/lib/domain";
 import { getCommittedMinutes, getMembers, getProject, getProjectStats } from "@/lib/queries";
 import { getSessionUser, hasPermission, projectScope, requireUser, viewerSupervises } from "@/lib/session";
 import { statusVariant, taskStatusColor } from "@/lib/status";
@@ -42,7 +42,24 @@ export default async function ProjectPage({ params }: PageProps<"/projects/proje
   const today = todayIso();
 
   const memberIds = new Set(project.members.map((person) => person.id));
-  const rows: ProjectMemberRow[] = project.members.map((person) => {
+
+  /**
+   * The project's roster, minus the admin — see `participatesInWork`.
+   *
+   * `project.members` is who the row actually says is on the project; this is
+   * who the page is willing to show. An admin added before the rule existed
+   * stays in the database and simply stops appearing, rather than needing a
+   * migration to tidy up after.
+   */
+  const roster = project.members.filter((person) => {
+    const member = members.find((item) => item.id === person.id);
+    // Kept when the membership row cannot be resolved: not being able to read
+    // somebody's role is not evidence that they are the admin, and dropping
+    // them would quietly shorten the roster for an unrelated reason.
+    return !member || participatesInWork(member);
+  });
+
+  const rows: ProjectMemberRow[] = roster.map((person) => {
     const onProject = stats.tasks.filter((task) =>
       task.assignees.some((assignee) => assignee.id === person.id),
     );
@@ -81,7 +98,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/proje
         ["Progress %", String(stats.progress)],
         ["Hours logged", String(stats.hours)],
         ["Hours estimated", String(stats.estimateHours)],
-        ["Members", String(project.members.length)],
+        ["Members", String(rows.length)],
         [],
         ["Status", "Tasks", "Share %"],
         ...stats.byStatus.map((row) => [row.label, String(row.count), String(row.percent)]),
@@ -198,7 +215,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/proje
             <CardContent className="space-y-3 text-sm">
               <Row label="Start" value={project.startDate ? formatDay(project.startDate) : "—"} />
               <Row label="End" value={project.endDate ? formatDay(project.endDate) : "—"} />
-              <Row label="Members" value={project.members.length.toString()} />
+              <Row label="Members" value={rows.length.toString()} />
             </CardContent>
           </Card>
         </div>
@@ -212,7 +229,9 @@ export default async function ProjectPage({ params }: PageProps<"/projects/proje
           <ProjectMembersCard
             projectId={project.id}
             rows={rows}
-            candidates={members.filter((member) => !memberIds.has(member.id))}
+            candidates={members.filter(
+              (member) => !memberIds.has(member.id) && participatesInWork(member),
+            )}
             canEdit={await hasPermission("projects.edit")}
           />
         ) : null}

@@ -17,7 +17,7 @@ import {
   isImageMimeType,
   isOptimizableImageSrc,
   validateImageForSlot,
-} from "@/lib/r2";
+} from "@/lib/files";
 import {
   deleteAttachmentAction,
   uploadTaskImagesAction,
@@ -37,7 +37,7 @@ type Pending = {
 };
 
 /**
- * Images attached to a task, stored in Cloudflare R2.
+ * Images attached to a task, stored as rows in the `File` table.
  *
  * Choosing a file only previews it. Nothing leaves the browser until **Save**,
  * which posts the selection to a server action that resizes and re-encodes each
@@ -50,19 +50,10 @@ type Pending = {
 export function TaskAttachments({
   taskId,
   attachments,
-  problems,
   canManage,
 }: {
   taskId: string;
   attachments: Attachment[];
-  /**
-   * What is wrong with the R2 configuration, empty when it is fine.
-   *
-   * A list rather than a boolean so the card can say *which* variable is
-   * missing or malformed. "Not configured" is unhelpful when the variables are
-   * all set and one of them is simply the wrong value.
-   */
-  problems: string[];
   /** `tasks.manage`. Without it attachments are visible but read-only. */
   canManage: boolean;
 }) {
@@ -127,7 +118,7 @@ export function TaskAttachments({
     startTransition(async () => {
       // One request per file, not one for the batch. A server action's body is
       // capped (`serverActions.bodySizeLimit` in next.config.ts), and five
-      // 10MB photos in a single request would be rejected at the HTTP layer —
+      // 4MB photos in a single request would be rejected at the HTTP layer —
       // before the action could even say which ones were too big.
       const results: UploadOutcome[] = [];
       let fatal: string | null = null;
@@ -181,7 +172,9 @@ export function TaskAttachments({
     });
   }
 
-  const disabled = !canManage || problems.length > 0;
+  // Storage has nothing to misconfigure now that bytes go to the database,
+  // so the permission is the only thing that can close this off.
+  const disabled = !canManage;
 
   return (
     <Card className="shadow-none">
@@ -211,17 +204,6 @@ export function TaskAttachments({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {problems.length ? (
-          <div className="space-y-1 rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-            <p>Image uploads are not working on this server:</p>
-            <ul className="list-disc space-y-1 pl-5 text-xs">
-              {problems.map((problem) => (
-                <li key={problem}>{problem}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-
         {error ? (
           <p
             role="alert"

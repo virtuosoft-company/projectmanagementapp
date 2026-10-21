@@ -4,10 +4,16 @@ import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import type { Role } from "@/lib/domain";
-import { roleToDb } from "@/lib/mappers";
+import { roleToDb, roleToDomain } from "@/lib/mappers";
 import { requirePermission } from "@/lib/session";
+import { SECOND_ADMIN_REFUSAL, wouldAddSecondAdmin } from "@/lib/permissions";
 import { roleRowIdFor } from "@/lib/resolve-role";
-import { getMemberHoldings, type MemberHoldings } from "@/lib/admin";
+import {
+  activeAdminCount,
+  getMemberHoldings,
+  guardAdminCeiling,
+  type MemberHoldings,
+} from "@/lib/admin";
 import { publishToUsers } from "@/lib/live-events";
 import { notify } from "@/lib/notifications";
 import {
@@ -53,13 +59,6 @@ function guardRoleChange(
   return null;
 }
 
-/** Admin count for a workspace, restricted to accounts that can still sign in. */
-async function activeAdminCount(workspaceId: string) {
-  return prisma.workspaceMember.count({
-    where: { workspaceId, role: "ADMIN", user: { disabledAt: null } },
-  });
-}
-
 /** Create an account and add it to the caller's workspace. Admins only. */
 export async function createUserAction(input: CreateUserInput): Promise<ActionResult> {
   const actor = await requirePermission("members.invite");
@@ -72,6 +71,11 @@ export async function createUserAction(input: CreateUserInput): Promise<ActionRe
 
   const existing = await prisma.user.findUnique({ where: { email: data.email } });
   if (existing) return { ok: false, error: "Someone already uses that email." };
+
+  // A brand-new account holds nothing yet, so any admin grant here is a second
+  // one by definition.
+  const ceiling = await guardAdminCeiling(data.role as Role, null);
+  if (ceiling) return ceiling;
 
   await prisma.$transaction(async (tx) => {
     const created = await tx.user.create({
@@ -171,6 +175,20 @@ export async function addMemberAction(formData: FormData): Promise<ActionResult>
     where: { workspaceId_userId: { workspaceId: actor.workspaceId, userId: data.userId } },
   });
   if (already) return { ok: false, error: "They are already in this workspace." };
+
+  // They may already be the admin of another workspace, in which case this is
+  // not a second one — `activeAdminCount` counts memberships, so adding them
+  // here would make it two rows for one person. Hence the role they hold
+  // anywhere, not the role they hold here.
+  const heldElsewhere = await prisma.workspaceMember.findFirst({
+    where: { userId: data.userId, role: "ADMIN" },
+    select: { role: true },
+  });
+  const ceiling = await guardAdminCeiling(
+    data.role as Role,
+    heldElsewhere ? "admin" : null,
+  );
+  if (ceiling) return ceiling;
 
   await prisma.workspaceMember.create({
     data: {
@@ -272,7 +290,7 @@ export async function deleteUserAction(userId: string): Promise<ActionResult> {
   if (!membership) return { ok: false, error: "That account no longer exists." };
 
   if (membership.role === "ADMIN") {
-    const owners = await activeAdminCount(actor.workspaceId);
+    const owners = await activeAdminCount();
     if (owners <= 1) return { ok: false, error: "The workspace must keep at least one admin." };
   }
 
@@ -302,9 +320,17 @@ export async function setUserRoleAction(userId: string, role: string): Promise<A
   if (guard) return guard;
 
   if (membership.role === "ADMIN" && parsed.data.role !== "admin") {
-    const owners = await activeAdminCount(actor.workspaceId);
+    const owners = await activeAdminCount();
     if (owners <= 1) return { ok: false, error: "The workspace must keep at least one admin." };
   }
+
+  // The ceiling, beside the floor above. Both have to hold: promoting a second
+  // admin is refused here, demoting the only one is refused there.
+  const ceiling = await guardAdminCeiling(
+    parsed.data.role as Role,
+    roleToDomain[membership.role],
+  );
+  if (ceiling) return ceiling;
 
   await prisma.workspaceMember.update({
     where: { workspaceId_userId: { workspaceId: actor.workspaceId, userId: parsed.data.userId } },
@@ -379,7 +405,7 @@ export async function removeFromWorkspaceAction(
   if (!membership) return { ok: false, error: "They are not in this workspace." };
 
   if (membership.role === "ADMIN") {
-    const admins = await activeAdminCount(actor.workspaceId);
+    const admins = await activeAdminCount();
     if (admins <= 1) {
       return { ok: false, error: "The workspace must keep at least one admin." };
     }

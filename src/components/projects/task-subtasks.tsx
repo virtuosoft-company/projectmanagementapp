@@ -58,7 +58,7 @@ import {
   isImageMimeType,
   isOptimizableImageSrc,
   validateAttachmentFile,
-} from "@/lib/r2";
+} from "@/lib/files";
 import { taskStatusColor } from "@/lib/status";
 import {
   buildSubtaskTree,
@@ -99,6 +99,7 @@ export function TaskSubtasks({
   running,
   canManage,
   canLog,
+  canUseTimer,
 }: {
   taskId: string;
   /** The task's assignees — the only people a subtask can go to. */
@@ -110,8 +111,15 @@ export function TaskSubtasks({
   running: RunningTimer | null;
   /** `tasks.manage`. Without it the tree is visible but read-only. */
   canManage: boolean;
-  /** `time.log`. Without it no timer controls are shown. */
+  /** `time.log`. Without it no time can be logged here at all. */
   canLog: boolean;
+  /**
+   * `time.log` *and* not the admin account — may run the clock.
+   *
+   * A subtask row is the second route to a timer, after the Time card. Gating
+   * only that card would leave this menu starting one.
+   */
+  canUseTimer: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -167,6 +175,7 @@ export function TaskSubtasks({
     pending,
     canManage,
     canLog,
+    canUseTimer,
     running,
     collapsed,
     toggleCollapsed,
@@ -310,6 +319,7 @@ type NodeActions = {
   error: string | null;
   canManage: boolean;
   canLog: boolean;
+  canUseTimer: boolean;
   running: RunningTimer | null;
   collapsed: Set<string>;
   toggleCollapsed: (id: string) => void;
@@ -493,7 +503,7 @@ function SubtaskBranch({
                 </DropdownMenuItem>
               ) : null}
 
-              {actions.canLog ? (
+              {actions.canUseTimer ? (
                 <DropdownMenuItem onSelect={() => setTiming(true)}>
                   <Play className="h-3.5 w-3.5" />
                   Start timer
@@ -605,7 +615,7 @@ function SubtaskBranch({
         <SubtaskDetailsDialog
           subtask={node}
           canManage={actions.canManage}
-          canLog={actions.canLog}
+          canUseTimer={actions.canUseTimer}
           running={actions.running}
           pending={actions.pending}
           onStartTimer={() => actions.startTimer(node.id)}
@@ -675,7 +685,7 @@ function AssigneeField({
 export function SubtaskDetailsDialog({
   subtask,
   canManage,
-  canLog,
+  canUseTimer,
   running,
   pending,
   onClose,
@@ -689,8 +699,8 @@ export function SubtaskDetailsDialog({
 }: {
   subtask: Subtask;
   canManage: boolean;
-  /** `time.log` — whether the timer controls are offered. */
-  canLog: boolean;
+  /** `time.log` and not the admin account — whether the clock is offered. */
+  canUseTimer: boolean;
   /** The viewer's running timer, anywhere. */
   running: RunningTimer | null;
   pending: boolean;
@@ -771,7 +781,7 @@ export function SubtaskDetailsDialog({
           )}
         </div>
 
-        {canLog ? (
+        {canUseTimer ? (
           <div
             className={cn(
               "flex items-center justify-between gap-3 rounded-md border p-2.5",

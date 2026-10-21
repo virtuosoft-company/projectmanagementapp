@@ -72,6 +72,24 @@ export type Member = Person & {
   disabled: boolean;
 };
 
+/**
+ * Whether someone takes part in the work rather than administering it.
+ *
+ * The admin account is excluded: it exists to run the workspace — invite
+ * people, assign roles, correct records — not to be put on a project and given
+ * tasks. So it is neither offered as a candidate nor listed on the roster, and
+ * the actions that add project members refuse it rather than relying on the
+ * picker not having offered it.
+ *
+ * A predicate rather than the comparison written out at each call site,
+ * because the roster, the "Members" count and the exported report all have to
+ * agree about who is on a project. A count of three above a list of two is the
+ * failure this prevents.
+ */
+export function participatesInWork(person: { role: Role }): boolean {
+  return person.role !== "admin";
+}
+
 export type Workspace = {
   id: string;
   name: string;
@@ -598,6 +616,17 @@ export function shiftWeek(iso: string, weeks: number) {
 }
 
 export const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+/**
+ * Weekday headers for a grid from `getMonthGrid`.
+ *
+ * Sunday-first, because `getMonthGrid` pads its leading blanks with
+ * `getUTCDay()`, where Sunday is 0. `WEEKDAY_LABELS` above is Monday-first and
+ * belongs to places that count weekdays rather than draw a month — pairing it
+ * with that grid labels every column one day wrong, which looks plausible
+ * enough to survive review.
+ */
+export const WEEKDAYS_SUNDAY_FIRST = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 /** Calendar grid (Sunday-start) for the month containing `iso`. */
 export function getMonthGrid(iso: string) {

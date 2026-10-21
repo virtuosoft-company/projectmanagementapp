@@ -11,7 +11,13 @@ import {
   getRunningTimer,
   getTasks,
 } from "@/lib/queries";
-import { getSessionUser, hasPermission, projectScope, requireUser } from "@/lib/session";
+import {
+  getSessionUser,
+  hasPermission,
+  projectScope,
+  requireUser,
+  viewerIsAdmin,
+} from "@/lib/session";
 
 export async function generateMetadata({
   params,
@@ -55,6 +61,11 @@ export default async function ProjectTasksPage({
     hasPermission("time.log"),
   ]);
 
+  // Same rule as the task page: the admin account records time by hand, never
+  // by the clock, so every "Start timer" on the board goes with it. The server
+  // action refuses it too — this only stops offering what would be refused.
+  const canUseTimer = canLog && !(await viewerIsAdmin());
+
   const wanted = typeof requested === "string" ? requested : undefined;
   const active = boards.find((board) => board.id === wanted) ?? boards[0];
 
@@ -69,6 +80,7 @@ export default async function ProjectTasksPage({
       today={todayIso()}
       canManage={await hasPermission("tasks.manage")}
       canLog={canLog}
+      canUseTimer={canUseTimer}
       subtasks={subtasks}
       running={running}
     />

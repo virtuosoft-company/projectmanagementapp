@@ -28,7 +28,7 @@ import {
 import { formatDay, type RunningTimer, type Subtask, type Task } from "@/lib/domain";
 import { priorityVariant, taskStatusColor } from "@/lib/status";
 import { buildSubtaskTree, flattenTree } from "@/lib/subtask-tree";
-import { isOptimizableImageSrc } from "@/lib/r2";
+import { isOptimizableImageSrc } from "@/lib/files";
 import { cn, formatDuration } from "@/lib/utils";
 
 const MAX_SUBTASK_ROWS = 6;
@@ -48,6 +48,7 @@ export function BoardCard({
   today,
   canManage,
   canLog,
+  canUseTimer,
   running,
   onTimerRequest,
   dragging,
@@ -74,6 +75,8 @@ export function BoardCard({
   canManage: boolean;
   /** `time.log` — whether timer items are offered. */
   canLog: boolean;
+  /** `time.log` *and* not the admin account — may run the clock. */
+  canUseTimer: boolean;
   /** The viewer's running timer, anywhere. */
   running: RunningTimer | null;
   /** Opens the timer dialog for the card, or for one of its subtasks. */
@@ -178,7 +181,7 @@ export function BoardCard({
                 <Pencil className="h-3.5 w-3.5" />
                 Edit
               </DropdownMenuItem>
-              {canLog ? (
+              {canUseTimer ? (
                 <DropdownMenuItem onSelect={() => onTimerRequest(null)}>
                   <Play className="h-3.5 w-3.5" />
                   Start timer
@@ -263,7 +266,7 @@ export function BoardCard({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-36">
-                      {canLog ? (
+                      {canUseTimer ? (
                         <DropdownMenuItem onSelect={() => onTimerRequest(node)}>
                           <Play className="h-3.5 w-3.5" />
                           Start timer

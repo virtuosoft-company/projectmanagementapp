@@ -17,8 +17,9 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { roleToDb } from "@/lib/mappers";
+import { roleToDb, roleToDomain } from "@/lib/mappers";
 import { isMailConfigured, sendMail } from "@/lib/mailer";
+import { guardAdminCeiling } from "@/lib/admin";
 import { notify } from "@/lib/notifications";
 import { requirePermission } from "@/lib/session";
 import { roleRowIdFor } from "@/lib/resolve-role";
@@ -100,6 +101,12 @@ export async function inviteUserAction(input: InviteInput): Promise<ActionResult
       error: "That email already has an account. Use Add member to put them in this workspace.",
     };
   }
+
+  // Refused at send time as well as on acceptance. Writing an invitation that
+  // acceptance will reject hands the admin a link that looks valid and dies on
+  // use, and tells the invitee nothing about why.
+  const ceiling = await guardAdminCeiling(data.role as Role);
+  if (ceiling) return ceiling;
 
   const [workspace, inviter] = await Promise.all([
     prisma.workspace.findUnique({
@@ -261,6 +268,24 @@ export async function acceptInvitationAction(input: AcceptInvitationInput): Prom
   });
   if (clash) {
     return { ok: false, error: "An account already uses that email. Sign in instead." };
+  }
+
+  /*
+   * Re-checked here too, and this is the check that actually enforces the rule.
+   *
+   * The role was fixed when the invitation was written, days earlier. If it
+   * says admin and an admin has appeared since — or the invitation predates the
+   * ceiling existing at all — accepting it would quietly produce a second one.
+   * The invitee cannot fix that, so the refusal names what to do instead.
+   */
+  if (
+    invitation.role === "ADMIN" &&
+    (await guardAdminCeiling(roleToDomain[invitation.role]))
+  ) {
+    return {
+      ok: false,
+      error: "This workspace already has an admin, so this invitation can no longer be accepted. Ask them to invite you again.",
+    };
   }
 
   const passwordHash = await bcrypt.hash(data.password, 12);

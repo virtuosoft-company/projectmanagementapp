@@ -53,10 +53,10 @@ export function TaskDetail({
   running,
   members,
   labels,
-  r2Problems,
   viewerId,
   canManage,
   canLog,
+  canUseTimer,
   canManageAnyTime,
 }: {
   task: Task;
@@ -68,13 +68,13 @@ export function TaskDetail({
   running: RunningTimer | null;
   members: Member[];
   labels: Label[];
-  /** What is wrong with the R2 setup, so the Images card can explain itself. */
-  r2Problems: string[];
   viewerId: string;
   /** `tasks.manage`. */
   canManage: boolean;
-  /** `time.log`. */
+  /** `time.log` — may log time at all. */
   canLog: boolean;
+  /** `time.log` *and* not the admin account — may run the clock. */
+  canUseTimer: boolean;
   /** `time.manage`. */
   canManageAnyTime: boolean;
 }) {
@@ -265,6 +265,7 @@ export function TaskDetail({
         running={running}
         canManage={canManage}
         canLog={canLog}
+        canUseTimer={canUseTimer}
       />
 
       <TaskTimeTracking
@@ -275,13 +276,13 @@ export function TaskDetail({
         running={running}
         viewerId={viewerId}
         canLog={canLog}
+        canUseTimer={canUseTimer}
         canManageAny={canManageAnyTime}
       />
 
       <TaskAttachments
         taskId={task.id}
         attachments={attachments}
-        problems={r2Problems}
         canManage={canManage}
       />
 

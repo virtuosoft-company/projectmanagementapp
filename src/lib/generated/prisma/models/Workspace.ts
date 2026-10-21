@@ -201,6 +201,8 @@ export type WorkspaceWhereInput = {
   events?: Prisma.EventListRelationFilter
   invitations?: Prisma.InvitationListRelationFilter
   removals?: Prisma.MemberRemovalListRelationFilter
+  attendance?: Prisma.AttendanceListRelationFilter
+  workSchedules?: Prisma.WorkScheduleListRelationFilter
   lastActiveUsers?: Prisma.UserListRelationFilter
 }
 
@@ -221,6 +223,8 @@ export type WorkspaceOrderByWithRelationInput = {
   events?: Prisma.EventOrderByRelationAggregateInput
   invitations?: Prisma.InvitationOrderByRelationAggregateInput
   removals?: Prisma.MemberRemovalOrderByRelationAggregateInput
+  attendance?: Prisma.AttendanceOrderByRelationAggregateInput
+  workSchedules?: Prisma.WorkScheduleOrderByRelationAggregateInput
   lastActiveUsers?: Prisma.UserOrderByRelationAggregateInput
   _relevance?: Prisma.WorkspaceOrderByRelevanceInput
 }
@@ -245,6 +249,8 @@ export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
   events?: Prisma.EventListRelationFilter
   invitations?: Prisma.InvitationListRelationFilter
   removals?: Prisma.MemberRemovalListRelationFilter
+  attendance?: Prisma.AttendanceListRelationFilter
+  workSchedules?: Prisma.WorkScheduleListRelationFilter
   lastActiveUsers?: Prisma.UserListRelationFilter
 }, "id" | "slug">
 
@@ -289,6 +295,8 @@ export type WorkspaceCreateInput = {
   events?: Prisma.EventCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -309,6 +317,8 @@ export type WorkspaceUncheckedCreateInput = {
   events?: Prisma.EventUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserUncheckedCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -329,6 +339,8 @@ export type WorkspaceUpdateInput = {
   events?: Prisma.EventUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -349,6 +361,8 @@ export type WorkspaceUncheckedUpdateInput = {
   events?: Prisma.EventUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUncheckedUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -488,6 +502,34 @@ export type WorkspaceUpdateOneRequiredWithoutProjectsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutProjectsInput, Prisma.WorkspaceUpdateWithoutProjectsInput>, Prisma.WorkspaceUncheckedUpdateWithoutProjectsInput>
 }
 
+export type WorkspaceCreateNestedOneWithoutAttendanceInput = {
+  create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutAttendanceInput, Prisma.WorkspaceUncheckedCreateWithoutAttendanceInput>
+  connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutAttendanceInput
+  connect?: Prisma.WorkspaceWhereUniqueInput
+}
+
+export type WorkspaceUpdateOneRequiredWithoutAttendanceNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutAttendanceInput, Prisma.WorkspaceUncheckedCreateWithoutAttendanceInput>
+  connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutAttendanceInput
+  upsert?: Prisma.WorkspaceUpsertWithoutAttendanceInput
+  connect?: Prisma.WorkspaceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutAttendanceInput, Prisma.WorkspaceUpdateWithoutAttendanceInput>, Prisma.WorkspaceUncheckedUpdateWithoutAttendanceInput>
+}
+
+export type WorkspaceCreateNestedOneWithoutWorkSchedulesInput = {
+  create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutWorkSchedulesInput, Prisma.WorkspaceUncheckedCreateWithoutWorkSchedulesInput>
+  connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutWorkSchedulesInput
+  connect?: Prisma.WorkspaceWhereUniqueInput
+}
+
+export type WorkspaceUpdateOneRequiredWithoutWorkSchedulesNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutWorkSchedulesInput, Prisma.WorkspaceUncheckedCreateWithoutWorkSchedulesInput>
+  connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutWorkSchedulesInput
+  upsert?: Prisma.WorkspaceUpsertWithoutWorkSchedulesInput
+  connect?: Prisma.WorkspaceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutWorkSchedulesInput, Prisma.WorkspaceUpdateWithoutWorkSchedulesInput>, Prisma.WorkspaceUncheckedUpdateWithoutWorkSchedulesInput>
+}
+
 export type WorkspaceCreateNestedOneWithoutMessagesInput = {
   create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutMessagesInput, Prisma.WorkspaceUncheckedCreateWithoutMessagesInput>
   connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutMessagesInput
@@ -603,6 +645,8 @@ export type WorkspaceCreateWithoutLastActiveUsersInput = {
   events?: Prisma.EventCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutLastActiveUsersInput = {
@@ -622,6 +666,8 @@ export type WorkspaceUncheckedCreateWithoutLastActiveUsersInput = {
   events?: Prisma.EventUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutLastActiveUsersInput = {
@@ -657,6 +703,8 @@ export type WorkspaceUpdateWithoutLastActiveUsersInput = {
   events?: Prisma.EventUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutLastActiveUsersInput = {
@@ -676,6 +724,8 @@ export type WorkspaceUncheckedUpdateWithoutLastActiveUsersInput = {
   events?: Prisma.EventUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutCustomRolesInput = {
@@ -694,6 +744,8 @@ export type WorkspaceCreateWithoutCustomRolesInput = {
   events?: Prisma.EventCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -713,6 +765,8 @@ export type WorkspaceUncheckedCreateWithoutCustomRolesInput = {
   events?: Prisma.EventUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserUncheckedCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -748,6 +802,8 @@ export type WorkspaceUpdateWithoutCustomRolesInput = {
   events?: Prisma.EventUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -767,6 +823,8 @@ export type WorkspaceUncheckedUpdateWithoutCustomRolesInput = {
   events?: Prisma.EventUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUncheckedUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -786,6 +844,8 @@ export type WorkspaceCreateWithoutMembersInput = {
   events?: Prisma.EventCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -805,6 +865,8 @@ export type WorkspaceUncheckedCreateWithoutMembersInput = {
   events?: Prisma.EventUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserUncheckedCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -840,6 +902,8 @@ export type WorkspaceUpdateWithoutMembersInput = {
   events?: Prisma.EventUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -859,6 +923,8 @@ export type WorkspaceUncheckedUpdateWithoutMembersInput = {
   events?: Prisma.EventUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUncheckedUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -878,6 +944,8 @@ export type WorkspaceCreateWithoutProjectsInput = {
   events?: Prisma.EventCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -897,6 +965,8 @@ export type WorkspaceUncheckedCreateWithoutProjectsInput = {
   events?: Prisma.EventUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserUncheckedCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -932,6 +1002,8 @@ export type WorkspaceUpdateWithoutProjectsInput = {
   events?: Prisma.EventUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -951,6 +1023,208 @@ export type WorkspaceUncheckedUpdateWithoutProjectsInput = {
   events?: Prisma.EventUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutWorkspaceNestedInput
+  lastActiveUsers?: Prisma.UserUncheckedUpdateManyWithoutLastWorkspaceNestedInput
+}
+
+export type WorkspaceCreateWithoutAttendanceInput = {
+  id?: string
+  name: string
+  slug: string
+  description?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutWorkspaceInput
+  activity?: Prisma.ActivityEntryCreateNestedManyWithoutWorkspaceInput
+  messages?: Prisma.MessageCreateNestedManyWithoutWorkspaceInput
+  customRoles?: Prisma.CustomRoleCreateNestedManyWithoutWorkspaceInput
+  labels?: Prisma.LabelCreateNestedManyWithoutWorkspaceInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
+  events?: Prisma.EventCreateNestedManyWithoutWorkspaceInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutWorkspaceInput
+  removals?: Prisma.MemberRemovalCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutWorkspaceInput
+  lastActiveUsers?: Prisma.UserCreateNestedManyWithoutLastWorkspaceInput
+}
+
+export type WorkspaceUncheckedCreateWithoutAttendanceInput = {
+  id?: string
+  name: string
+  slug: string
+  description?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutWorkspaceInput
+  activity?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutWorkspaceInput
+  messages?: Prisma.MessageUncheckedCreateNestedManyWithoutWorkspaceInput
+  customRoles?: Prisma.CustomRoleUncheckedCreateNestedManyWithoutWorkspaceInput
+  labels?: Prisma.LabelUncheckedCreateNestedManyWithoutWorkspaceInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutWorkspaceInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutWorkspaceInput
+  removals?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutWorkspaceInput
+  lastActiveUsers?: Prisma.UserUncheckedCreateNestedManyWithoutLastWorkspaceInput
+}
+
+export type WorkspaceCreateOrConnectWithoutAttendanceInput = {
+  where: Prisma.WorkspaceWhereUniqueInput
+  create: Prisma.XOR<Prisma.WorkspaceCreateWithoutAttendanceInput, Prisma.WorkspaceUncheckedCreateWithoutAttendanceInput>
+}
+
+export type WorkspaceUpsertWithoutAttendanceInput = {
+  update: Prisma.XOR<Prisma.WorkspaceUpdateWithoutAttendanceInput, Prisma.WorkspaceUncheckedUpdateWithoutAttendanceInput>
+  create: Prisma.XOR<Prisma.WorkspaceCreateWithoutAttendanceInput, Prisma.WorkspaceUncheckedCreateWithoutAttendanceInput>
+  where?: Prisma.WorkspaceWhereInput
+}
+
+export type WorkspaceUpdateToOneWithWhereWithoutAttendanceInput = {
+  where?: Prisma.WorkspaceWhereInput
+  data: Prisma.XOR<Prisma.WorkspaceUpdateWithoutAttendanceInput, Prisma.WorkspaceUncheckedUpdateWithoutAttendanceInput>
+}
+
+export type WorkspaceUpdateWithoutAttendanceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutWorkspaceNestedInput
+  activity?: Prisma.ActivityEntryUpdateManyWithoutWorkspaceNestedInput
+  messages?: Prisma.MessageUpdateManyWithoutWorkspaceNestedInput
+  customRoles?: Prisma.CustomRoleUpdateManyWithoutWorkspaceNestedInput
+  labels?: Prisma.LabelUpdateManyWithoutWorkspaceNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
+  events?: Prisma.EventUpdateManyWithoutWorkspaceNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutWorkspaceNestedInput
+  removals?: Prisma.MemberRemovalUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutWorkspaceNestedInput
+  lastActiveUsers?: Prisma.UserUpdateManyWithoutLastWorkspaceNestedInput
+}
+
+export type WorkspaceUncheckedUpdateWithoutAttendanceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutWorkspaceNestedInput
+  activity?: Prisma.ActivityEntryUncheckedUpdateManyWithoutWorkspaceNestedInput
+  messages?: Prisma.MessageUncheckedUpdateManyWithoutWorkspaceNestedInput
+  customRoles?: Prisma.CustomRoleUncheckedUpdateManyWithoutWorkspaceNestedInput
+  labels?: Prisma.LabelUncheckedUpdateManyWithoutWorkspaceNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  removals?: Prisma.MemberRemovalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutWorkspaceNestedInput
+  lastActiveUsers?: Prisma.UserUncheckedUpdateManyWithoutLastWorkspaceNestedInput
+}
+
+export type WorkspaceCreateWithoutWorkSchedulesInput = {
+  id?: string
+  name: string
+  slug: string
+  description?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutWorkspaceInput
+  activity?: Prisma.ActivityEntryCreateNestedManyWithoutWorkspaceInput
+  messages?: Prisma.MessageCreateNestedManyWithoutWorkspaceInput
+  customRoles?: Prisma.CustomRoleCreateNestedManyWithoutWorkspaceInput
+  labels?: Prisma.LabelCreateNestedManyWithoutWorkspaceInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
+  events?: Prisma.EventCreateNestedManyWithoutWorkspaceInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutWorkspaceInput
+  removals?: Prisma.MemberRemovalCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutWorkspaceInput
+  lastActiveUsers?: Prisma.UserCreateNestedManyWithoutLastWorkspaceInput
+}
+
+export type WorkspaceUncheckedCreateWithoutWorkSchedulesInput = {
+  id?: string
+  name: string
+  slug: string
+  description?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutWorkspaceInput
+  activity?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutWorkspaceInput
+  messages?: Prisma.MessageUncheckedCreateNestedManyWithoutWorkspaceInput
+  customRoles?: Prisma.CustomRoleUncheckedCreateNestedManyWithoutWorkspaceInput
+  labels?: Prisma.LabelUncheckedCreateNestedManyWithoutWorkspaceInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
+  events?: Prisma.EventUncheckedCreateNestedManyWithoutWorkspaceInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutWorkspaceInput
+  removals?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutWorkspaceInput
+  lastActiveUsers?: Prisma.UserUncheckedCreateNestedManyWithoutLastWorkspaceInput
+}
+
+export type WorkspaceCreateOrConnectWithoutWorkSchedulesInput = {
+  where: Prisma.WorkspaceWhereUniqueInput
+  create: Prisma.XOR<Prisma.WorkspaceCreateWithoutWorkSchedulesInput, Prisma.WorkspaceUncheckedCreateWithoutWorkSchedulesInput>
+}
+
+export type WorkspaceUpsertWithoutWorkSchedulesInput = {
+  update: Prisma.XOR<Prisma.WorkspaceUpdateWithoutWorkSchedulesInput, Prisma.WorkspaceUncheckedUpdateWithoutWorkSchedulesInput>
+  create: Prisma.XOR<Prisma.WorkspaceCreateWithoutWorkSchedulesInput, Prisma.WorkspaceUncheckedCreateWithoutWorkSchedulesInput>
+  where?: Prisma.WorkspaceWhereInput
+}
+
+export type WorkspaceUpdateToOneWithWhereWithoutWorkSchedulesInput = {
+  where?: Prisma.WorkspaceWhereInput
+  data: Prisma.XOR<Prisma.WorkspaceUpdateWithoutWorkSchedulesInput, Prisma.WorkspaceUncheckedUpdateWithoutWorkSchedulesInput>
+}
+
+export type WorkspaceUpdateWithoutWorkSchedulesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutWorkspaceNestedInput
+  activity?: Prisma.ActivityEntryUpdateManyWithoutWorkspaceNestedInput
+  messages?: Prisma.MessageUpdateManyWithoutWorkspaceNestedInput
+  customRoles?: Prisma.CustomRoleUpdateManyWithoutWorkspaceNestedInput
+  labels?: Prisma.LabelUpdateManyWithoutWorkspaceNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
+  events?: Prisma.EventUpdateManyWithoutWorkspaceNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutWorkspaceNestedInput
+  removals?: Prisma.MemberRemovalUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutWorkspaceNestedInput
+  lastActiveUsers?: Prisma.UserUpdateManyWithoutLastWorkspaceNestedInput
+}
+
+export type WorkspaceUncheckedUpdateWithoutWorkSchedulesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutWorkspaceNestedInput
+  activity?: Prisma.ActivityEntryUncheckedUpdateManyWithoutWorkspaceNestedInput
+  messages?: Prisma.MessageUncheckedUpdateManyWithoutWorkspaceNestedInput
+  customRoles?: Prisma.CustomRoleUncheckedUpdateManyWithoutWorkspaceNestedInput
+  labels?: Prisma.LabelUncheckedUpdateManyWithoutWorkspaceNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  events?: Prisma.EventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  removals?: Prisma.MemberRemovalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUncheckedUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -970,6 +1244,8 @@ export type WorkspaceCreateWithoutMessagesInput = {
   events?: Prisma.EventCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -989,6 +1265,8 @@ export type WorkspaceUncheckedCreateWithoutMessagesInput = {
   events?: Prisma.EventUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserUncheckedCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -1024,6 +1302,8 @@ export type WorkspaceUpdateWithoutMessagesInput = {
   events?: Prisma.EventUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -1043,6 +1323,8 @@ export type WorkspaceUncheckedUpdateWithoutMessagesInput = {
   events?: Prisma.EventUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUncheckedUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -1062,6 +1344,8 @@ export type WorkspaceCreateWithoutActivityInput = {
   events?: Prisma.EventCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -1081,6 +1365,8 @@ export type WorkspaceUncheckedCreateWithoutActivityInput = {
   events?: Prisma.EventUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserUncheckedCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -1116,6 +1402,8 @@ export type WorkspaceUpdateWithoutActivityInput = {
   events?: Prisma.EventUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -1135,6 +1423,8 @@ export type WorkspaceUncheckedUpdateWithoutActivityInput = {
   events?: Prisma.EventUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUncheckedUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -1154,6 +1444,8 @@ export type WorkspaceCreateWithoutNotificationsInput = {
   events?: Prisma.EventCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -1173,6 +1465,8 @@ export type WorkspaceUncheckedCreateWithoutNotificationsInput = {
   events?: Prisma.EventUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserUncheckedCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -1208,6 +1502,8 @@ export type WorkspaceUpdateWithoutNotificationsInput = {
   events?: Prisma.EventUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -1227,6 +1523,8 @@ export type WorkspaceUncheckedUpdateWithoutNotificationsInput = {
   events?: Prisma.EventUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUncheckedUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -1246,6 +1544,8 @@ export type WorkspaceCreateWithoutLabelsInput = {
   events?: Prisma.EventCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -1265,6 +1565,8 @@ export type WorkspaceUncheckedCreateWithoutLabelsInput = {
   events?: Prisma.EventUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserUncheckedCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -1300,6 +1602,8 @@ export type WorkspaceUpdateWithoutLabelsInput = {
   events?: Prisma.EventUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -1319,6 +1623,8 @@ export type WorkspaceUncheckedUpdateWithoutLabelsInput = {
   events?: Prisma.EventUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUncheckedUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -1338,6 +1644,8 @@ export type WorkspaceCreateWithoutEventsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -1357,6 +1665,8 @@ export type WorkspaceUncheckedCreateWithoutEventsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserUncheckedCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -1392,6 +1702,8 @@ export type WorkspaceUpdateWithoutEventsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -1411,6 +1723,8 @@ export type WorkspaceUncheckedUpdateWithoutEventsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUncheckedUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -1430,6 +1744,8 @@ export type WorkspaceCreateWithoutInvitationsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
   events?: Prisma.EventCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -1449,6 +1765,8 @@ export type WorkspaceUncheckedCreateWithoutInvitationsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutWorkspaceInput
   removals?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserUncheckedCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -1484,6 +1802,8 @@ export type WorkspaceUpdateWithoutInvitationsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
   events?: Prisma.EventUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -1503,6 +1823,8 @@ export type WorkspaceUncheckedUpdateWithoutInvitationsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutWorkspaceNestedInput
   removals?: Prisma.MemberRemovalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUncheckedUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -1522,6 +1844,8 @@ export type WorkspaceCreateWithoutRemovalsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutWorkspaceInput
   events?: Prisma.EventCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -1541,6 +1865,8 @@ export type WorkspaceUncheckedCreateWithoutRemovalsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutWorkspaceInput
   events?: Prisma.EventUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutWorkspaceInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutWorkspaceInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutWorkspaceInput
   lastActiveUsers?: Prisma.UserUncheckedCreateNestedManyWithoutLastWorkspaceInput
 }
 
@@ -1576,6 +1902,8 @@ export type WorkspaceUpdateWithoutRemovalsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutWorkspaceNestedInput
   events?: Prisma.EventUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -1595,6 +1923,8 @@ export type WorkspaceUncheckedUpdateWithoutRemovalsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutWorkspaceNestedInput
   events?: Prisma.EventUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutWorkspaceNestedInput
   lastActiveUsers?: Prisma.UserUncheckedUpdateManyWithoutLastWorkspaceNestedInput
 }
 
@@ -1614,6 +1944,8 @@ export type WorkspaceCountOutputType = {
   events: number
   invitations: number
   removals: number
+  attendance: number
+  workSchedules: number
   lastActiveUsers: number
 }
 
@@ -1628,6 +1960,8 @@ export type WorkspaceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensi
   events?: boolean | WorkspaceCountOutputTypeCountEventsArgs
   invitations?: boolean | WorkspaceCountOutputTypeCountInvitationsArgs
   removals?: boolean | WorkspaceCountOutputTypeCountRemovalsArgs
+  attendance?: boolean | WorkspaceCountOutputTypeCountAttendanceArgs
+  workSchedules?: boolean | WorkspaceCountOutputTypeCountWorkSchedulesArgs
   lastActiveUsers?: boolean | WorkspaceCountOutputTypeCountLastActiveUsersArgs
 }
 
@@ -1714,6 +2048,20 @@ export type WorkspaceCountOutputTypeCountRemovalsArgs<ExtArgs extends runtime.Ty
 /**
  * WorkspaceCountOutputType without action
  */
+export type WorkspaceCountOutputTypeCountAttendanceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AttendanceWhereInput
+}
+
+/**
+ * WorkspaceCountOutputType without action
+ */
+export type WorkspaceCountOutputTypeCountWorkSchedulesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WorkScheduleWhereInput
+}
+
+/**
+ * WorkspaceCountOutputType without action
+ */
 export type WorkspaceCountOutputTypeCountLastActiveUsersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.UserWhereInput
 }
@@ -1736,6 +2084,8 @@ export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   events?: boolean | Prisma.Workspace$eventsArgs<ExtArgs>
   invitations?: boolean | Prisma.Workspace$invitationsArgs<ExtArgs>
   removals?: boolean | Prisma.Workspace$removalsArgs<ExtArgs>
+  attendance?: boolean | Prisma.Workspace$attendanceArgs<ExtArgs>
+  workSchedules?: boolean | Prisma.Workspace$workSchedulesArgs<ExtArgs>
   lastActiveUsers?: boolean | Prisma.Workspace$lastActiveUsersArgs<ExtArgs>
   _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workspace"]>
@@ -1763,6 +2113,8 @@ export type WorkspaceInclude<ExtArgs extends runtime.Types.Extensions.InternalAr
   events?: boolean | Prisma.Workspace$eventsArgs<ExtArgs>
   invitations?: boolean | Prisma.Workspace$invitationsArgs<ExtArgs>
   removals?: boolean | Prisma.Workspace$removalsArgs<ExtArgs>
+  attendance?: boolean | Prisma.Workspace$attendanceArgs<ExtArgs>
+  workSchedules?: boolean | Prisma.Workspace$workSchedulesArgs<ExtArgs>
   lastActiveUsers?: boolean | Prisma.Workspace$lastActiveUsersArgs<ExtArgs>
   _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1780,6 +2132,8 @@ export type $WorkspacePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     events: Prisma.$EventPayload<ExtArgs>[]
     invitations: Prisma.$InvitationPayload<ExtArgs>[]
     removals: Prisma.$MemberRemovalPayload<ExtArgs>[]
+    attendance: Prisma.$AttendancePayload<ExtArgs>[]
+    workSchedules: Prisma.$WorkSchedulePayload<ExtArgs>[]
     lastActiveUsers: Prisma.$UserPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -2139,6 +2493,8 @@ export interface Prisma__WorkspaceClient<T, Null = never, ExtArgs extends runtim
   events<T extends Prisma.Workspace$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   invitations<T extends Prisma.Workspace$invitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   removals<T extends Prisma.Workspace$removalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$removalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemberRemovalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  attendance<T extends Prisma.Workspace$attendanceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$attendanceArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  workSchedules<T extends Prisma.Workspace$workSchedulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$workSchedulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkSchedulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   lastActiveUsers<T extends Prisma.Workspace$lastActiveUsersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$lastActiveUsersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2760,6 +3116,54 @@ export type Workspace$removalsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.MemberRemovalScalarFieldEnum | Prisma.MemberRemovalScalarFieldEnum[]
+}
+
+/**
+ * Workspace.attendance
+ */
+export type Workspace$attendanceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Attendance
+   */
+  select?: Prisma.AttendanceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Attendance
+   */
+  omit?: Prisma.AttendanceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AttendanceInclude<ExtArgs> | null
+  where?: Prisma.AttendanceWhereInput
+  orderBy?: Prisma.AttendanceOrderByWithRelationInput | Prisma.AttendanceOrderByWithRelationInput[]
+  cursor?: Prisma.AttendanceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AttendanceScalarFieldEnum | Prisma.AttendanceScalarFieldEnum[]
+}
+
+/**
+ * Workspace.workSchedules
+ */
+export type Workspace$workSchedulesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WorkSchedule
+   */
+  select?: Prisma.WorkScheduleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WorkSchedule
+   */
+  omit?: Prisma.WorkScheduleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WorkScheduleInclude<ExtArgs> | null
+  where?: Prisma.WorkScheduleWhereInput
+  orderBy?: Prisma.WorkScheduleOrderByWithRelationInput | Prisma.WorkScheduleOrderByWithRelationInput[]
+  cursor?: Prisma.WorkScheduleWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WorkScheduleScalarFieldEnum | Prisma.WorkScheduleScalarFieldEnum[]
 }
 
 /**

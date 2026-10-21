@@ -19,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { isOptimizableImageSrc } from "@/lib/r2";
+import { isOptimizableImageSrc } from "@/lib/files";
 import { priorityVariant } from "@/lib/status";
 import {
   TASK_STATUSES,
@@ -38,6 +38,7 @@ export function SubtasksDialog({
   running,
   canManage,
   canLog,
+  canUseTimer,
   onClose,
   onEdit,
   onDelete,
@@ -48,6 +49,8 @@ export function SubtasksDialog({
   running: RunningTimer | null;
   canManage: boolean;
   canLog: boolean;
+  /** `time.log` *and* not the admin account — may run the clock. */
+  canUseTimer: boolean;
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -140,6 +143,7 @@ export function SubtasksDialog({
           running={running}
           canManage={canManage}
           canLog={canLog}
+          canUseTimer={canUseTimer}
         />
       </div>
     </FormDialog>

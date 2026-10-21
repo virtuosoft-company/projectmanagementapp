@@ -337,6 +337,7 @@ export type UserWhereInput = {
   assignedSheets?: Prisma.ProjectSheetListRelationFilter
   runningTimer?: Prisma.XOR<Prisma.TaskTimerNullableScalarRelationFilter, Prisma.TaskTimerWhereInput> | null
   uploadedAttachments?: Prisma.TaskAttachmentListRelationFilter
+  uploadedFiles?: Prisma.FileListRelationFilter
   assignedSubtasks?: Prisma.SubtaskListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   causedNotifications?: Prisma.NotificationListRelationFilter
@@ -346,6 +347,10 @@ export type UserWhereInput = {
   removalRecord?: Prisma.MemberRemovalListRelationFilter
   removalsPerformed?: Prisma.MemberRemovalListRelationFilter
   eventInvites?: Prisma.EventAttendeeListRelationFilter
+  attendance?: Prisma.AttendanceListRelationFilter
+  recordedAttendance?: Prisma.AttendanceListRelationFilter
+  workSchedules?: Prisma.WorkScheduleListRelationFilter
+  assignedSchedules?: Prisma.WorkScheduleListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -380,6 +385,7 @@ export type UserOrderByWithRelationInput = {
   assignedSheets?: Prisma.ProjectSheetOrderByRelationAggregateInput
   runningTimer?: Prisma.TaskTimerOrderByWithRelationInput
   uploadedAttachments?: Prisma.TaskAttachmentOrderByRelationAggregateInput
+  uploadedFiles?: Prisma.FileOrderByRelationAggregateInput
   assignedSubtasks?: Prisma.SubtaskOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
   causedNotifications?: Prisma.NotificationOrderByRelationAggregateInput
@@ -389,6 +395,10 @@ export type UserOrderByWithRelationInput = {
   removalRecord?: Prisma.MemberRemovalOrderByRelationAggregateInput
   removalsPerformed?: Prisma.MemberRemovalOrderByRelationAggregateInput
   eventInvites?: Prisma.EventAttendeeOrderByRelationAggregateInput
+  attendance?: Prisma.AttendanceOrderByRelationAggregateInput
+  recordedAttendance?: Prisma.AttendanceOrderByRelationAggregateInput
+  workSchedules?: Prisma.WorkScheduleOrderByRelationAggregateInput
+  assignedSchedules?: Prisma.WorkScheduleOrderByRelationAggregateInput
   _relevance?: Prisma.UserOrderByRelevanceInput
 }
 
@@ -427,6 +437,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   assignedSheets?: Prisma.ProjectSheetListRelationFilter
   runningTimer?: Prisma.XOR<Prisma.TaskTimerNullableScalarRelationFilter, Prisma.TaskTimerWhereInput> | null
   uploadedAttachments?: Prisma.TaskAttachmentListRelationFilter
+  uploadedFiles?: Prisma.FileListRelationFilter
   assignedSubtasks?: Prisma.SubtaskListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
   causedNotifications?: Prisma.NotificationListRelationFilter
@@ -436,6 +447,10 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   removalRecord?: Prisma.MemberRemovalListRelationFilter
   removalsPerformed?: Prisma.MemberRemovalListRelationFilter
   eventInvites?: Prisma.EventAttendeeListRelationFilter
+  attendance?: Prisma.AttendanceListRelationFilter
+  recordedAttendance?: Prisma.AttendanceListRelationFilter
+  workSchedules?: Prisma.WorkScheduleListRelationFilter
+  assignedSchedules?: Prisma.WorkScheduleListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -519,6 +534,7 @@ export type UserCreateInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -528,6 +544,10 @@ export type UserCreateInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -561,6 +581,7 @@ export type UserUncheckedCreateInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -570,6 +591,10 @@ export type UserUncheckedCreateInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUpdateInput = {
@@ -603,6 +628,7 @@ export type UserUpdateInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -612,6 +638,10 @@ export type UserUpdateInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -645,6 +675,7 @@ export type UserUncheckedUpdateInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -654,6 +685,10 @@ export type UserUncheckedUpdateInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -983,6 +1018,66 @@ export type UserUpdateOneRequiredWithoutTimeEntriesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTimeEntriesInput, Prisma.UserUpdateWithoutTimeEntriesInput>, Prisma.UserUncheckedUpdateWithoutTimeEntriesInput>
 }
 
+export type UserCreateNestedOneWithoutAttendanceInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAttendanceInput, Prisma.UserUncheckedCreateWithoutAttendanceInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAttendanceInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutRecordedAttendanceInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRecordedAttendanceInput, Prisma.UserUncheckedCreateWithoutRecordedAttendanceInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRecordedAttendanceInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutAttendanceNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAttendanceInput, Prisma.UserUncheckedCreateWithoutAttendanceInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAttendanceInput
+  upsert?: Prisma.UserUpsertWithoutAttendanceInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAttendanceInput, Prisma.UserUpdateWithoutAttendanceInput>, Prisma.UserUncheckedUpdateWithoutAttendanceInput>
+}
+
+export type UserUpdateOneWithoutRecordedAttendanceNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRecordedAttendanceInput, Prisma.UserUncheckedCreateWithoutRecordedAttendanceInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRecordedAttendanceInput
+  upsert?: Prisma.UserUpsertWithoutRecordedAttendanceInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRecordedAttendanceInput, Prisma.UserUpdateWithoutRecordedAttendanceInput>, Prisma.UserUncheckedUpdateWithoutRecordedAttendanceInput>
+}
+
+export type UserCreateNestedOneWithoutWorkSchedulesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutWorkSchedulesInput, Prisma.UserUncheckedCreateWithoutWorkSchedulesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutWorkSchedulesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutAssignedSchedulesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAssignedSchedulesInput, Prisma.UserUncheckedCreateWithoutAssignedSchedulesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAssignedSchedulesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutWorkSchedulesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutWorkSchedulesInput, Prisma.UserUncheckedCreateWithoutWorkSchedulesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutWorkSchedulesInput
+  upsert?: Prisma.UserUpsertWithoutWorkSchedulesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutWorkSchedulesInput, Prisma.UserUpdateWithoutWorkSchedulesInput>, Prisma.UserUncheckedUpdateWithoutWorkSchedulesInput>
+}
+
+export type UserUpdateOneWithoutAssignedSchedulesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAssignedSchedulesInput, Prisma.UserUncheckedCreateWithoutAssignedSchedulesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAssignedSchedulesInput
+  upsert?: Prisma.UserUpsertWithoutAssignedSchedulesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAssignedSchedulesInput, Prisma.UserUpdateWithoutAssignedSchedulesInput>, Prisma.UserUncheckedUpdateWithoutAssignedSchedulesInput>
+}
+
 export type UserCreateNestedOneWithoutSentMessagesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutSentMessagesInput, Prisma.UserUncheckedCreateWithoutSentMessagesInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutSentMessagesInput
@@ -1113,6 +1208,22 @@ export type UserUpdateOneWithoutUploadedAttachmentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutUploadedAttachmentsInput, Prisma.UserUpdateWithoutUploadedAttachmentsInput>, Prisma.UserUncheckedUpdateWithoutUploadedAttachmentsInput>
 }
 
+export type UserCreateNestedOneWithoutUploadedFilesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutUploadedFilesInput, Prisma.UserUncheckedCreateWithoutUploadedFilesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUploadedFilesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutUploadedFilesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutUploadedFilesInput, Prisma.UserUncheckedCreateWithoutUploadedFilesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUploadedFilesInput
+  upsert?: Prisma.UserUpsertWithoutUploadedFilesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutUploadedFilesInput, Prisma.UserUpdateWithoutUploadedFilesInput>, Prisma.UserUncheckedUpdateWithoutUploadedFilesInput>
+}
+
 export type UserCreateNestedOneWithoutCreatedEventsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedEventsInput, Prisma.UserUncheckedCreateWithoutCreatedEventsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedEventsInput
@@ -1221,6 +1332,7 @@ export type UserCreateWithoutLastWorkspaceInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -1230,6 +1342,10 @@ export type UserCreateWithoutLastWorkspaceInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutLastWorkspaceInput = {
@@ -1262,6 +1378,7 @@ export type UserUncheckedCreateWithoutLastWorkspaceInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -1271,6 +1388,10 @@ export type UserUncheckedCreateWithoutLastWorkspaceInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutLastWorkspaceInput = {
@@ -1353,6 +1474,7 @@ export type UserCreateWithoutWorkspaceMembershipsInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -1362,6 +1484,10 @@ export type UserCreateWithoutWorkspaceMembershipsInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutWorkspaceMembershipsInput = {
@@ -1394,6 +1520,7 @@ export type UserUncheckedCreateWithoutWorkspaceMembershipsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -1403,6 +1530,10 @@ export type UserUncheckedCreateWithoutWorkspaceMembershipsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutWorkspaceMembershipsInput = {
@@ -1441,6 +1572,7 @@ export type UserCreateWithoutManagedMembersInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -1449,6 +1581,10 @@ export type UserCreateWithoutManagedMembersInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutManagedMembersInput = {
@@ -1482,6 +1618,7 @@ export type UserUncheckedCreateWithoutManagedMembersInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -1490,6 +1627,10 @@ export type UserUncheckedCreateWithoutManagedMembersInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutManagedMembersInput = {
@@ -1538,6 +1679,7 @@ export type UserUpdateWithoutWorkspaceMembershipsInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -1547,6 +1689,10 @@ export type UserUpdateWithoutWorkspaceMembershipsInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWorkspaceMembershipsInput = {
@@ -1579,6 +1725,7 @@ export type UserUncheckedUpdateWithoutWorkspaceMembershipsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -1588,6 +1735,10 @@ export type UserUncheckedUpdateWithoutWorkspaceMembershipsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUpsertWithoutManagedMembersInput = {
@@ -1632,6 +1783,7 @@ export type UserUpdateWithoutManagedMembersInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -1640,6 +1792,10 @@ export type UserUpdateWithoutManagedMembersInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutManagedMembersInput = {
@@ -1673,6 +1829,7 @@ export type UserUncheckedUpdateWithoutManagedMembersInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -1681,6 +1838,10 @@ export type UserUncheckedUpdateWithoutManagedMembersInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateWithoutAssignedSheetsInput = {
@@ -1713,6 +1874,7 @@ export type UserCreateWithoutAssignedSheetsInput = {
   receivedMessages?: Prisma.MessageCreateNestedManyWithoutRecipientInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -1722,6 +1884,10 @@ export type UserCreateWithoutAssignedSheetsInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutAssignedSheetsInput = {
@@ -1754,6 +1920,7 @@ export type UserUncheckedCreateWithoutAssignedSheetsInput = {
   receivedMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutRecipientInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -1763,6 +1930,10 @@ export type UserUncheckedCreateWithoutAssignedSheetsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutAssignedSheetsInput = {
@@ -1811,6 +1982,7 @@ export type UserUpdateWithoutAssignedSheetsInput = {
   receivedMessages?: Prisma.MessageUpdateManyWithoutRecipientNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -1820,6 +1992,10 @@ export type UserUpdateWithoutAssignedSheetsInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAssignedSheetsInput = {
@@ -1852,6 +2028,7 @@ export type UserUncheckedUpdateWithoutAssignedSheetsInput = {
   receivedMessages?: Prisma.MessageUncheckedUpdateManyWithoutRecipientNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -1861,6 +2038,10 @@ export type UserUncheckedUpdateWithoutAssignedSheetsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateWithoutProjectsInput = {
@@ -1893,6 +2074,7 @@ export type UserCreateWithoutProjectsInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -1902,6 +2084,10 @@ export type UserCreateWithoutProjectsInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutProjectsInput = {
@@ -1934,6 +2120,7 @@ export type UserUncheckedCreateWithoutProjectsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -1943,6 +2130,10 @@ export type UserUncheckedCreateWithoutProjectsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutProjectsInput = {
@@ -1991,6 +2182,7 @@ export type UserUpdateWithoutProjectsInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -2000,6 +2192,10 @@ export type UserUpdateWithoutProjectsInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectsInput = {
@@ -2032,6 +2228,7 @@ export type UserUncheckedUpdateWithoutProjectsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -2041,6 +2238,10 @@ export type UserUncheckedUpdateWithoutProjectsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateWithoutAssignedSubtasksInput = {
@@ -2074,6 +2275,7 @@ export type UserCreateWithoutAssignedSubtasksInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
   createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
@@ -2082,6 +2284,10 @@ export type UserCreateWithoutAssignedSubtasksInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutAssignedSubtasksInput = {
@@ -2115,6 +2321,7 @@ export type UserUncheckedCreateWithoutAssignedSubtasksInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
   createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2123,6 +2330,10 @@ export type UserUncheckedCreateWithoutAssignedSubtasksInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutAssignedSubtasksInput = {
@@ -2172,6 +2383,7 @@ export type UserUpdateWithoutAssignedSubtasksInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
   createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
@@ -2180,6 +2392,10 @@ export type UserUpdateWithoutAssignedSubtasksInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAssignedSubtasksInput = {
@@ -2213,6 +2429,7 @@ export type UserUncheckedUpdateWithoutAssignedSubtasksInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
   createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2221,6 +2438,10 @@ export type UserUncheckedUpdateWithoutAssignedSubtasksInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateWithoutAssignedTasksInput = {
@@ -2253,6 +2474,7 @@ export type UserCreateWithoutAssignedTasksInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -2262,6 +2484,10 @@ export type UserCreateWithoutAssignedTasksInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutAssignedTasksInput = {
@@ -2294,6 +2520,7 @@ export type UserUncheckedCreateWithoutAssignedTasksInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -2303,6 +2530,10 @@ export type UserUncheckedCreateWithoutAssignedTasksInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutAssignedTasksInput = {
@@ -2351,6 +2582,7 @@ export type UserUpdateWithoutAssignedTasksInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -2360,6 +2592,10 @@ export type UserUpdateWithoutAssignedTasksInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAssignedTasksInput = {
@@ -2392,6 +2628,7 @@ export type UserUncheckedUpdateWithoutAssignedTasksInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -2401,6 +2638,10 @@ export type UserUncheckedUpdateWithoutAssignedTasksInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateWithoutTimeEntriesInput = {
@@ -2433,6 +2674,7 @@ export type UserCreateWithoutTimeEntriesInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -2442,6 +2684,10 @@ export type UserCreateWithoutTimeEntriesInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutTimeEntriesInput = {
@@ -2474,6 +2720,7 @@ export type UserUncheckedCreateWithoutTimeEntriesInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -2483,6 +2730,10 @@ export type UserUncheckedCreateWithoutTimeEntriesInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutTimeEntriesInput = {
@@ -2531,6 +2782,7 @@ export type UserUpdateWithoutTimeEntriesInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -2540,6 +2792,10 @@ export type UserUpdateWithoutTimeEntriesInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTimeEntriesInput = {
@@ -2572,6 +2828,7 @@ export type UserUncheckedUpdateWithoutTimeEntriesInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -2581,6 +2838,810 @@ export type UserUncheckedUpdateWithoutTimeEntriesInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
+}
+
+export type UserCreateWithoutAttendanceInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  imageKey?: string | null
+  passwordHash?: string | null
+  designation?: string | null
+  phone?: string | null
+  hourlyRate?: number
+  monthlyHours?: number
+  joinedAt?: Date | string
+  lastLoginAt?: Date | string | null
+  disabledAt?: Date | string | null
+  theme?: $Enums.Theme
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  lastWorkspace?: Prisma.WorkspaceCreateNestedOneWithoutLastActiveUsersInput
+  workspaceMemberships?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectMemberCreateNestedManyWithoutUserInput
+  assignedTasks?: Prisma.TaskAssigneeCreateNestedManyWithoutUserInput
+  timeEntries?: Prisma.TimeEntryCreateNestedManyWithoutUserInput
+  activity?: Prisma.ActivityEntryCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  receivedMessages?: Prisma.MessageCreateNestedManyWithoutRecipientInput
+  assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
+  runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
+  uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
+  assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
+  createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
+  managedMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutManagerInput
+  sentInvitations?: Prisma.InvitationCreateNestedManyWithoutInvitedByInput
+  removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
+  removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
+  eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
+}
+
+export type UserUncheckedCreateWithoutAttendanceInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  imageKey?: string | null
+  passwordHash?: string | null
+  lastWorkspaceId?: string | null
+  designation?: string | null
+  phone?: string | null
+  hourlyRate?: number
+  monthlyHours?: number
+  joinedAt?: Date | string
+  lastLoginAt?: Date | string | null
+  disabledAt?: Date | string | null
+  theme?: $Enums.Theme
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedTasks?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutUserInput
+  timeEntries?: Prisma.TimeEntryUncheckedCreateNestedManyWithoutUserInput
+  activity?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  receivedMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutRecipientInput
+  assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
+  runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
+  uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
+  assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
+  createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
+  managedMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutManagerInput
+  sentInvitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
+  removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
+  eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
+}
+
+export type UserCreateOrConnectWithoutAttendanceInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAttendanceInput, Prisma.UserUncheckedCreateWithoutAttendanceInput>
+}
+
+export type UserCreateWithoutRecordedAttendanceInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  imageKey?: string | null
+  passwordHash?: string | null
+  designation?: string | null
+  phone?: string | null
+  hourlyRate?: number
+  monthlyHours?: number
+  joinedAt?: Date | string
+  lastLoginAt?: Date | string | null
+  disabledAt?: Date | string | null
+  theme?: $Enums.Theme
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  lastWorkspace?: Prisma.WorkspaceCreateNestedOneWithoutLastActiveUsersInput
+  workspaceMemberships?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectMemberCreateNestedManyWithoutUserInput
+  assignedTasks?: Prisma.TaskAssigneeCreateNestedManyWithoutUserInput
+  timeEntries?: Prisma.TimeEntryCreateNestedManyWithoutUserInput
+  activity?: Prisma.ActivityEntryCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  receivedMessages?: Prisma.MessageCreateNestedManyWithoutRecipientInput
+  assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
+  runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
+  uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
+  assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
+  createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
+  managedMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutManagerInput
+  sentInvitations?: Prisma.InvitationCreateNestedManyWithoutInvitedByInput
+  removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
+  removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
+  eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
+}
+
+export type UserUncheckedCreateWithoutRecordedAttendanceInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  imageKey?: string | null
+  passwordHash?: string | null
+  lastWorkspaceId?: string | null
+  designation?: string | null
+  phone?: string | null
+  hourlyRate?: number
+  monthlyHours?: number
+  joinedAt?: Date | string
+  lastLoginAt?: Date | string | null
+  disabledAt?: Date | string | null
+  theme?: $Enums.Theme
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedTasks?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutUserInput
+  timeEntries?: Prisma.TimeEntryUncheckedCreateNestedManyWithoutUserInput
+  activity?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  receivedMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutRecipientInput
+  assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
+  runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
+  uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
+  assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
+  createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
+  managedMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutManagerInput
+  sentInvitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
+  removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
+  eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
+}
+
+export type UserCreateOrConnectWithoutRecordedAttendanceInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutRecordedAttendanceInput, Prisma.UserUncheckedCreateWithoutRecordedAttendanceInput>
+}
+
+export type UserUpsertWithoutAttendanceInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAttendanceInput, Prisma.UserUncheckedUpdateWithoutAttendanceInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAttendanceInput, Prisma.UserUncheckedCreateWithoutAttendanceInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAttendanceInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAttendanceInput, Prisma.UserUncheckedUpdateWithoutAttendanceInput>
+}
+
+export type UserUpdateWithoutAttendanceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hourlyRate?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyHours?: Prisma.IntFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  theme?: Prisma.EnumThemeFieldUpdateOperationsInput | $Enums.Theme
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  lastWorkspace?: Prisma.WorkspaceUpdateOneWithoutLastActiveUsersNestedInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectMemberUpdateManyWithoutUserNestedInput
+  assignedTasks?: Prisma.TaskAssigneeUpdateManyWithoutUserNestedInput
+  timeEntries?: Prisma.TimeEntryUpdateManyWithoutUserNestedInput
+  activity?: Prisma.ActivityEntryUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  receivedMessages?: Prisma.MessageUpdateManyWithoutRecipientNestedInput
+  assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
+  runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
+  uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
+  assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
+  createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
+  managedMembers?: Prisma.WorkspaceMemberUpdateManyWithoutManagerNestedInput
+  sentInvitations?: Prisma.InvitationUpdateManyWithoutInvitedByNestedInput
+  removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
+  removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
+  eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAttendanceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastWorkspaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hourlyRate?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyHours?: Prisma.IntFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  theme?: Prisma.EnumThemeFieldUpdateOperationsInput | $Enums.Theme
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedTasks?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutUserNestedInput
+  timeEntries?: Prisma.TimeEntryUncheckedUpdateManyWithoutUserNestedInput
+  activity?: Prisma.ActivityEntryUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  receivedMessages?: Prisma.MessageUncheckedUpdateManyWithoutRecipientNestedInput
+  assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
+  runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
+  uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
+  assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
+  createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
+  managedMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutManagerNestedInput
+  sentInvitations?: Prisma.InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
+  removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
+  eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
+}
+
+export type UserUpsertWithoutRecordedAttendanceInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutRecordedAttendanceInput, Prisma.UserUncheckedUpdateWithoutRecordedAttendanceInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutRecordedAttendanceInput, Prisma.UserUncheckedCreateWithoutRecordedAttendanceInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutRecordedAttendanceInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutRecordedAttendanceInput, Prisma.UserUncheckedUpdateWithoutRecordedAttendanceInput>
+}
+
+export type UserUpdateWithoutRecordedAttendanceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hourlyRate?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyHours?: Prisma.IntFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  theme?: Prisma.EnumThemeFieldUpdateOperationsInput | $Enums.Theme
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  lastWorkspace?: Prisma.WorkspaceUpdateOneWithoutLastActiveUsersNestedInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectMemberUpdateManyWithoutUserNestedInput
+  assignedTasks?: Prisma.TaskAssigneeUpdateManyWithoutUserNestedInput
+  timeEntries?: Prisma.TimeEntryUpdateManyWithoutUserNestedInput
+  activity?: Prisma.ActivityEntryUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  receivedMessages?: Prisma.MessageUpdateManyWithoutRecipientNestedInput
+  assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
+  runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
+  uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
+  assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
+  createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
+  managedMembers?: Prisma.WorkspaceMemberUpdateManyWithoutManagerNestedInput
+  sentInvitations?: Prisma.InvitationUpdateManyWithoutInvitedByNestedInput
+  removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
+  removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
+  eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutRecordedAttendanceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastWorkspaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hourlyRate?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyHours?: Prisma.IntFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  theme?: Prisma.EnumThemeFieldUpdateOperationsInput | $Enums.Theme
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedTasks?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutUserNestedInput
+  timeEntries?: Prisma.TimeEntryUncheckedUpdateManyWithoutUserNestedInput
+  activity?: Prisma.ActivityEntryUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  receivedMessages?: Prisma.MessageUncheckedUpdateManyWithoutRecipientNestedInput
+  assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
+  runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
+  uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
+  assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
+  createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
+  managedMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutManagerNestedInput
+  sentInvitations?: Prisma.InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
+  removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
+  eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
+}
+
+export type UserCreateWithoutWorkSchedulesInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  imageKey?: string | null
+  passwordHash?: string | null
+  designation?: string | null
+  phone?: string | null
+  hourlyRate?: number
+  monthlyHours?: number
+  joinedAt?: Date | string
+  lastLoginAt?: Date | string | null
+  disabledAt?: Date | string | null
+  theme?: $Enums.Theme
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  lastWorkspace?: Prisma.WorkspaceCreateNestedOneWithoutLastActiveUsersInput
+  workspaceMemberships?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectMemberCreateNestedManyWithoutUserInput
+  assignedTasks?: Prisma.TaskAssigneeCreateNestedManyWithoutUserInput
+  timeEntries?: Prisma.TimeEntryCreateNestedManyWithoutUserInput
+  activity?: Prisma.ActivityEntryCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  receivedMessages?: Prisma.MessageCreateNestedManyWithoutRecipientInput
+  assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
+  runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
+  uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
+  assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
+  createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
+  managedMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutManagerInput
+  sentInvitations?: Prisma.InvitationCreateNestedManyWithoutInvitedByInput
+  removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
+  removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
+  eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
+}
+
+export type UserUncheckedCreateWithoutWorkSchedulesInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  imageKey?: string | null
+  passwordHash?: string | null
+  lastWorkspaceId?: string | null
+  designation?: string | null
+  phone?: string | null
+  hourlyRate?: number
+  monthlyHours?: number
+  joinedAt?: Date | string
+  lastLoginAt?: Date | string | null
+  disabledAt?: Date | string | null
+  theme?: $Enums.Theme
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedTasks?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutUserInput
+  timeEntries?: Prisma.TimeEntryUncheckedCreateNestedManyWithoutUserInput
+  activity?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  receivedMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutRecipientInput
+  assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
+  runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
+  uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
+  assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
+  createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
+  managedMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutManagerInput
+  sentInvitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
+  removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
+  eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
+}
+
+export type UserCreateOrConnectWithoutWorkSchedulesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutWorkSchedulesInput, Prisma.UserUncheckedCreateWithoutWorkSchedulesInput>
+}
+
+export type UserCreateWithoutAssignedSchedulesInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  imageKey?: string | null
+  passwordHash?: string | null
+  designation?: string | null
+  phone?: string | null
+  hourlyRate?: number
+  monthlyHours?: number
+  joinedAt?: Date | string
+  lastLoginAt?: Date | string | null
+  disabledAt?: Date | string | null
+  theme?: $Enums.Theme
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  lastWorkspace?: Prisma.WorkspaceCreateNestedOneWithoutLastActiveUsersInput
+  workspaceMemberships?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectMemberCreateNestedManyWithoutUserInput
+  assignedTasks?: Prisma.TaskAssigneeCreateNestedManyWithoutUserInput
+  timeEntries?: Prisma.TimeEntryCreateNestedManyWithoutUserInput
+  activity?: Prisma.ActivityEntryCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  receivedMessages?: Prisma.MessageCreateNestedManyWithoutRecipientInput
+  assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
+  runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
+  uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
+  assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
+  createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
+  managedMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutManagerInput
+  sentInvitations?: Prisma.InvitationCreateNestedManyWithoutInvitedByInput
+  removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
+  removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
+  eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutAssignedSchedulesInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  imageKey?: string | null
+  passwordHash?: string | null
+  lastWorkspaceId?: string | null
+  designation?: string | null
+  phone?: string | null
+  hourlyRate?: number
+  monthlyHours?: number
+  joinedAt?: Date | string
+  lastLoginAt?: Date | string | null
+  disabledAt?: Date | string | null
+  theme?: $Enums.Theme
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedTasks?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutUserInput
+  timeEntries?: Prisma.TimeEntryUncheckedCreateNestedManyWithoutUserInput
+  activity?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  receivedMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutRecipientInput
+  assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
+  runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
+  uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
+  assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
+  createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
+  managedMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutManagerInput
+  sentInvitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
+  removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
+  eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutAssignedSchedulesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAssignedSchedulesInput, Prisma.UserUncheckedCreateWithoutAssignedSchedulesInput>
+}
+
+export type UserUpsertWithoutWorkSchedulesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutWorkSchedulesInput, Prisma.UserUncheckedUpdateWithoutWorkSchedulesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutWorkSchedulesInput, Prisma.UserUncheckedCreateWithoutWorkSchedulesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutWorkSchedulesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutWorkSchedulesInput, Prisma.UserUncheckedUpdateWithoutWorkSchedulesInput>
+}
+
+export type UserUpdateWithoutWorkSchedulesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hourlyRate?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyHours?: Prisma.IntFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  theme?: Prisma.EnumThemeFieldUpdateOperationsInput | $Enums.Theme
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  lastWorkspace?: Prisma.WorkspaceUpdateOneWithoutLastActiveUsersNestedInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectMemberUpdateManyWithoutUserNestedInput
+  assignedTasks?: Prisma.TaskAssigneeUpdateManyWithoutUserNestedInput
+  timeEntries?: Prisma.TimeEntryUpdateManyWithoutUserNestedInput
+  activity?: Prisma.ActivityEntryUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  receivedMessages?: Prisma.MessageUpdateManyWithoutRecipientNestedInput
+  assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
+  runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
+  uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
+  assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
+  createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
+  managedMembers?: Prisma.WorkspaceMemberUpdateManyWithoutManagerNestedInput
+  sentInvitations?: Prisma.InvitationUpdateManyWithoutInvitedByNestedInput
+  removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
+  removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
+  eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutWorkSchedulesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastWorkspaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hourlyRate?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyHours?: Prisma.IntFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  theme?: Prisma.EnumThemeFieldUpdateOperationsInput | $Enums.Theme
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedTasks?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutUserNestedInput
+  timeEntries?: Prisma.TimeEntryUncheckedUpdateManyWithoutUserNestedInput
+  activity?: Prisma.ActivityEntryUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  receivedMessages?: Prisma.MessageUncheckedUpdateManyWithoutRecipientNestedInput
+  assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
+  runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
+  uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
+  assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
+  createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
+  managedMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutManagerNestedInput
+  sentInvitations?: Prisma.InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
+  removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
+  eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
+}
+
+export type UserUpsertWithoutAssignedSchedulesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAssignedSchedulesInput, Prisma.UserUncheckedUpdateWithoutAssignedSchedulesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAssignedSchedulesInput, Prisma.UserUncheckedCreateWithoutAssignedSchedulesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAssignedSchedulesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAssignedSchedulesInput, Prisma.UserUncheckedUpdateWithoutAssignedSchedulesInput>
+}
+
+export type UserUpdateWithoutAssignedSchedulesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hourlyRate?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyHours?: Prisma.IntFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  theme?: Prisma.EnumThemeFieldUpdateOperationsInput | $Enums.Theme
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  lastWorkspace?: Prisma.WorkspaceUpdateOneWithoutLastActiveUsersNestedInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectMemberUpdateManyWithoutUserNestedInput
+  assignedTasks?: Prisma.TaskAssigneeUpdateManyWithoutUserNestedInput
+  timeEntries?: Prisma.TimeEntryUpdateManyWithoutUserNestedInput
+  activity?: Prisma.ActivityEntryUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  receivedMessages?: Prisma.MessageUpdateManyWithoutRecipientNestedInput
+  assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
+  runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
+  uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
+  assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
+  createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
+  managedMembers?: Prisma.WorkspaceMemberUpdateManyWithoutManagerNestedInput
+  sentInvitations?: Prisma.InvitationUpdateManyWithoutInvitedByNestedInput
+  removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
+  removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
+  eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAssignedSchedulesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastWorkspaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hourlyRate?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyHours?: Prisma.IntFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  theme?: Prisma.EnumThemeFieldUpdateOperationsInput | $Enums.Theme
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedTasks?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutUserNestedInput
+  timeEntries?: Prisma.TimeEntryUncheckedUpdateManyWithoutUserNestedInput
+  activity?: Prisma.ActivityEntryUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  receivedMessages?: Prisma.MessageUncheckedUpdateManyWithoutRecipientNestedInput
+  assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
+  runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
+  uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
+  assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
+  createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
+  managedMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutManagerNestedInput
+  sentInvitations?: Prisma.InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
+  removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
+  eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSentMessagesInput = {
@@ -2613,6 +3674,7 @@ export type UserCreateWithoutSentMessagesInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -2622,6 +3684,10 @@ export type UserCreateWithoutSentMessagesInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutSentMessagesInput = {
@@ -2654,6 +3720,7 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -2663,6 +3730,10 @@ export type UserUncheckedCreateWithoutSentMessagesInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutSentMessagesInput = {
@@ -2700,6 +3771,7 @@ export type UserCreateWithoutReceivedMessagesInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -2709,6 +3781,10 @@ export type UserCreateWithoutReceivedMessagesInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutReceivedMessagesInput = {
@@ -2741,6 +3817,7 @@ export type UserUncheckedCreateWithoutReceivedMessagesInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -2750,6 +3827,10 @@ export type UserUncheckedCreateWithoutReceivedMessagesInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutReceivedMessagesInput = {
@@ -2798,6 +3879,7 @@ export type UserUpdateWithoutSentMessagesInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -2807,6 +3889,10 @@ export type UserUpdateWithoutSentMessagesInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentMessagesInput = {
@@ -2839,6 +3925,7 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -2848,6 +3935,10 @@ export type UserUncheckedUpdateWithoutSentMessagesInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUpsertWithoutReceivedMessagesInput = {
@@ -2891,6 +3982,7 @@ export type UserUpdateWithoutReceivedMessagesInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -2900,6 +3992,10 @@ export type UserUpdateWithoutReceivedMessagesInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReceivedMessagesInput = {
@@ -2932,6 +4028,7 @@ export type UserUncheckedUpdateWithoutReceivedMessagesInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -2941,6 +4038,10 @@ export type UserUncheckedUpdateWithoutReceivedMessagesInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateWithoutActivityInput = {
@@ -2973,6 +4074,7 @@ export type UserCreateWithoutActivityInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -2982,6 +4084,10 @@ export type UserCreateWithoutActivityInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutActivityInput = {
@@ -3014,6 +4120,7 @@ export type UserUncheckedCreateWithoutActivityInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -3023,6 +4130,10 @@ export type UserUncheckedCreateWithoutActivityInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutActivityInput = {
@@ -3071,6 +4182,7 @@ export type UserUpdateWithoutActivityInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -3080,6 +4192,10 @@ export type UserUpdateWithoutActivityInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActivityInput = {
@@ -3112,6 +4228,7 @@ export type UserUncheckedUpdateWithoutActivityInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -3121,6 +4238,10 @@ export type UserUncheckedUpdateWithoutActivityInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -3154,6 +4275,7 @@ export type UserCreateWithoutNotificationsInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
   createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
@@ -3162,6 +4284,10 @@ export type UserCreateWithoutNotificationsInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -3195,6 +4321,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
   createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3203,6 +4330,10 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -3241,6 +4372,7 @@ export type UserCreateWithoutCausedNotificationsInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
@@ -3249,6 +4381,10 @@ export type UserCreateWithoutCausedNotificationsInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutCausedNotificationsInput = {
@@ -3282,6 +4418,7 @@ export type UserUncheckedCreateWithoutCausedNotificationsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3290,6 +4427,10 @@ export type UserUncheckedCreateWithoutCausedNotificationsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutCausedNotificationsInput = {
@@ -3339,6 +4480,7 @@ export type UserUpdateWithoutNotificationsInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
   createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
@@ -3347,6 +4489,10 @@ export type UserUpdateWithoutNotificationsInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -3380,6 +4526,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
   createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3388,6 +4535,10 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUpsertWithoutCausedNotificationsInput = {
@@ -3432,6 +4583,7 @@ export type UserUpdateWithoutCausedNotificationsInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
@@ -3440,6 +4592,10 @@ export type UserUpdateWithoutCausedNotificationsInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCausedNotificationsInput = {
@@ -3473,6 +4629,7 @@ export type UserUncheckedUpdateWithoutCausedNotificationsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3481,6 +4638,10 @@ export type UserUncheckedUpdateWithoutCausedNotificationsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -3513,6 +4674,7 @@ export type UserCreateWithoutAccountsInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -3522,6 +4684,10 @@ export type UserCreateWithoutAccountsInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -3554,6 +4720,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -3563,6 +4730,10 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -3611,6 +4782,7 @@ export type UserUpdateWithoutAccountsInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -3620,6 +4792,10 @@ export type UserUpdateWithoutAccountsInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -3652,6 +4828,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -3661,6 +4838,10 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -3693,6 +4874,7 @@ export type UserCreateWithoutSessionsInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -3702,6 +4884,10 @@ export type UserCreateWithoutSessionsInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -3734,6 +4920,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -3743,6 +4930,10 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -3791,6 +4982,7 @@ export type UserUpdateWithoutSessionsInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -3800,6 +4992,10 @@ export type UserUpdateWithoutSessionsInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -3832,6 +5028,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -3841,6 +5038,10 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateWithoutRunningTimerInput = {
@@ -3873,6 +5074,7 @@ export type UserCreateWithoutRunningTimerInput = {
   receivedMessages?: Prisma.MessageCreateNestedManyWithoutRecipientInput
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -3882,6 +5084,10 @@ export type UserCreateWithoutRunningTimerInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutRunningTimerInput = {
@@ -3914,6 +5120,7 @@ export type UserUncheckedCreateWithoutRunningTimerInput = {
   receivedMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutRecipientInput
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -3923,6 +5130,10 @@ export type UserUncheckedCreateWithoutRunningTimerInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutRunningTimerInput = {
@@ -3971,6 +5182,7 @@ export type UserUpdateWithoutRunningTimerInput = {
   receivedMessages?: Prisma.MessageUpdateManyWithoutRecipientNestedInput
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -3980,6 +5192,10 @@ export type UserUpdateWithoutRunningTimerInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRunningTimerInput = {
@@ -4012,6 +5228,7 @@ export type UserUncheckedUpdateWithoutRunningTimerInput = {
   receivedMessages?: Prisma.MessageUncheckedUpdateManyWithoutRecipientNestedInput
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -4021,6 +5238,10 @@ export type UserUncheckedUpdateWithoutRunningTimerInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateWithoutUploadedAttachmentsInput = {
@@ -4053,6 +5274,7 @@ export type UserCreateWithoutUploadedAttachmentsInput = {
   receivedMessages?: Prisma.MessageCreateNestedManyWithoutRecipientInput
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -4062,6 +5284,10 @@ export type UserCreateWithoutUploadedAttachmentsInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutUploadedAttachmentsInput = {
@@ -4094,6 +5320,7 @@ export type UserUncheckedCreateWithoutUploadedAttachmentsInput = {
   receivedMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutRecipientInput
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -4103,6 +5330,10 @@ export type UserUncheckedCreateWithoutUploadedAttachmentsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutUploadedAttachmentsInput = {
@@ -4151,6 +5382,7 @@ export type UserUpdateWithoutUploadedAttachmentsInput = {
   receivedMessages?: Prisma.MessageUpdateManyWithoutRecipientNestedInput
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -4160,6 +5392,10 @@ export type UserUpdateWithoutUploadedAttachmentsInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutUploadedAttachmentsInput = {
@@ -4192,6 +5428,7 @@ export type UserUncheckedUpdateWithoutUploadedAttachmentsInput = {
   receivedMessages?: Prisma.MessageUncheckedUpdateManyWithoutRecipientNestedInput
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -4201,9 +5438,13 @@ export type UserUncheckedUpdateWithoutUploadedAttachmentsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
-export type UserCreateWithoutCreatedEventsInput = {
+export type UserCreateWithoutUploadedFilesInput = {
   id?: string
   name: string
   email: string
@@ -4237,14 +5478,19 @@ export type UserCreateWithoutCreatedEventsInput = {
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
+  createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
   managedMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutManagerInput
   sentInvitations?: Prisma.InvitationCreateNestedManyWithoutInvitedByInput
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
-export type UserUncheckedCreateWithoutCreatedEventsInput = {
+export type UserUncheckedCreateWithoutUploadedFilesInput = {
   id?: string
   name: string
   email: string
@@ -4278,11 +5524,216 @@ export type UserUncheckedCreateWithoutCreatedEventsInput = {
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
+  createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
   managedMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutManagerInput
   sentInvitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutInvitedByInput
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
+}
+
+export type UserCreateOrConnectWithoutUploadedFilesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutUploadedFilesInput, Prisma.UserUncheckedCreateWithoutUploadedFilesInput>
+}
+
+export type UserUpsertWithoutUploadedFilesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutUploadedFilesInput, Prisma.UserUncheckedUpdateWithoutUploadedFilesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutUploadedFilesInput, Prisma.UserUncheckedCreateWithoutUploadedFilesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutUploadedFilesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutUploadedFilesInput, Prisma.UserUncheckedUpdateWithoutUploadedFilesInput>
+}
+
+export type UserUpdateWithoutUploadedFilesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hourlyRate?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyHours?: Prisma.IntFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  theme?: Prisma.EnumThemeFieldUpdateOperationsInput | $Enums.Theme
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  lastWorkspace?: Prisma.WorkspaceUpdateOneWithoutLastActiveUsersNestedInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectMemberUpdateManyWithoutUserNestedInput
+  assignedTasks?: Prisma.TaskAssigneeUpdateManyWithoutUserNestedInput
+  timeEntries?: Prisma.TimeEntryUpdateManyWithoutUserNestedInput
+  activity?: Prisma.ActivityEntryUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+  receivedMessages?: Prisma.MessageUpdateManyWithoutRecipientNestedInput
+  assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
+  runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
+  uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
+  createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
+  managedMembers?: Prisma.WorkspaceMemberUpdateManyWithoutManagerNestedInput
+  sentInvitations?: Prisma.InvitationUpdateManyWithoutInvitedByNestedInput
+  removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
+  removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
+  eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutUploadedFilesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastWorkspaceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  designation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hourlyRate?: Prisma.IntFieldUpdateOperationsInput | number
+  monthlyHours?: Prisma.IntFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disabledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  theme?: Prisma.EnumThemeFieldUpdateOperationsInput | $Enums.Theme
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedTasks?: Prisma.TaskAssigneeUncheckedUpdateManyWithoutUserNestedInput
+  timeEntries?: Prisma.TimeEntryUncheckedUpdateManyWithoutUserNestedInput
+  activity?: Prisma.ActivityEntryUncheckedUpdateManyWithoutUserNestedInput
+  sentMessages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+  receivedMessages?: Prisma.MessageUncheckedUpdateManyWithoutRecipientNestedInput
+  assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
+  runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
+  uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
+  createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
+  managedMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutManagerNestedInput
+  sentInvitations?: Prisma.InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
+  removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
+  eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
+}
+
+export type UserCreateWithoutCreatedEventsInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  imageKey?: string | null
+  passwordHash?: string | null
+  designation?: string | null
+  phone?: string | null
+  hourlyRate?: number
+  monthlyHours?: number
+  joinedAt?: Date | string
+  lastLoginAt?: Date | string | null
+  disabledAt?: Date | string | null
+  theme?: $Enums.Theme
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  lastWorkspace?: Prisma.WorkspaceCreateNestedOneWithoutLastActiveUsersInput
+  workspaceMemberships?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectMemberCreateNestedManyWithoutUserInput
+  assignedTasks?: Prisma.TaskAssigneeCreateNestedManyWithoutUserInput
+  timeEntries?: Prisma.TimeEntryCreateNestedManyWithoutUserInput
+  activity?: Prisma.ActivityEntryCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+  receivedMessages?: Prisma.MessageCreateNestedManyWithoutRecipientInput
+  assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
+  runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
+  uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
+  assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
+  managedMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutManagerInput
+  sentInvitations?: Prisma.InvitationCreateNestedManyWithoutInvitedByInput
+  removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
+  removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
+  eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
+}
+
+export type UserUncheckedCreateWithoutCreatedEventsInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: Date | string | null
+  image?: string | null
+  imageKey?: string | null
+  passwordHash?: string | null
+  lastWorkspaceId?: string | null
+  designation?: string | null
+  phone?: string | null
+  hourlyRate?: number
+  monthlyHours?: number
+  joinedAt?: Date | string
+  lastLoginAt?: Date | string | null
+  disabledAt?: Date | string | null
+  theme?: $Enums.Theme
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  workspaceMemberships?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedTasks?: Prisma.TaskAssigneeUncheckedCreateNestedManyWithoutUserInput
+  timeEntries?: Prisma.TimeEntryUncheckedCreateNestedManyWithoutUserInput
+  activity?: Prisma.ActivityEntryUncheckedCreateNestedManyWithoutUserInput
+  sentMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+  receivedMessages?: Prisma.MessageUncheckedCreateNestedManyWithoutRecipientInput
+  assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
+  runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
+  uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
+  assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
+  managedMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutManagerInput
+  sentInvitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
+  removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
+  eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedEventsInput = {
@@ -4332,6 +5783,7 @@ export type UserUpdateWithoutCreatedEventsInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -4340,6 +5792,10 @@ export type UserUpdateWithoutCreatedEventsInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedEventsInput = {
@@ -4373,6 +5829,7 @@ export type UserUncheckedUpdateWithoutCreatedEventsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -4381,6 +5838,10 @@ export type UserUncheckedUpdateWithoutCreatedEventsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateWithoutEventInvitesInput = {
@@ -4414,6 +5875,7 @@ export type UserCreateWithoutEventInvitesInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -4422,6 +5884,10 @@ export type UserCreateWithoutEventInvitesInput = {
   sentInvitations?: Prisma.InvitationCreateNestedManyWithoutInvitedByInput
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutEventInvitesInput = {
@@ -4455,6 +5921,7 @@ export type UserUncheckedCreateWithoutEventInvitesInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -4463,6 +5930,10 @@ export type UserUncheckedCreateWithoutEventInvitesInput = {
   sentInvitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutInvitedByInput
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutEventInvitesInput = {
@@ -4512,6 +5983,7 @@ export type UserUpdateWithoutEventInvitesInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -4520,6 +5992,10 @@ export type UserUpdateWithoutEventInvitesInput = {
   sentInvitations?: Prisma.InvitationUpdateManyWithoutInvitedByNestedInput
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEventInvitesInput = {
@@ -4553,6 +6029,7 @@ export type UserUncheckedUpdateWithoutEventInvitesInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -4561,6 +6038,10 @@ export type UserUncheckedUpdateWithoutEventInvitesInput = {
   sentInvitations?: Prisma.InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateWithoutSentInvitationsInput = {
@@ -4594,6 +6075,7 @@ export type UserCreateWithoutSentInvitationsInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -4602,6 +6084,10 @@ export type UserCreateWithoutSentInvitationsInput = {
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutSentInvitationsInput = {
@@ -4635,6 +6121,7 @@ export type UserUncheckedCreateWithoutSentInvitationsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -4643,6 +6130,10 @@ export type UserUncheckedCreateWithoutSentInvitationsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutSentInvitationsInput = {
@@ -4692,6 +6183,7 @@ export type UserUpdateWithoutSentInvitationsInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -4700,6 +6192,10 @@ export type UserUpdateWithoutSentInvitationsInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentInvitationsInput = {
@@ -4733,6 +6229,7 @@ export type UserUncheckedUpdateWithoutSentInvitationsInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -4741,6 +6238,10 @@ export type UserUncheckedUpdateWithoutSentInvitationsInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateWithoutRemovalRecordInput = {
@@ -4774,6 +6275,7 @@ export type UserCreateWithoutRemovalRecordInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -4782,6 +6284,10 @@ export type UserCreateWithoutRemovalRecordInput = {
   sentInvitations?: Prisma.InvitationCreateNestedManyWithoutInvitedByInput
   removalsPerformed?: Prisma.MemberRemovalCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutRemovalRecordInput = {
@@ -4815,6 +6321,7 @@ export type UserUncheckedCreateWithoutRemovalRecordInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -4823,6 +6330,10 @@ export type UserUncheckedCreateWithoutRemovalRecordInput = {
   sentInvitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutInvitedByInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutRemovedByInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutRemovalRecordInput = {
@@ -4861,6 +6372,7 @@ export type UserCreateWithoutRemovalsPerformedInput = {
   assignedSheets?: Prisma.ProjectSheetCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -4869,6 +6381,10 @@ export type UserCreateWithoutRemovalsPerformedInput = {
   sentInvitations?: Prisma.InvitationCreateNestedManyWithoutInvitedByInput
   removalRecord?: Prisma.MemberRemovalCreateNestedManyWithoutUserInput
   eventInvites?: Prisma.EventAttendeeCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserUncheckedCreateWithoutRemovalsPerformedInput = {
@@ -4902,6 +6418,7 @@ export type UserUncheckedCreateWithoutRemovalsPerformedInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedCreateNestedManyWithoutAssigneeInput
   runningTimer?: Prisma.TaskTimerUncheckedCreateNestedOneWithoutUserInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutUploadedByInput
+  uploadedFiles?: Prisma.FileUncheckedCreateNestedManyWithoutUploadedByInput
   assignedSubtasks?: Prisma.SubtaskUncheckedCreateNestedManyWithoutAssigneeInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   causedNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -4910,6 +6427,10 @@ export type UserUncheckedCreateWithoutRemovalsPerformedInput = {
   sentInvitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutInvitedByInput
   removalRecord?: Prisma.MemberRemovalUncheckedCreateNestedManyWithoutUserInput
   eventInvites?: Prisma.EventAttendeeUncheckedCreateNestedManyWithoutUserInput
+  attendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  recordedAttendance?: Prisma.AttendanceUncheckedCreateNestedManyWithoutRecordedByInput
+  workSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutUserInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedCreateNestedManyWithoutAssignedByInput
 }
 
 export type UserCreateOrConnectWithoutRemovalsPerformedInput = {
@@ -4959,6 +6480,7 @@ export type UserUpdateWithoutRemovalRecordInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -4967,6 +6489,10 @@ export type UserUpdateWithoutRemovalRecordInput = {
   sentInvitations?: Prisma.InvitationUpdateManyWithoutInvitedByNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRemovalRecordInput = {
@@ -5000,6 +6526,7 @@ export type UserUncheckedUpdateWithoutRemovalRecordInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -5008,6 +6535,10 @@ export type UserUncheckedUpdateWithoutRemovalRecordInput = {
   sentInvitations?: Prisma.InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUpsertWithoutRemovalsPerformedInput = {
@@ -5052,6 +6583,7 @@ export type UserUpdateWithoutRemovalsPerformedInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -5060,6 +6592,10 @@ export type UserUpdateWithoutRemovalsPerformedInput = {
   sentInvitations?: Prisma.InvitationUpdateManyWithoutInvitedByNestedInput
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRemovalsPerformedInput = {
@@ -5093,6 +6629,7 @@ export type UserUncheckedUpdateWithoutRemovalsPerformedInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -5101,6 +6638,10 @@ export type UserUncheckedUpdateWithoutRemovalsPerformedInput = {
   sentInvitations?: Prisma.InvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserCreateManyLastWorkspaceInput = {
@@ -5153,6 +6694,7 @@ export type UserUpdateWithoutLastWorkspaceInput = {
   assignedSheets?: Prisma.ProjectSheetUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -5162,6 +6704,10 @@ export type UserUpdateWithoutLastWorkspaceInput = {
   removalRecord?: Prisma.MemberRemovalUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLastWorkspaceInput = {
@@ -5194,6 +6740,7 @@ export type UserUncheckedUpdateWithoutLastWorkspaceInput = {
   assignedSheets?: Prisma.ProjectSheetUncheckedUpdateManyWithoutAssigneeNestedInput
   runningTimer?: Prisma.TaskTimerUncheckedUpdateOneWithoutUserNestedInput
   uploadedAttachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutUploadedByNestedInput
+  uploadedFiles?: Prisma.FileUncheckedUpdateManyWithoutUploadedByNestedInput
   assignedSubtasks?: Prisma.SubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   causedNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -5203,6 +6750,10 @@ export type UserUncheckedUpdateWithoutLastWorkspaceInput = {
   removalRecord?: Prisma.MemberRemovalUncheckedUpdateManyWithoutUserNestedInput
   removalsPerformed?: Prisma.MemberRemovalUncheckedUpdateManyWithoutRemovedByNestedInput
   eventInvites?: Prisma.EventAttendeeUncheckedUpdateManyWithoutUserNestedInput
+  attendance?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  recordedAttendance?: Prisma.AttendanceUncheckedUpdateManyWithoutRecordedByNestedInput
+  workSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutUserNestedInput
+  assignedSchedules?: Prisma.WorkScheduleUncheckedUpdateManyWithoutAssignedByNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutLastWorkspaceInput = {
@@ -5242,6 +6793,7 @@ export type UserCountOutputType = {
   receivedMessages: number
   assignedSheets: number
   uploadedAttachments: number
+  uploadedFiles: number
   assignedSubtasks: number
   notifications: number
   causedNotifications: number
@@ -5251,6 +6803,10 @@ export type UserCountOutputType = {
   removalRecord: number
   removalsPerformed: number
   eventInvites: number
+  attendance: number
+  recordedAttendance: number
+  workSchedules: number
+  assignedSchedules: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5265,6 +6821,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   receivedMessages?: boolean | UserCountOutputTypeCountReceivedMessagesArgs
   assignedSheets?: boolean | UserCountOutputTypeCountAssignedSheetsArgs
   uploadedAttachments?: boolean | UserCountOutputTypeCountUploadedAttachmentsArgs
+  uploadedFiles?: boolean | UserCountOutputTypeCountUploadedFilesArgs
   assignedSubtasks?: boolean | UserCountOutputTypeCountAssignedSubtasksArgs
   notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
   causedNotifications?: boolean | UserCountOutputTypeCountCausedNotificationsArgs
@@ -5274,6 +6831,10 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   removalRecord?: boolean | UserCountOutputTypeCountRemovalRecordArgs
   removalsPerformed?: boolean | UserCountOutputTypeCountRemovalsPerformedArgs
   eventInvites?: boolean | UserCountOutputTypeCountEventInvitesArgs
+  attendance?: boolean | UserCountOutputTypeCountAttendanceArgs
+  recordedAttendance?: boolean | UserCountOutputTypeCountRecordedAttendanceArgs
+  workSchedules?: boolean | UserCountOutputTypeCountWorkSchedulesArgs
+  assignedSchedules?: boolean | UserCountOutputTypeCountAssignedSchedulesArgs
 }
 
 /**
@@ -5366,6 +6927,13 @@ export type UserCountOutputTypeCountUploadedAttachmentsArgs<ExtArgs extends runt
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountUploadedFilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FileWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountAssignedSubtasksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.SubtaskWhereInput
 }
@@ -5426,6 +6994,34 @@ export type UserCountOutputTypeCountEventInvitesArgs<ExtArgs extends runtime.Typ
   where?: Prisma.EventAttendeeWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAttendanceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AttendanceWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountRecordedAttendanceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AttendanceWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountWorkSchedulesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WorkScheduleWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAssignedSchedulesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WorkScheduleWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -5459,6 +7055,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   assignedSheets?: boolean | Prisma.User$assignedSheetsArgs<ExtArgs>
   runningTimer?: boolean | Prisma.User$runningTimerArgs<ExtArgs>
   uploadedAttachments?: boolean | Prisma.User$uploadedAttachmentsArgs<ExtArgs>
+  uploadedFiles?: boolean | Prisma.User$uploadedFilesArgs<ExtArgs>
   assignedSubtasks?: boolean | Prisma.User$assignedSubtasksArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   causedNotifications?: boolean | Prisma.User$causedNotificationsArgs<ExtArgs>
@@ -5468,6 +7065,10 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   removalRecord?: boolean | Prisma.User$removalRecordArgs<ExtArgs>
   removalsPerformed?: boolean | Prisma.User$removalsPerformedArgs<ExtArgs>
   eventInvites?: boolean | Prisma.User$eventInvitesArgs<ExtArgs>
+  attendance?: boolean | Prisma.User$attendanceArgs<ExtArgs>
+  recordedAttendance?: boolean | Prisma.User$recordedAttendanceArgs<ExtArgs>
+  workSchedules?: boolean | Prisma.User$workSchedulesArgs<ExtArgs>
+  assignedSchedules?: boolean | Prisma.User$assignedSchedulesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -5509,6 +7110,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   assignedSheets?: boolean | Prisma.User$assignedSheetsArgs<ExtArgs>
   runningTimer?: boolean | Prisma.User$runningTimerArgs<ExtArgs>
   uploadedAttachments?: boolean | Prisma.User$uploadedAttachmentsArgs<ExtArgs>
+  uploadedFiles?: boolean | Prisma.User$uploadedFilesArgs<ExtArgs>
   assignedSubtasks?: boolean | Prisma.User$assignedSubtasksArgs<ExtArgs>
   notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   causedNotifications?: boolean | Prisma.User$causedNotificationsArgs<ExtArgs>
@@ -5518,6 +7120,10 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   removalRecord?: boolean | Prisma.User$removalRecordArgs<ExtArgs>
   removalsPerformed?: boolean | Prisma.User$removalsPerformedArgs<ExtArgs>
   eventInvites?: boolean | Prisma.User$eventInvitesArgs<ExtArgs>
+  attendance?: boolean | Prisma.User$attendanceArgs<ExtArgs>
+  recordedAttendance?: boolean | Prisma.User$recordedAttendanceArgs<ExtArgs>
+  workSchedules?: boolean | Prisma.User$workSchedulesArgs<ExtArgs>
+  assignedSchedules?: boolean | Prisma.User$assignedSchedulesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -5537,6 +7143,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     assignedSheets: Prisma.$ProjectSheetPayload<ExtArgs>[]
     runningTimer: Prisma.$TaskTimerPayload<ExtArgs> | null
     uploadedAttachments: Prisma.$TaskAttachmentPayload<ExtArgs>[]
+    uploadedFiles: Prisma.$FilePayload<ExtArgs>[]
     assignedSubtasks: Prisma.$SubtaskPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
     causedNotifications: Prisma.$NotificationPayload<ExtArgs>[]
@@ -5546,6 +7153,10 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     removalRecord: Prisma.$MemberRemovalPayload<ExtArgs>[]
     removalsPerformed: Prisma.$MemberRemovalPayload<ExtArgs>[]
     eventInvites: Prisma.$EventAttendeePayload<ExtArgs>[]
+    attendance: Prisma.$AttendancePayload<ExtArgs>[]
+    recordedAttendance: Prisma.$AttendancePayload<ExtArgs>[]
+    workSchedules: Prisma.$WorkSchedulePayload<ExtArgs>[]
+    assignedSchedules: Prisma.$WorkSchedulePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -5934,6 +7545,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   assignedSheets<T extends Prisma.User$assignedSheetsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$assignedSheetsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectSheetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   runningTimer<T extends Prisma.User$runningTimerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$runningTimerArgs<ExtArgs>>): Prisma.Prisma__TaskTimerClient<runtime.Types.Result.GetResult<Prisma.$TaskTimerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   uploadedAttachments<T extends Prisma.User$uploadedAttachmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$uploadedAttachmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskAttachmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  uploadedFiles<T extends Prisma.User$uploadedFilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$uploadedFilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   assignedSubtasks<T extends Prisma.User$assignedSubtasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$assignedSubtasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubtaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   causedNotifications<T extends Prisma.User$causedNotificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$causedNotificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -5943,6 +7555,10 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   removalRecord<T extends Prisma.User$removalRecordArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$removalRecordArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemberRemovalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   removalsPerformed<T extends Prisma.User$removalsPerformedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$removalsPerformedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MemberRemovalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   eventInvites<T extends Prisma.User$eventInvitesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$eventInvitesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventAttendeePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  attendance<T extends Prisma.User$attendanceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$attendanceArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  recordedAttendance<T extends Prisma.User$recordedAttendanceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$recordedAttendanceArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  workSchedules<T extends Prisma.User$workSchedulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$workSchedulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkSchedulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  assignedSchedules<T extends Prisma.User$assignedSchedulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$assignedSchedulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkSchedulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6640,6 +8256,30 @@ export type User$uploadedAttachmentsArgs<ExtArgs extends runtime.Types.Extension
 }
 
 /**
+ * User.uploadedFiles
+ */
+export type User$uploadedFilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the File
+   */
+  select?: Prisma.FileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the File
+   */
+  omit?: Prisma.FileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FileInclude<ExtArgs> | null
+  where?: Prisma.FileWhereInput
+  orderBy?: Prisma.FileOrderByWithRelationInput | Prisma.FileOrderByWithRelationInput[]
+  cursor?: Prisma.FileWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FileScalarFieldEnum | Prisma.FileScalarFieldEnum[]
+}
+
+/**
  * User.assignedSubtasks
  */
 export type User$assignedSubtasksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -6853,6 +8493,102 @@ export type User$eventInvitesArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.EventAttendeeScalarFieldEnum | Prisma.EventAttendeeScalarFieldEnum[]
+}
+
+/**
+ * User.attendance
+ */
+export type User$attendanceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Attendance
+   */
+  select?: Prisma.AttendanceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Attendance
+   */
+  omit?: Prisma.AttendanceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AttendanceInclude<ExtArgs> | null
+  where?: Prisma.AttendanceWhereInput
+  orderBy?: Prisma.AttendanceOrderByWithRelationInput | Prisma.AttendanceOrderByWithRelationInput[]
+  cursor?: Prisma.AttendanceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AttendanceScalarFieldEnum | Prisma.AttendanceScalarFieldEnum[]
+}
+
+/**
+ * User.recordedAttendance
+ */
+export type User$recordedAttendanceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Attendance
+   */
+  select?: Prisma.AttendanceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Attendance
+   */
+  omit?: Prisma.AttendanceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AttendanceInclude<ExtArgs> | null
+  where?: Prisma.AttendanceWhereInput
+  orderBy?: Prisma.AttendanceOrderByWithRelationInput | Prisma.AttendanceOrderByWithRelationInput[]
+  cursor?: Prisma.AttendanceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AttendanceScalarFieldEnum | Prisma.AttendanceScalarFieldEnum[]
+}
+
+/**
+ * User.workSchedules
+ */
+export type User$workSchedulesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WorkSchedule
+   */
+  select?: Prisma.WorkScheduleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WorkSchedule
+   */
+  omit?: Prisma.WorkScheduleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WorkScheduleInclude<ExtArgs> | null
+  where?: Prisma.WorkScheduleWhereInput
+  orderBy?: Prisma.WorkScheduleOrderByWithRelationInput | Prisma.WorkScheduleOrderByWithRelationInput[]
+  cursor?: Prisma.WorkScheduleWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WorkScheduleScalarFieldEnum | Prisma.WorkScheduleScalarFieldEnum[]
+}
+
+/**
+ * User.assignedSchedules
+ */
+export type User$assignedSchedulesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WorkSchedule
+   */
+  select?: Prisma.WorkScheduleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WorkSchedule
+   */
+  omit?: Prisma.WorkScheduleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WorkScheduleInclude<ExtArgs> | null
+  where?: Prisma.WorkScheduleWhereInput
+  orderBy?: Prisma.WorkScheduleOrderByWithRelationInput | Prisma.WorkScheduleOrderByWithRelationInput[]
+  cursor?: Prisma.WorkScheduleWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WorkScheduleScalarFieldEnum | Prisma.WorkScheduleScalarFieldEnum[]
 }
 
 /**

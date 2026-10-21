@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TaskDetail } from "@/components/projects/task-detail";
-import { validateR2Config } from "@/lib/r2-server";
 import {
   getLabels,
   getMembers,
@@ -12,7 +11,14 @@ import {
   getTaskEntries,
   getTaskSubtasks,
 } from "@/lib/queries";
-import { getSessionUser, hasPermission, projectScope, requireUser } from "@/lib/session";
+import {
+  getSessionUser,
+  hasPermission,
+  projectScope,
+  requireUser,
+  timeEntryScope,
+  viewerIsAdmin,
+} from "@/lib/session";
 
 export async function generateMetadata({
   params,
@@ -55,7 +61,7 @@ export default async function TaskDetailPage({
     canLog,
     canManageAnyTime,
   ] = await Promise.all([
-    getTaskEntries(viewer.workspaceId, task.id),
+    getTaskEntries(viewer.workspaceId, task.id, await timeEntryScope()),
     getTaskAttachments(viewer.workspaceId, task.id),
     getTaskSubtasks(viewer.workspaceId, task.id),
     getRunningTimer(viewer.workspaceId, viewer.id),
@@ -65,6 +71,13 @@ export default async function TaskDetailPage({
     hasPermission("time.log"),
     hasPermission("time.manage"),
   ]);
+
+  // The admin records time by hand, never by the clock. The account exists to
+  // administer the workspace rather than to do the work in it, so a running
+  // timer against it would be a figure nobody meant to produce — the manual
+  // form stays, so corrections are still possible. `startTimerAction` refuses
+  // the same account, because hiding a control is presentation, not a rule.
+  const canUseTimer = canLog && !(await viewerIsAdmin());
 
   return (
     <TaskDetail
@@ -77,10 +90,10 @@ export default async function TaskDetailPage({
       running={running}
       members={members}
       labels={labels}
-      r2Problems={validateR2Config().errors}
       viewerId={viewer.id}
       canManage={canManage}
       canLog={canLog}
+      canUseTimer={canUseTimer}
       canManageAnyTime={canManageAnyTime}
     />
   );

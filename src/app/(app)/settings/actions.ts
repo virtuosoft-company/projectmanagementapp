@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import type { Role } from "@/lib/domain";
+import { guardAdminCeiling } from "@/lib/admin";
 import { roleToDb } from "@/lib/mappers";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/session";
@@ -104,12 +105,19 @@ export async function inviteMemberAction(formData: FormData): Promise<ActionResu
   const existing = await prisma.user.findUnique({ where: { email: data.email } });
   if (existing) return { ok: false, error: "Someone already uses that email." };
 
+  // The fifth path that can mint an administrator, and the one the others' own
+  // guards do not cover.
+  const ceiling = await guardAdminCeiling(data.role as Role, null);
+  if (ceiling) return ceiling;
+
   await prisma.$transaction(async (tx) => {
     const created = await tx.user.create({
       data: {
         name: data.name,
         email: data.email,
-        passwordHash: data.password ? await bcrypt.hash(data.password, 12) : null,
+        // Never null. `inviteMemberSchema` now requires a password, because an
+        // account with a null hash can neither sign in nor be invited later.
+        passwordHash: await bcrypt.hash(data.password, 12),
         lastWorkspaceId: actor.workspaceId,
       },
     });

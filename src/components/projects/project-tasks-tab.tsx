@@ -27,6 +27,7 @@ export function ProjectTasksTab({
   today,
   canManage,
   canLog,
+  canUseTimer,
   subtasks,
   running,
 }: {
@@ -40,6 +41,8 @@ export function ProjectTasksTab({
   today: string;
   canManage: boolean;
   canLog: boolean;
+  /** `time.log` *and* not the admin account — may run the clock. */
+  canUseTimer: boolean;
   /** Every subtask in the project. */
   subtasks: Subtask[];
   running: RunningTimer | null;
@@ -72,6 +75,7 @@ export function ProjectTasksTab({
         today={today}
         canManage={canManage}
         canLog={canLog}
+        canUseTimer={canUseTimer}
         subtasks={subtasks}
         members={members}
         labels={labels}

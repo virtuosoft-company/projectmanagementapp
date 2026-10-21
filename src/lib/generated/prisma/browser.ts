@@ -116,6 +116,35 @@ export type TaskAssignee = Prisma.TaskAssigneeModel
  */
 export type TimeEntry = Prisma.TimeEntryModel
 /**
+ * Model Attendance
+ * One person, one day, as recorded rather than as derived.
+ * 
+ * Deliberately a *record*, not a judgement: there is no `status` column. Late,
+ * present, absent and short-day are all read off this row against the schedule
+ * that applied — see `WorkSchedule`. Storing "LATE" would freeze a verdict
+ * made under whatever policy happened to be live at import time, and the
+ * office that moves its start time from 10:00 to 09:30 would silently rewrite
+ * six months of history or keep two contradictory meanings of the same word.
+ * 
+ * `checkOutAt` is null all day for somebody still in the building, which is
+ * why the calendar can render "IN: 10:31 / OUT: --" without inventing a time.
+ */
+export type Attendance = Prisma.AttendanceModel
+/**
+ * Model WorkSchedule
+ * The hours somebody is expected to work, assigned by HR.
+ * 
+ * Lateness is not a constant: three companies share this install (the Holidays
+ * screen shows VS, TB and Spruce Tech) and shifts differ within them, so the
+ * threshold belongs to the person rather than to the code or the workspace.
+ * 
+ * Dated rather than overwritten. A schedule has `effectiveFrom`, and the one
+ * that applied on a given day is the latest one not after it — so changing
+ * somebody's start time tomorrow does not reclassify every morning they
+ * already worked. `effectiveTo` is null for the schedule currently in force.
+ */
+export type WorkSchedule = Prisma.WorkScheduleModel
+/**
  * Model Campaign
  * 
  */
@@ -194,6 +223,23 @@ export type TaskLabel = Prisma.TaskLabelModel
  * has resized and re-encoded it — not the file that was chosen.
  */
 export type TaskAttachment = Prisma.TaskAttachmentModel
+/**
+ * Model File
+ * An uploaded file, bytes and all.
+ * 
+ * Storage lives in the database rather than in object storage. Every column
+ * that used to hold an R2 object key — `TaskAttachment.objectKey`,
+ * `Task.coverKey`, `User.imageKey`, `AppSetting.logo*Key` and `faviconKey` —
+ * now holds one of these ids instead, and `/api/files/[id]` serves the bytes.
+ * The names were left alone deliberately: renaming five columns across
+ * twenty-five call sites buys nothing the comment does not.
+ * 
+ * Two consequences worth knowing. `data` is a MySQL LONGBLOB, so a row is
+ * read whole into memory — there is no streaming and no range support, which
+ * rules out seeking in a large video. And blobs land in every `mysqldump`,
+ * so backups grow with uploads rather than staying proportional to rows.
+ */
+export type File = Prisma.FileModel
 /**
  * Model AppSetting
  * The deployment's own branding: logo, dark-mode logo, favicon.

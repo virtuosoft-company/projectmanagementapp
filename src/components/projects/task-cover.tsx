@@ -12,7 +12,7 @@ import {
   formatBytes,
   isOptimizableImageSrc,
   validateImageFile,
-} from "@/lib/r2";
+} from "@/lib/files";
 import { removeTaskCoverAction, setTaskCoverAction } from "@/lib/task-actions";
 
 /**

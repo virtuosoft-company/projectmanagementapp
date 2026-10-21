@@ -18,7 +18,7 @@ import {
   formatBytes,
   validateAttachmentFile,
   validateImageFile,
-} from "@/lib/r2";
+} from "@/lib/files";
 import {
   PRIORITIES,
   TASK_STATUSES,

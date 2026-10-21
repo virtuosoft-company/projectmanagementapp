@@ -16,16 +16,20 @@ export type CreateWorkspaceResult = { ok: boolean; error?: string; workspaceId?:
 export async function createWorkspaceAction(input: CreateWorkspaceInput): Promise<CreateWorkspaceResult> {
   const user = await requireAccount();
 
-  const memberships = await prisma.workspaceMember.count({ where: { userId: user.id } });
   // `viewerCan` rather than `can(user.role, …)`: `user.role` is the base enum
   // from the JWT, so a custom role that narrows `workspace.create` away would
   // still pass here — while the sidebar entry and the /workspaces button, both
   // of which go through `hasPermission`, are already hidden for that person.
   // The two must agree, and the resolver is the side that knows the narrowing.
   //
-  // Someone with no memberships at all is signing up: they are creating their
-  // first workspace and become its admin, so there is no role to check yet.
-  if (memberships > 0 && !(await viewerCan("workspace.create"))) {
+  // The bypass is for **first run**, keyed on the installation being empty —
+  // not on the caller holding no memberships, which is what it used to check.
+  // That version let anybody who could sign in but held no membership create a
+  // workspace and become its ADMIN, which is the one way to mint a second
+  // administrator without going through any of the guarded paths. An account
+  // in that state is waiting to be invited, and `/onboarding` already says so.
+  const installationIsEmpty = (await prisma.workspace.count()) === 0;
+  if (!installationIsEmpty && !(await viewerCan("workspace.create"))) {
     return { ok: false, error: "Only an admin can create a workspace." };
   }
 

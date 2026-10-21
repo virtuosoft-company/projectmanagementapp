@@ -280,8 +280,12 @@ export function ProjectMembersCard({
               </label>
             ))}
             {available.length === 0 ? (
+              // Not "everyone in the workspace is already on this project":
+              // the admin is in the workspace, is not on the project, and is
+              // never a candidate — so that sentence was false exactly when it
+              // appeared.
               <p className="p-2 text-sm text-muted-foreground">
-                Everyone in the workspace is already on this project.
+                Nobody left to add.
               </p>
             ) : null}
           </div>

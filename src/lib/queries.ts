@@ -34,7 +34,8 @@ import {
   type WorkspaceSummary,
 } from "@/lib/domain";
 import { isSameDay, isSameWeek } from "@/lib/duration";
-import { buildR2Url } from "@/lib/r2";
+import type { Weekday } from "@/lib/attendance";
+import { buildFileUrl } from "@/lib/files";
 import {
   SHEET_MAX_COLS,
   SHEET_MAX_ROWS,
@@ -264,7 +265,7 @@ const getAllTasks = cache(async (workspaceId: string): Promise<Task[]> => {
     subtasksDone: subtaskStatsByTask.get(task.id)?.done ?? 0,
     trackedHours: minutesToHours(minutesByTask.get(task.id) ?? 0),
     attachmentCount: task._count.attachments,
-    coverUrl: task.coverKey ? buildR2Url(task.coverKey) : null,
+    coverUrl: task.coverKey ? buildFileUrl(task.coverKey) : null,
     archived: task.archivedAt !== null,
     listId: task.listId,
     position: task.position,
@@ -334,11 +335,28 @@ export const getLabelUsage = cache(async (workspaceId: string) => {
   return new Map(rows.map((row) => [row.labelId, row._count.taskId]));
 });
 
-/** One person's time entries against one task, newest first, with who logged them. */
+/**
+ * Time entries against one task, newest first, with who logged them.
+ *
+ * `scopeToUserId` narrows the result to that person's own entries; passing
+ * `undefined` returns everybody's. Same convention as `projectScope()` — the
+ * absence of a scope means unrestricted, and the caller decides which it gets
+ * from `time.manage`. Scoped here rather than in the component because an
+ * entry's note and hours are the data, not the presentation: a card that hides
+ * rows it was handed still shipped them to the browser.
+ */
 export const getTaskEntries = cache(
-  async (workspaceId: string, taskId: string): Promise<TaskEntry[]> => {
+  async (
+    workspaceId: string,
+    taskId: string,
+    scopeToUserId?: string,
+  ): Promise<TaskEntry[]> => {
     const entries = await prisma.timeEntry.findMany({
-      where: { taskId, task: { project: { workspaceId } } },
+      where: {
+        taskId,
+        task: { project: { workspaceId } },
+        ...(scopeToUserId ? { userId: scopeToUserId } : {}),
+      },
       orderBy: [{ date: "desc" }, { createdAt: "desc" }],
       include: { user: { select: personSelect } },
     });
@@ -374,7 +392,7 @@ export const getTaskAttachments = cache(
       objectKey: row.objectKey,
       // Resolved here rather than in the component, so the bucket's public
       // domain is read in one place instead of everywhere an image is drawn.
-      url: buildR2Url(row.objectKey),
+      url: buildFileUrl(row.objectKey),
       filename: row.filename,
       mimeType: row.mimeType,
       size: row.size,
@@ -431,7 +449,7 @@ async function loadSubtasks(
     files: row.attachments.map((file) => ({
       id: file.id,
       filename: file.filename,
-      url: buildR2Url(file.objectKey),
+      url: buildFileUrl(file.objectKey),
       mimeType: file.mimeType,
       size: file.size,
     })),
@@ -496,7 +514,7 @@ export const getNotifications = cache(
  */
 export const getBranding = cache(async (): Promise<Branding> => {
   const settings = await prisma.appSetting.findUnique({ where: { id: "app" } });
-  const url = (key: string | null | undefined) => (key ? buildR2Url(key) : null);
+  const url = (key: string | null | undefined) => (key ? buildFileUrl(key) : null);
 
   return {
     logoLight: url(settings?.logoLightKey),
@@ -1020,3 +1038,101 @@ export const getEvents = cache(
     }));
   },
 );
+
+// --- Attendance --------------------------------------------------------------
+
+/**
+ * One recorded day, with the times as local wall clock.
+ *
+ * `checkIn`/`checkOut` are "HH:MM" rather than instants because that is what
+ * the page shows and what the verdict compares against. See `wallClock` below
+ * for why the conversion is safe to do with UTC getters.
+ */
+export type AttendanceRecord = {
+  id: string;
+  date: string;
+  userId: string;
+  checkIn: string | null;
+  checkOut: string | null;
+  source: "DEVICE" | "REMOTE" | "CORRECTION";
+  note: string;
+  user: Person;
+};
+
+/**
+ * The wall-clock face of a stored instant, as "HH:MM".
+ *
+ * Read with UTC getters on purpose. A check-in is a time somebody's day
+ * started in the office they were standing in; it is written as that local
+ * clock face expressed at UTC, exactly as `isoToDate` does for `@db.Date`
+ * columns. Reading it back with local getters would shift every time by the
+ * server's offset — and shift it differently on the server and in the browser,
+ * so the same day would hydrate as two different times.
+ */
+function wallClock(value: Date | null): string | null {
+  if (!value) return null;
+  return `${String(value.getUTCHours()).padStart(2, "0")}:${String(value.getUTCMinutes()).padStart(2, "0")}`;
+}
+
+/**
+ * Attendance for a date range, newest-irrelevant (the grid places them by day).
+ *
+ * `scopeToUserId` narrows to one person's days; `undefined` returns everyone's.
+ * Same convention as `projectScope` and `timeEntryScope` — and applied here, in
+ * the query, because attendance says where somebody was and when, which is the
+ * most personal data this system holds. A page filtering rows it was already
+ * handed has still sent them to the browser.
+ */
+export const getAttendanceMonth = cache(
+  async (
+    workspaceId: string,
+    from: string,
+    to: string,
+    scopeToUserId?: string,
+  ): Promise<AttendanceRecord[]> => {
+    const rows = await prisma.attendance.findMany({
+      where: {
+        workspaceId,
+        date: { gte: isoToDate(from)!, lte: isoToDate(to)! },
+        ...(scopeToUserId ? { userId: scopeToUserId } : {}),
+      },
+      orderBy: { date: "asc" },
+      include: { user: { select: personSelect } },
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      date: dateToIso(row.date)!,
+      userId: row.userId,
+      checkIn: wallClock(row.checkInAt),
+      checkOut: wallClock(row.checkOutAt),
+      source: row.source,
+      note: row.note,
+      user: row.user as Person,
+    }));
+  },
+);
+
+/**
+ * Every schedule ever assigned to somebody, oldest first.
+ *
+ * All of them, not just the current one: a month view judges each day against
+ * the schedule that applied *that* day, so a month spanning a reassignment
+ * needs both. `scheduleOn` picks per day.
+ */
+export const getWorkSchedules = cache(async (workspaceId: string, userId: string) => {
+  const rows = await prisma.workSchedule.findMany({
+    where: { workspaceId, userId },
+    orderBy: { effectiveFrom: "asc" },
+  });
+
+  return rows.map((row) => ({
+    id: row.id,
+    startsAt: row.startsAt,
+    endsAt: row.endsAt,
+    graceMinutes: row.graceMinutes,
+    workingDays: (Array.isArray(row.workingDays) ? row.workingDays : []) as Weekday[],
+    effectiveFrom: row.effectiveFrom,
+    effectiveTo: row.effectiveTo,
+  }));
+});

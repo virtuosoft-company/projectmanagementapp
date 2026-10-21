@@ -18,15 +18,14 @@ import { hoursToMinutes } from "@/lib/domain";
 import { formatMinutes } from "@/lib/duration";
 import { isoToDate, priorityToDb, taskStatusToDb } from "@/lib/mappers";
 import { notify } from "@/lib/notifications";
-import { validateAttachmentFile, validateImageFile } from "@/lib/r2";
+import { validateAttachmentFile, validateImageFile } from "@/lib/files";
 import { subtreeIds } from "@/lib/subtask-tree";
 import {
-  deleteFromR2,
-  isR2Configured,
-  uploadAttachmentToR2,
-  uploadImageToR2,
-} from "@/lib/r2-server";
-import { requirePermission, viewerCan } from "@/lib/session";
+  deleteStoredFile,
+  uploadAttachmentFile,
+  uploadImageFile,
+} from "@/lib/files-server";
+import { requirePermission, viewerCan, viewerIsAdmin } from "@/lib/session";
 import {
   type ArchiveTaskInput,
   archiveTaskSchema,
@@ -545,6 +544,17 @@ async function stopTimersOnTask(taskId: string) {
 export async function startTimerAction(input: StartTimerInput): Promise<ActionResult> {
   const user = await requirePermission("time.log");
 
+  // The admin account logs time by hand, not by the clock. Refused here as
+  // well as hidden in the UI: an action is a public endpoint, so a missing
+  // button is a courtesy and this is the rule.
+  //
+  // Only *starting* is refused. Stopping, pausing and discarding stay open, so
+  // a timer left running by an earlier build can still be cleared rather than
+  // ticking forever against an account that may no longer start one.
+  if (await viewerIsAdmin()) {
+    return { ok: false, error: "The admin account records time manually rather than by timer." };
+  }
+
   const parsed = startTimerSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
 
@@ -799,7 +809,7 @@ export type UploadResult = { ok: boolean; error?: string; results: UploadOutcome
  * Upload the images chosen for a task, when the form is saved.
  *
  * Files arrive as `FormData` and the bytes travel through this server, which is
- * what lets `uploadImageToR2` resize and re-encode each one before storing it —
+ * what lets `uploadImageFile` resize and re-encode each one before storing it —
  * a phone photo lands as a few hundred KB rather than nine megabytes.
  *
  * Each file is reported separately: one bad image in a selection of five should
@@ -808,10 +818,6 @@ export type UploadResult = { ok: boolean; error?: string; results: UploadOutcome
  */
 export async function uploadTaskImagesAction(formData: FormData): Promise<UploadResult> {
   const user = await requirePermission("tasks.manage");
-
-  if (!isR2Configured()) {
-    return { ok: false, error: "Image uploads are not configured on this server.", results: [] };
-  }
 
   const taskId = String(formData.get("taskId") ?? "");
   const task = await findTask(taskId, user.workspaceId);
@@ -831,7 +837,7 @@ export async function uploadTaskImagesAction(formData: FormData): Promise<Upload
       continue;
     }
 
-    const upload = await uploadImageToR2(file, "task-attachment");
+    const upload = await uploadImageFile(file, "task-attachment", user.id);
     if (!upload.success || !upload.objectKey) {
       results.push({ filename: file.name, ok: false, error: upload.error ?? "Upload failed." });
       continue;
@@ -882,7 +888,7 @@ export async function deleteAttachmentAction(id: string): Promise<ActionResult> 
   });
   if (!attachment) return NOT_FOUND;
 
-  const removed = await deleteFromR2(attachment.objectKey);
+  const removed = await deleteStoredFile(attachment.objectKey);
   if (!removed) return { ok: false, error: "Could not delete that image from storage." };
 
   await prisma.taskAttachment.delete({ where: { id: attachment.id } });
@@ -892,18 +898,14 @@ export async function deleteAttachmentAction(id: string): Promise<ActionResult> 
 }
 
 /**
- * Attach one file — an image or a document, up to 10MB — to a task, or to one
+ * Attach one file — an image or a document, up to 4MB — to a task, or to one
  * of its subtasks when `subtaskId` is sent.
  *
  * One file per request: the action body limit (`next.config.ts`) leaves room
- * for a single 10MB file, not several.
+ * for a single 4MB file, not several.
  */
 export async function uploadTaskFileAction(formData: FormData): Promise<ActionResult> {
   const user = await requirePermission("tasks.manage");
-
-  if (!isR2Configured()) {
-    return { ok: false, error: "File uploads are not configured on this server." };
-  }
 
   const task = await findTask(String(formData.get("taskId") ?? ""), user.workspaceId);
   if (!task) return { ok: false, error: "That task no longer exists." };
@@ -920,7 +922,7 @@ export async function uploadTaskFileAction(formData: FormData): Promise<ActionRe
   const allowed = validateAttachmentFile(file);
   if (!allowed.isValid) return { ok: false, error: allowed.error };
 
-  const upload = await uploadAttachmentToR2(file);
+  const upload = await uploadAttachmentFile(file, user.id);
   if (!upload.success || !upload.objectKey) {
     return { ok: false, error: upload.error ?? "Upload failed." };
   }
@@ -951,10 +953,6 @@ export async function uploadTaskFileAction(formData: FormData): Promise<ActionRe
 export async function setTaskCoverAction(formData: FormData): Promise<ActionResult> {
   const user = await requirePermission("tasks.manage");
 
-  if (!isR2Configured()) {
-    return { ok: false, error: "Image uploads are not configured on this server." };
-  }
-
   const taskId = String(formData.get("taskId") ?? "");
   const task = await prisma.task.findFirst({
     where: { id: taskId, project: { workspaceId: user.workspaceId } },
@@ -968,13 +966,13 @@ export async function setTaskCoverAction(formData: FormData): Promise<ActionResu
   const allowed = validateImageFile(file);
   if (!allowed.isValid) return { ok: false, error: allowed.error };
 
-  const upload = await uploadImageToR2(file, "task-cover");
+  const upload = await uploadImageFile(file, "task-cover", user.id);
   if (!upload.success || !upload.objectKey) {
     return { ok: false, error: upload.error ?? "Upload failed." };
   }
 
   await prisma.task.update({ where: { id: task.id }, data: { coverKey: upload.objectKey } });
-  if (task.coverKey) await deleteFromR2(task.coverKey);
+  if (task.coverKey) await deleteStoredFile(task.coverKey);
 
   refreshTask(task.projectId, task.id);
   return { ok: true };
@@ -991,7 +989,7 @@ export async function removeTaskCoverAction(taskId: string): Promise<ActionResul
   if (!task.coverKey) return { ok: true };
 
   await prisma.task.update({ where: { id: task.id }, data: { coverKey: null } });
-  await deleteFromR2(task.coverKey);
+  await deleteStoredFile(task.coverKey);
 
   refreshTask(task.projectId, task.id);
   return { ok: true };

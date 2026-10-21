@@ -7,6 +7,7 @@
 
 import {
   Building2,
+  CalendarCheck,
   CalendarDays,
   Clock,
   FileText,
@@ -88,6 +89,20 @@ export interface NavItem {
 export interface NavSection {
   title?: string;
   items: NavItem[];
+  /**
+   * What the section belongs to.
+   *
+   * `"workspace"` (the default) is everything inside the workspace you are
+   * currently in — its projects, its people, your own settings. Switch
+   * workspace and these mean something different.
+   *
+   * `"installation"` is administration, which is **not** part of a workspace:
+   * there is one administration across the whole install, and its screens do
+   * not change meaning when you switch workspace. Marked rather than merely
+   * ordered, so the sidebar can separate the two and so nothing has to infer
+   * it from a section title.
+   */
+  scope?: "workspace" | "installation";
 }
 
 function baseSections(): NavSection[] {
@@ -96,10 +111,15 @@ function baseSections(): NavSection[] {
       title: "Navigation",
       items: [
         { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+        { title: "Attendance", href: "/attendance", icon: CalendarCheck },
         { title: "Team Members", href: "/team-members", icon: Users },
         { title: "Projects", href: "/projects", icon: FolderKanban },
         { title: "Calendar", href: "/projects/calendar", icon: CalendarDays },
         { title: "Messages", href: "/messages", icon: MessageSquare },
+        // Lived under Administration, which was the wrong home: a project
+        // timesheet is the workspace's own data, and it moved out when
+        // administration stopped being part of the workspace.
+        { title: "Timesheet", href: "/projects/timesheet", icon: Clock },
       ]
     },
     // {
@@ -108,7 +128,23 @@ function baseSections(): NavSection[] {
     //   ],
     // },
     {
+      title: "Settings",
+      items: [
+        { title: "Profile", href: "/profile", icon: User },
+        {
+          title: "Display & Appearance",
+          href: "/settings/appearance",
+          icon: Palette
+        },
+      ]
+    },
+    // Last, and marked as installation-level: administration is not part of
+    // the workspace above it. Its screens are the same whichever workspace you
+    // are standing in, which is why they sit below the separator rather than
+    // among the workspace's own navigation.
+    {
       title: "Administration",
+      scope: "installation",
       items: [
         { title: "Users", href: "/admin/users", icon: UserCog },
         {
@@ -127,18 +163,6 @@ function baseSections(): NavSection[] {
           page: "users",
         },
         { title: "Workspaces", href: "/workspaces", icon: Building2 },
-        {title: "Timesheet", href: "/projects/timesheet", icon: Clock},
-      ]
-    },
-    {
-      title: "Settings",
-      items: [
-        { title: "Profile", href: "/profile", icon: User },
-        {
-          title: "Display & Appearance",
-          href: "/settings/appearance",
-          icon: Palette
-        },
       ]
     },
   ];

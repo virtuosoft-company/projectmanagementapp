@@ -137,13 +137,46 @@ export async function updateProjectAction(input: UpdateProjectInput): Promise<Ac
   const allowed = new Set(
     (
       await prisma.workspaceMember.findMany({
-        where: { workspaceId: user.workspaceId, userId: { in: requested } },
+        // The admin administers the workspace rather than working in its
+        // projects, so it is not a candidate — see `participatesInWork`. Added
+        // to the existing workspace check rather than filtered afterwards,
+        // because this query is already the answer to "who may be put on this
+        // project" and two places to ask would drift apart.
+        where: {
+          workspaceId: user.workspaceId,
+          userId: { in: requested },
+          role: { not: "ADMIN" },
+        },
         select: { userId: true },
       })
     ).map((member) => member.userId),
   );
 
-  const current = new Set(existing.members.map((member) => member.userId));
+  /*
+   * Admins already on the project are held out of the diff entirely.
+   *
+   * This is a set difference, so leaving them merely unticked would delete a
+   * membership that predates the rule — the dialog can no longer offer them,
+   * so every save would read as "remove the admin". Excluded from both sides
+   * instead: this dialog cannot add an admin, and cannot remove one either.
+   * Changing that row stays a deliberate act elsewhere.
+   */
+  const untouchable = new Set(
+    (
+      await prisma.workspaceMember.findMany({
+        where: {
+          workspaceId: user.workspaceId,
+          userId: { in: existing.members.map((member) => member.userId) },
+          role: "ADMIN",
+        },
+        select: { userId: true },
+      })
+    ).map((member) => member.userId),
+  );
+
+  const current = new Set(
+    existing.members.map((member) => member.userId).filter((id) => !untouchable.has(id)),
+  );
   const wanted = requested.filter((userId) => allowed.has(userId));
   const added = wanted.filter((userId) => !current.has(userId));
   const removed = [...current].filter((userId) => !wanted.includes(userId));
@@ -244,11 +277,35 @@ export async function addProjectMembersAction(
   });
   if (!project) return NOT_FOUND;
 
+  /*
+   * Who may actually be put on this project: a member of *this* workspace who
+   * takes part in the work — so not the admin, which administers the workspace
+   * rather than working in it (see `participatesInWork`).
+   *
+   * The ids arrive over the wire, so the picker having offered only eligible
+   * people proves nothing here. This also closes a gap that predates the admin
+   * rule: this action never checked the workspace, so an id from another one
+   * was added without complaint — its sibling `updateProjectAction` has always
+   * done that check.
+   */
+  const eligible = new Set(
+    (
+      await prisma.workspaceMember.findMany({
+        where: {
+          workspaceId: user.workspaceId,
+          userId: { in: [...new Set(parsed.data.userIds)] },
+          role: { not: "ADMIN" },
+        },
+        select: { userId: true },
+      })
+    ).map((member) => member.userId),
+  );
+
   // Who is genuinely new. `skipDuplicates` silently absorbs the rest, so
   // without this an admin re-saving the member list would notify everybody on
   // the project all over again.
   const already = new Set(project.members.map((member) => member.userId));
-  const added = [...new Set(parsed.data.userIds)].filter((userId) => !already.has(userId));
+  const added = [...eligible].filter((userId) => !already.has(userId));
 
   await prisma.projectMember.createMany({
     data: added.map((userId) => ({ projectId: parsed.data.projectId, userId })),

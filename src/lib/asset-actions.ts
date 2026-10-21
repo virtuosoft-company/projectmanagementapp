@@ -4,7 +4,7 @@
  * Uploads that are not attached to a task: someone's profile photo, and the
  * deployment's own branding.
  *
- * All of it goes to R2 through `uploadImageToR2`, on save rather than on
+ * All of it is stored through `uploadImageFile`, on save rather than on
  * selection — the file is previewed locally while the form is open and only
  * crosses the wire when the person commits to it.
  *
@@ -15,8 +15,8 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { buildR2Url, isImageKind, validateImageFile, type ImageKind } from "@/lib/r2";
-import { deleteFromR2, isR2Configured, uploadImageToR2 } from "@/lib/r2-server";
+import { buildFileUrl, isImageKind, validateImageFile, type ImageKind } from "@/lib/files";
+import { deleteStoredFile, uploadImageFile } from "@/lib/files-server";
 import { requirePermission, requireUser } from "@/lib/session";
 
 export type ActionResult = { ok: boolean; error?: string; url?: string };
@@ -45,17 +45,14 @@ function isBrandingKind(value: string): value is BrandingKind {
 async function store(
   file: File,
   kind: ImageKind,
+  uploadedById: string,
 ): Promise<{ ok: true; objectKey: string } | { ok: false; error: string }> {
-  if (!isR2Configured()) {
-    return { ok: false, error: "Image uploads are not configured on this server." };
-  }
-
   // Re-checked server-side: these actions are reachable directly, not only
   // through the picker that already validated.
   const allowed = validateImageFile(file);
   if (!allowed.isValid) return { ok: false, error: allowed.error ?? "That file is not an image." };
 
-  const upload = await uploadImageToR2(file, kind);
+  const upload = await uploadImageFile(file, kind, uploadedById);
   if (!upload.success || !upload.objectKey) {
     return { ok: false, error: upload.error ?? "The upload failed." };
   }
@@ -71,7 +68,7 @@ async function store(
  * somebody their photo did not save when it did.
  */
 async function discard(objectKey: string | null | undefined) {
-  if (objectKey) await deleteFromR2(objectKey);
+  if (objectKey) await deleteStoredFile(objectKey);
 }
 
 // --- Profile photo ---------------------------------------------------------
@@ -90,7 +87,7 @@ export async function updateProfileImageAction(formData: FormData): Promise<Acti
     return { ok: false, error: "Choose an image first." };
   }
 
-  const stored = await store(file, "avatar");
+  const stored = await store(file, "avatar", user.id);
   if (!stored.ok) return { ok: false, error: stored.error };
 
   const previous = await prisma.user.findUnique({
@@ -100,7 +97,7 @@ export async function updateProfileImageAction(formData: FormData): Promise<Acti
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { image: buildR2Url(stored.objectKey), imageKey: stored.objectKey },
+    data: { image: buildFileUrl(stored.objectKey), imageKey: stored.objectKey },
   });
 
   await discard(previous?.imageKey);
@@ -108,7 +105,7 @@ export async function updateProfileImageAction(formData: FormData): Promise<Acti
   revalidatePath("/profile");
   revalidatePath("/settings");
   revalidatePath("/", "layout");
-  return { ok: true, url: buildR2Url(stored.objectKey) };
+  return { ok: true, url: buildFileUrl(stored.objectKey) };
 }
 
 /** Remove the photo and fall back to initials. */
@@ -155,7 +152,7 @@ export async function updateBrandingAction(formData: FormData): Promise<ActionRe
     return { ok: false, error: "Choose an image first." };
   }
 
-  const stored = await store(file, kind);
+  const stored = await store(file, kind, user.id);
   if (!stored.ok) return { ok: false, error: stored.error };
 
   const column = BRANDING_COLUMN[kind];
@@ -173,7 +170,7 @@ export async function updateBrandingAction(formData: FormData): Promise<ActionRe
   // has to be revalidated rather than one page.
   revalidatePath("/", "layout");
   void user;
-  return { ok: true, url: buildR2Url(stored.objectKey) };
+  return { ok: true, url: buildFileUrl(stored.objectKey) };
 }
 
 /** Clear one branding slot, restoring the built-in wordmark. */

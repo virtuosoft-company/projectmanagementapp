@@ -9,7 +9,7 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { TASK_STATUSES, todayIso } from "@/lib/domain";
 import { formatMinutes } from "@/lib/duration";
 import { getProject, getTask, getTaskEntries, getTaskSubtasks } from "@/lib/queries";
-import { getSessionUser, projectScope, requireUser } from "@/lib/session";
+import { getSessionUser, projectScope, requireUser, timeEntryScope } from "@/lib/session";
 import { taskStatusColor } from "@/lib/status";
 import { MAX_CHART_DAYS, WHOLE_TASK_LABEL, computeTaskAnalytics } from "@/lib/task-analytics";
 import { cn } from "@/lib/utils";
@@ -28,7 +28,9 @@ export async function generateMetadata({
  * by person, by day — and how far through its subtasks it is.
  *
  * Readable by anyone who can open the task; it shows nothing the task page
- * does not already, only added up.
+ * does not already, only added up — which holds only because both read time
+ * entries through `timeEntryScope()`. Without `time.manage` that is the
+ * viewer's own time, so the per-person breakdown is a breakdown of one.
  */
 export default async function TaskAnalyticsPage({
   params,
@@ -43,7 +45,10 @@ export default async function TaskAnalyticsPage({
   if (!task || task.projectId !== project.id) notFound();
 
   const [entries, subtasks] = await Promise.all([
-    getTaskEntries(viewer.workspaceId, task.id),
+    // The same scope the task page uses. Scoping the list there and not the
+    // figures here is the failure where a member is shown the whole task's
+    // totals and per-person breakdown one click away from a card that hid them.
+    getTaskEntries(viewer.workspaceId, task.id, await timeEntryScope()),
     getTaskSubtasks(viewer.workspaceId, task.id),
   ]);
 

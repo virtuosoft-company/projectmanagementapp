@@ -41,6 +41,7 @@ export function TaskTimeTracking({
   running,
   viewerId,
   canLog,
+  canUseTimer,
   canManageAny,
 }: {
   taskId: string;
@@ -51,9 +52,20 @@ export function TaskTimeTracking({
   /** The viewer's running timer, on this task or another. */
   running: RunningTimer | null;
   viewerId: string;
-  /** `time.log` — may track and add their own time. */
+  /** `time.log` — may add their own time. */
   canLog: boolean;
-  /** `time.manage` — may edit and delete other people's entries too. */
+  /**
+   * `time.log` *and* not the admin account — may run the clock.
+   *
+   * Separate from `canLog` because the admin keeps the manual form and loses
+   * only the timer: one permission, two controls, and they part company here.
+   */
+  canUseTimer: boolean;
+  /**
+   * `time.manage` — may edit and delete other people's entries too, and is
+   * therefore the only role handed anyone else's entries in the first place:
+   * `entries` is already scoped to the viewer when this is false.
+   */
   canManageAny: boolean;
 }) {
   const router = useRouter();
@@ -96,7 +108,13 @@ export function TaskTimeTracking({
     <Card className="shadow-none">
       <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
         <CardTitle className="flex items-center gap-2">
-          Time
+          {/*
+            The badge sums whatever rows arrived, and those are only the
+            viewer's own unless they hold `time.manage`. Calling that "Time" on
+            a task several people worked would read as the task's total and be
+            wrong by however much everyone else logged.
+          */}
+          {canManageAny ? "Time" : "Your time"}
           <Badge variant="secondary" className="font-mono">
             {formatMinutes(totalMinutes)}
           </Badge>
@@ -110,13 +128,15 @@ export function TaskTimeTracking({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <TimerControls
-          taskId={taskId}
-          taskTitle={taskTitle}
-          running={running}
-          canLog={canLog}
-          className="rounded-md border bg-muted/30 p-3"
-        />
+        {canUseTimer ? (
+          <TimerControls
+            taskId={taskId}
+            taskTitle={taskTitle}
+            running={running}
+            canLog={canLog}
+            className="rounded-md border bg-muted/30 p-3"
+          />
+        ) : null}
 
         {error ? (
           <p

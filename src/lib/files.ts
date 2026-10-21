@@ -1,20 +1,23 @@
 /**
- * Cloudflare R2 — the parts that are safe in the browser.
+ * File storage — the parts that are safe in the browser.
  *
- * Object keys, public URLs and pre-flight validation live here; anything that
- * needs a credential lives in `r2-server.ts`. This module ships to the client,
- * so it must stay free of node imports.
+ * Serving URLs and pre-flight validation live here; anything that writes bytes
+ * lives in `files-server.ts`. This module ships to the client, so it must stay
+ * free of node imports.
  *
  * Uploads are deferred: a file chosen in the UI is previewed locally and only
  * crosses the wire when the form is saved. The server action then does the real
- * work — see `uploadImageToR2` — so nothing here ever touches the bucket.
+ * work — see `uploadImageFile` — so nothing here ever touches the database.
+ *
+ * Bytes live in the `File` table rather than in object storage. The columns
+ * that used to hold R2 keys now hold `File` ids, and `/api/files/[id]` serves
+ * them.
  */
 
 // ── Types ──────────────────────────────────────────────────────────
 
-export interface R2UploadResult {
+export interface StoredFileResult {
     success: boolean;
-    url?: string;
     objectKey?: string;
     error?: string;
     width?: number;
@@ -56,98 +59,76 @@ export interface ImageValidationResult {
     warnings: string[];
 }
 
-// ── URL helpers ────────────────────────────────────────────────────
+// ── Serving ────────────────────────────────────────────────────────
 
-/** Check if a URL points at our R2 bucket (or R2 generally). */
-export function isR2Url(url: string): boolean {
-    const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || "";
-    return (
-        (r2PublicUrl.length > 0 && url.includes(r2PublicUrl)) ||
-        url.includes("r2.cloudflarestorage.com")
-    );
+/** Serving prefix. One constant so the route and every caller cannot drift. */
+export const FILE_ROUTE = "/api/files";
+
+/**
+ * The URL that serves a stored file.
+ *
+ * Replaces `buildR2Url`. The seam is the same shape — a column holds an
+ * opaque key, this turns it into a URL — so nothing above it knows whether the
+ * bytes live in a bucket or a LONGBLOB. The key is now a `File` id.
+ */
+export function buildFileUrl(fileId: string): string {
+    return `${FILE_ROUTE}/${fileId}`;
 }
 
 /**
- * Whether next/image can run its remote optimizer on this src without
- * throwing. next.config.ts only whitelists the R2 host (via
- * `remotePatterns`) — there's no blanket `images.unoptimized`, so any other
- * absolute URL (someone pasting an arbitrary external image link, say)
- * needs `unoptimized` set explicitly or the page errors at render time.
- * Root-relative paths (public/ assets) are same-origin and always safe.
+ * Whether next/image can run its optimizer on this src without throwing.
+ *
+ * Every stored file is now same-origin, so this is true for anything
+ * root-relative and false for an arbitrary external link — which still needs
+ * `unoptimized` set explicitly or the page errors at render time. The R2 host
+ * check this used to carry is gone along with the `remotePatterns` entry.
+ *
+ * Worth knowing: same-origin means the optimizer proxies each image through
+ * this server rather than fetching it from a CDN, so a cache miss on an avatar
+ * is a database read.
  */
 export function isOptimizableImageSrc(src: string): boolean {
-    return src.startsWith("/") || isR2Url(src);
-}
-
-/** Extract the object key from one of our R2 URLs (null if not ours). */
-export function extractObjectKey(url: string): string | null {
-    try {
-        const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || "";
-        if (!r2PublicUrl || !url.includes(r2PublicUrl)) return null;
-
-        const pathname = new URL(url).pathname;
-        return pathname.startsWith("/") ? pathname.substring(1) : pathname;
-    } catch (error) {
-        console.error("Error extracting object key:", error);
-        return null;
-    }
-}
-
-/** Build the public URL for an object key. */
-export function buildR2Url(objectKey: string): string {
-    const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || "";
-    return `${r2PublicUrl}/${objectKey}`;
+    // A stored file is never optimizable, even though it is same-origin. The
+    // optimizer fetches the source itself, server-side, without the viewer's
+    // cookies — so `/api/files/[id]` redirects it to /signin, it receives HTML
+    // instead of an image, and `/_next/image` answers 400. The image then does
+    // not render at all. Verified in the browser: the only thing that works is
+    // letting the browser request the route directly, with its own session.
+    if (src.startsWith(`${FILE_ROUTE}/`)) return false;
+    return src.startsWith("/");
 }
 
 /**
- * Whether uploads can work at all, as far as the browser can tell.
+ * Whether uploads can work. Always true now.
  *
- * Only the public URL is visible here — the credentials are server-side — so
- * this is what the UI uses to decide between offering an upload and explaining
- * that the bucket is not configured. `validateR2Config` in `r2-server.ts` is
- * the complete check.
+ * Kept rather than deleted because the upload controls branch on it: R2 could
+ * be unconfigured, and each control explained that instead of offering
+ * something that could not work. A database column has nothing to configure,
+ * so the explanation is gone and the controls are simply available.
  */
-export function isR2ConfiguredForClient(): boolean {
-    return Boolean(process.env.NEXT_PUBLIC_R2_PUBLIC_URL);
+export function isFileStorageConfigured(): boolean {
+    return true;
 }
 
 /**
- * Everything this app stores lives under one prefix, so the bucket stays
- * shareable with whatever else uses it.
+ * What may be served inline. Everything else downloads.
  *
- * Exported because `next.config.ts` imports it to narrow the `next/image`
- * remote pattern to this subtree. The two have to agree, and a second copy in
- * the config would drift silently the first time this changed.
+ * This is the whole defence against stored XSS. Bytes are served from this
+ * app's own origin now, so an uploaded `.html` or `.svg` rendered inline
+ * would run with access to the session cookie. SVG is excluded deliberately —
+ * it is an image to a person and a script host to a browser.
  */
-export const R2_PREFIX = "projectmanagement";
+export const INLINE_MIME_TYPES = [
+    "image/png",
+    "image/jpeg",
+    "image/gif",
+    "image/webp",
+    "image/avif",
+    "application/pdf",
+] as const;
 
-const FOLDERS: Record<ImageKind, string> = {
-    "task-attachment": `${R2_PREFIX}/tasks`,
-    "task-cover": `${R2_PREFIX}/task-covers`,
-    avatar: `${R2_PREFIX}/avatars`,
-    "logo-light": `${R2_PREFIX}/branding`,
-    "logo-dark": `${R2_PREFIX}/branding`,
-    favicon: `${R2_PREFIX}/branding`,
-};
-
-/**
- * Generate a collision-safe object key for an upload:
- *   projectmanagement/tasks/2026-09-05-1757068800123-screenshot.png
- * Folder comes from what the image is for; filename is slugified.
- */
-export function objectKeyFor(kind: ImageKind, fileName: string): string {
-    const folder = FOLDERS[kind];
-    const ext = fileName.includes(".")
-        ? fileName.slice(fileName.lastIndexOf(".")).toLowerCase()
-        : "";
-    const base = fileName
-        .slice(0, fileName.length - ext.length)
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "")
-        .slice(0, 60) || "image";
-    const stamp = new Date().toISOString().slice(0, 10);
-    return `${folder}/${stamp}-${Date.now()}-${base}${ext}`;
+export function isInlineMimeType(mimeType: string): boolean {
+    return (INLINE_MIME_TYPES as readonly string[]).includes(mimeType.toLowerCase());
 }
 
 // ── Basic file validation (shared) ─────────────────────────────────
@@ -155,7 +136,17 @@ export function objectKeyFor(kind: ImageKind, fileName: string): string {
 // This module ships to the browser, so it can't read server-only env vars —
 // keep this in sync with the cap the upload action enforces. Only a pre-flight
 // UX check anyway; the action is the actual enforcement point.
-export const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+//
+// 4MB, not 10, because bytes now land in a LONGBLOB rather than a bucket, and
+// MySQL refuses any statement larger than `max_allowed_packet` (5MB here). The
+// app has to refuse first: otherwise the file uploads, sharp processes it, and
+// the INSERT is rejected by the server — the person waits through all of that
+// for a driver error instead of being told the file is too large. The gap
+// between 4 and 5 is headroom for statement overhead.
+//
+// Images are re-encoded by sharp anyway, so a 4MB input usually stores far
+// smaller; this mostly binds documents, which pass through byte-for-byte.
+export const MAX_SIZE = 4 * 1024 * 1024; // 4MB
 
 // Deliberately no GIF or SVG: every upload is re-encoded by sharp server-side,
 // which flattens an animated GIF to one frame and rasterises an SVG — silently

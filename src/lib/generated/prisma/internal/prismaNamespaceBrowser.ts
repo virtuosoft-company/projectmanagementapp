@@ -64,6 +64,8 @@ export const ModelName = {
   Subtask: 'Subtask',
   TaskAssignee: 'TaskAssignee',
   TimeEntry: 'TimeEntry',
+  Attendance: 'Attendance',
+  WorkSchedule: 'WorkSchedule',
   Campaign: 'Campaign',
   LandingSection: 'LandingSection',
   Message: 'Message',
@@ -76,6 +78,7 @@ export const ModelName = {
   Label: 'Label',
   TaskLabel: 'TaskLabel',
   TaskAttachment: 'TaskAttachment',
+  File: 'File',
   AppSetting: 'AppSetting',
   Event: 'Event',
   EventAttendee: 'EventAttendee',
@@ -299,6 +302,41 @@ export const TimeEntryScalarFieldEnum = {
 export type TimeEntryScalarFieldEnum = (typeof TimeEntryScalarFieldEnum)[keyof typeof TimeEntryScalarFieldEnum]
 
 
+export const AttendanceScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  userId: 'userId',
+  date: 'date',
+  checkInAt: 'checkInAt',
+  checkOutAt: 'checkOutAt',
+  source: 'source',
+  note: 'note',
+  recordedById: 'recordedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AttendanceScalarFieldEnum = (typeof AttendanceScalarFieldEnum)[keyof typeof AttendanceScalarFieldEnum]
+
+
+export const WorkScheduleScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  userId: 'userId',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  graceMinutes: 'graceMinutes',
+  workingDays: 'workingDays',
+  effectiveFrom: 'effectiveFrom',
+  effectiveTo: 'effectiveTo',
+  assignedById: 'assignedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WorkScheduleScalarFieldEnum = (typeof WorkScheduleScalarFieldEnum)[keyof typeof WorkScheduleScalarFieldEnum]
+
+
 export const CampaignScalarFieldEnum = {
   id: 'id',
   projectId: 'projectId',
@@ -456,6 +494,22 @@ export const TaskAttachmentScalarFieldEnum = {
 } as const
 
 export type TaskAttachmentScalarFieldEnum = (typeof TaskAttachmentScalarFieldEnum)[keyof typeof TaskAttachmentScalarFieldEnum]
+
+
+export const FileScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  mimeType: 'mimeType',
+  size: 'size',
+  data: 'data',
+  width: 'width',
+  height: 'height',
+  public: 'public',
+  uploadedById: 'uploadedById',
+  createdAt: 'createdAt'
+} as const
+
+export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
 
 
 export const AppSettingScalarFieldEnum = {
@@ -719,6 +773,29 @@ export const TimeEntryOrderByRelevanceFieldEnum = {
 export type TimeEntryOrderByRelevanceFieldEnum = (typeof TimeEntryOrderByRelevanceFieldEnum)[keyof typeof TimeEntryOrderByRelevanceFieldEnum]
 
 
+export const AttendanceOrderByRelevanceFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  userId: 'userId',
+  note: 'note',
+  recordedById: 'recordedById'
+} as const
+
+export type AttendanceOrderByRelevanceFieldEnum = (typeof AttendanceOrderByRelevanceFieldEnum)[keyof typeof AttendanceOrderByRelevanceFieldEnum]
+
+
+export const WorkScheduleOrderByRelevanceFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  userId: 'userId',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  assignedById: 'assignedById'
+} as const
+
+export type WorkScheduleOrderByRelevanceFieldEnum = (typeof WorkScheduleOrderByRelevanceFieldEnum)[keyof typeof WorkScheduleOrderByRelevanceFieldEnum]
+
+
 export const CampaignOrderByRelevanceFieldEnum = {
   id: 'id',
   projectId: 'projectId',
@@ -851,6 +928,16 @@ export const TaskAttachmentOrderByRelevanceFieldEnum = {
 } as const
 
 export type TaskAttachmentOrderByRelevanceFieldEnum = (typeof TaskAttachmentOrderByRelevanceFieldEnum)[keyof typeof TaskAttachmentOrderByRelevanceFieldEnum]
+
+
+export const FileOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  mimeType: 'mimeType',
+  uploadedById: 'uploadedById'
+} as const
+
+export type FileOrderByRelevanceFieldEnum = (typeof FileOrderByRelevanceFieldEnum)[keyof typeof FileOrderByRelevanceFieldEnum]
 
 
 export const AppSettingOrderByRelevanceFieldEnum = {

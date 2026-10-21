@@ -3,7 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { FileText, Paperclip, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { formatBytes, isImageMimeType } from "@/lib/r2";
+import { formatBytes, isImageMimeType } from "@/lib/files";
 
 /**
  * Choose one file for a form, without uploading it. The form uploads it on

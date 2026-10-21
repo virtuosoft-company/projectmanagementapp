@@ -20,7 +20,7 @@ import {
   isOptimizableImageSrc,
   validateImageForSlot,
   type ImageKind,
-} from "@/lib/r2";
+} from "@/lib/files";
 import { cn } from "@/lib/utils";
 
 /**

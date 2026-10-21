@@ -464,8 +464,20 @@ export function AppSidebar({
           collapsed ? "p-3" : "p-4",
         )}
       >
-        {sections.map((section) => (
-          <div key={section.title ?? "default"} className="space-y-1">
+        {sections.map((section, index) => (
+          <div
+            key={section.title ?? "default"}
+            className={cn(
+              "space-y-1",
+              // Administration is not part of the workspace, so it is drawn
+              // below a rule rather than as one more workspace section. Only
+              // the first installation-level section carries it, so two of
+              // them would not stack two separators.
+              section.scope === "installation" &&
+                sections[index - 1]?.scope !== "installation" &&
+                "border-t border-sidebar-border pt-4",
+            )}
+          >
             {section.title && !collapsed ? (
               <div className="px-3 py-2">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60">

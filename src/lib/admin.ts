@@ -3,8 +3,64 @@ import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { formatDay, round1, type Role } from "@/lib/domain";
 import { roleToDomain } from "@/lib/mappers";
-import { ROLES, resolveCustomRole, type AppPage, type Permission } from "@/lib/permissions";
+import {
+  ROLES,
+  SECOND_ADMIN_REFUSAL,
+  resolveCustomRole,
+  wouldAddSecondAdmin,
+  type AppPage,
+  type Permission,
+} from "@/lib/permissions";
 import type { PendingInvitation } from "@/components/admin/pending-invitations";
+
+/**
+ * Admins across the whole installation, counting only accounts that can still
+ * sign in.
+ *
+ * Deliberately **not** scoped to a workspace. Administration is an
+ * installation-level thing here, so both the floor (never zero) and the ceiling
+ * (never two) count the same way — a workspace-scoped floor beside an
+ * installation-wide ceiling would disagree the moment a second workspace
+ * existed. A disabled account is not an admin for either purpose: it cannot
+ * sign in, so it can neither administer nor stand in the way of somebody who
+ * would.
+ */
+export async function activeAdminCount(): Promise<number> {
+  // Distinct *people*, not membership rows. One person holding ADMIN in two
+  // workspaces is one administrator; counting rows would report two and then
+  // refuse every later admin grant on the strength of a duplicate.
+  const admins = await prisma.workspaceMember.findMany({
+    where: { role: "ADMIN", user: { disabledAt: null } },
+    select: { userId: true },
+    distinct: ["userId"],
+  });
+  return admins.length;
+}
+
+/**
+ * Refuse a grant that would make a second administrator.
+ *
+ * Returns an error to surface, or null when the grant is allowed. Lives here
+ * rather than beside one caller because four separate paths can mint an admin
+ * — creating an account, adding an existing one to a workspace, changing a
+ * role, and accepting an invitation — and the previous version of this rule
+ * ended up as four hardcoded copies that disagreed.
+ *
+ * `holding` is the role the target already has, or null when they hold none.
+ * Re-granting admin to the current admin is not a second admin, which is what
+ * stops an idempotent re-save refusing itself.
+ */
+export async function guardAdminCeiling(
+  granting: Role,
+  holding?: Role | null,
+): Promise<{ ok: false; error: string } | null> {
+  if (granting !== "admin") return null;
+  const existingAdmins = await activeAdminCount();
+  if (wouldAddSecondAdmin({ existingAdmins, granting, holding })) {
+    return { ok: false, error: SECOND_ADMIN_REFUSAL };
+  }
+  return null;
+}
 
 
 export type AdminUser = {
@@ -42,8 +98,9 @@ export type UserStats = {
 /**
  * Every account in the system, annotated with its role in `workspaceId`.
  *
- * Deliberately **not** workspace-scoped: the admin Users screen is a directory
- * of all accounts, so people who belong to another workspace still appear —
+ * Deliberately **not** workspace-scoped, and that is the design rather than an
+ * oversight: administration is installation-level here, so its Users screen is
+ * a directory of every account. People who belong to another workspace appear
  * with `role: null` and `inWorkspace: false`, never with a borrowed role.
  *
  * The management actions stay scoped: `setUserRoleAction`, `deleteUserAction`

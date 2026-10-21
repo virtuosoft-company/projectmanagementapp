@@ -23,6 +23,11 @@ export const PERMISSIONS = {
   // their own; changing someone else's is a supervisory act, and it moves what
   // the reports and invoices say.
   "time.manage": ["admin", "manager"],
+  // Seeing anybody's attendance but your own. Everyone can see their own days
+  // without holding anything, the same way everyone may log their own time —
+  // so there is no `attendance.view` to go with this. Assignable like any
+  // other permission, so a custom role can be given it on the Roles screen.
+  "attendance.manage": ["admin", "manager"],
   "reports.view": ["admin", "manager", "member", "viewer"],
   "members.invite": ["admin"],
   // Granting and changing what someone may do, matching who
@@ -70,6 +75,7 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   "events.manage": "Manage calendar events",
   "time.log": "Log time",
   "time.manage": "Edit anyone's time entries",
+  "attendance.manage": "See everyone's attendance",
   "reports.view": "View reports",
   "members.invite": "Invite members",
   "roles.manage": "Manage roles & permissions",
@@ -98,6 +104,36 @@ export const FIXED_ROLES: Role[] = ["admin"];
 export function isFixedRole(role: string): boolean {
   return (FIXED_ROLES as string[]).includes(role);
 }
+
+/**
+ * Whether a role grant would create a second administrator.
+ *
+ * Administration is an **installation** fact, not a workspace one: there is one
+ * administration across the whole install, so `existingAdmins` is counted with
+ * no workspace filter. The rule is a ceiling of one, and it sits alongside the
+ * floor the last-admin guards already enforce — never two, never zero.
+ *
+ * Pure, so it can be exercised without a database. The caller supplies the
+ * count; this decides what the count means.
+ *
+ * `holding` is the role the target already has, or null when they hold none
+ * (a new account, or one being added to a workspace). Re-granting admin to
+ * somebody who is already the admin is not a second admin, which is what keeps
+ * an idempotent re-save from refusing itself.
+ */
+export function wouldAddSecondAdmin(args: {
+  existingAdmins: number;
+  granting: Role;
+  holding?: Role | null;
+}): boolean {
+  if (args.granting !== "admin") return false;
+  if (args.holding === "admin") return false;
+  return args.existingAdmins >= 1;
+}
+
+/** The one message every admin-ceiling refusal uses, so they cannot drift. */
+export const SECOND_ADMIN_REFUSAL =
+  "There can only be one admin. Change the current admin's role first.";
 
 export const PERMISSION_KEYS = Object.keys(PERMISSIONS) as Permission[];
 
@@ -137,6 +173,10 @@ export const APP_PAGES = [
   { key: "projects", label: "All Projects", href: "/projects", permission: null },
   { key: "tasks", label: "Tasks", href: "/projects/tasks", permission: null },
   { key: "calendar", label: "Calendar", href: "/projects/calendar", permission: null },
+  // No permission: everybody may open their own attendance. Seeing anybody
+  // else's is `attendance.manage`, enforced by the query rather than by which
+  // page you can reach.
+  { key: "attendance", label: "Attendance", href: "/attendance", permission: null },
   { key: "team-members", label: "Team Members", href: "/team-members", permission: null },
   { key: "messages", label: "Messages", href: "/messages", permission: null },
   {

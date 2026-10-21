@@ -80,3 +80,12 @@ export const SectionType = {
 } as const
 
 export type SectionType = (typeof SectionType)[keyof typeof SectionType]
+
+
+export const AttendanceSource = {
+  DEVICE: 'DEVICE',
+  REMOTE: 'REMOTE',
+  CORRECTION: 'CORRECTION'
+} as const
+
+export type AttendanceSource = (typeof AttendanceSource)[keyof typeof AttendanceSource]

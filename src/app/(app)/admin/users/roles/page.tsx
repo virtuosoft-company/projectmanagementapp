@@ -69,8 +69,16 @@ export default async function RolesPage() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="mt-1 text-2xl font-bold leading-tight tracking-tight">Roles</h1>
+            {/*
+              The one administration screen that is not installation-wide.
+              A `CustomRole` is unique per workspace (`@@unique([workspaceId,
+              name])`), so roles belong to a workspace even though the rest of
+              administration does not. Said here rather than left to be
+              discovered, since every other screen under Administration covers
+              the whole install.
+            */}
             <p className="mt-1 text-sm text-muted-foreground">
-              What each role can do, and who holds it
+              What each role can do, and who holds it — in this workspace
             </p>
           </div>
           {canManage ? <CreateRoleButton /> : null}
